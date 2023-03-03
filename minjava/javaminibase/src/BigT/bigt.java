@@ -1,5 +1,6 @@
 package BigT;
 
+import global.*;
 
 /**
  * The type Bigt.

@@ -55,7 +55,7 @@ public class Map implements GlobalConst{
      * @return the time stamp
      */
     public int getTimeStamp() {
-        return null;
+        return 0;
     }
 
     /**
@@ -117,7 +117,7 @@ public class Map implements GlobalConst{
      * Print.
      */
     public void print() {
-        return null;
+
     }
 
     /**

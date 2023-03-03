@@ -1,5 +1,7 @@
 package BigT;
 
+import global.*;
+
 /**
  * The type Stream.
  */
@@ -31,6 +33,6 @@ public class Stream {
      * @return the next
      */
     public Map getNext(MID mid) {
-
+        return null;
     }
 }
