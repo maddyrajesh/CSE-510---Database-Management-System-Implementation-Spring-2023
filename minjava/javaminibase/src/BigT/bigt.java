@@ -79,4 +79,9 @@ public class bigt {
     public Stream openStream(int orderType, String rowFilter, String columnFilter, String valueFilter) {
         return null;
     }
+
+
+    public int getType() {
+        return type;
+    }
 }
