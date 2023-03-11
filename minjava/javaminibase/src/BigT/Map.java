@@ -116,6 +116,14 @@ public class Map implements GlobalConst {
         return Convert.getStrValue(fldOffset[3], data, fldOffset[3] - fldOffset[2]);
     }
 
+    /** get the offset of a tuple
+     *  @return offset of the tuple in byte array
+     */
+    public int getOffset()
+    {
+        return map_offset;
+    }
+
     /**
      * Sets row label.
      *

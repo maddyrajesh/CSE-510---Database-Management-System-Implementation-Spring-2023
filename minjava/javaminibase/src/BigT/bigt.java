@@ -6,6 +6,12 @@ import global.*;
  * The type Bigt.
  */
 public class bigt {
+
+    private final String name;
+    private final int type;
+    private int mapCount = 0;
+    private int rowCount = 0;
+    private int columnCount = 0;
     /**
      * Instantiates a new Bigt.
      *
@@ -13,7 +19,8 @@ public class bigt {
      * @param type the type
      */
     public bigt(String name, int type) {
-
+        this.name = name;
+        this.type = type;
     }
 
     /**
@@ -29,7 +36,7 @@ public class bigt {
      * @return the map cnt
      */
     public int getMapCnt() {
-        return 0;
+        return mapCount;
     }
 
     /**
@@ -38,7 +45,7 @@ public class bigt {
      * @return the row cnt
      */
     public int getRowCnt() {
-        return 0;
+        return rowCount;
     }
 
     /**
@@ -47,7 +54,7 @@ public class bigt {
      * @return the column cnt
      */
     public int getColumnCnt() {
-        return 0;
+        return columnCount;
     }
 
     /**

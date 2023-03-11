@@ -4,6 +4,7 @@ package heap;
 /** File DataPageInfo.java */
 
 
+import BigT.Map;
 import global.*;
 import java.io.*;
 
@@ -68,36 +69,32 @@ class DataPageInfo implements GlobalConst{
    }
       
       
-  /** constructor: translate a tuple to a DataPageInfo object
-   *  it will make a copy of the data in the tuple
-   * @param atuple: the input tuple
+  /** constructor: translate a map to a DataPageInfo object
+   *  it will make a copy of the data in the map
+   * @param _amap: the input map
    */
-  public DataPageInfo(Tuple _atuple)
-       throws InvalidTupleSizeException, IOException
+  public DataPageInfo(Map _amap)
+       throws InvalidMapSizeException, IOException
   {   
      // need check _atuple size == this.size ?otherwise, throw new exception
-    if (_atuple.getLength()!=12){
-      throw new InvalidTupleSizeException(null, "HEAPFILE: TUPLE SIZE ERROR");
-    }
-
-    else{
-      data = _atuple.returnTupleByteArray();
-      offset = _atuple.getOffset();
+    /*if (_amap.getLength()!=12){
+      throw new InvalidMapSizeException(null, "HEAPFILE: MAP SIZE ERROR");
+    }*/
+      data = _amap.getMapByteArray();
+      offset = _amap.getOffset();
       
       availspace = Convert.getIntValue(offset, data);
       recct = Convert.getIntValue(offset+4, data);
       pageId = new PageId();
       pageId.pid = Convert.getIntValue(offset+8, data);
-      
-    }
   }
   
   
-  /** convert this class objcet to a tuple(like cast a DataPageInfo to Tuple)
+  /** convert this class object to a map(like cast a DataPageInfo to Map)
    *  
    *
    */
-  public Tuple convertToTuple()
+  public Map convertToMap()
        throws IOException
   {
 
@@ -107,11 +104,11 @@ class DataPageInfo implements GlobalConst{
     Convert.setIntValue(pageId.pid, offset+8, data);
 
 
-    // 2) creat a Tuple object using this array
-    Tuple atuple = new Tuple(data, offset, size); 
+    // 2) creat a Map object using this array
+    Map amap = new Map(data, offset);
  
-    // 3) return tuple object
-    return atuple;
+    // 3) return map object
+    return amap;
 
   }
   
@@ -120,7 +117,7 @@ class DataPageInfo implements GlobalConst{
    *  to the data[](may be in buffer pool)
    *  
    */
-  public void flushToTuple() throws IOException
+  public void flushToMap() throws IOException
   {
      // write availspace, recct, pageId into "data[]"
     Convert.setIntValue(availspace, offset, data);
