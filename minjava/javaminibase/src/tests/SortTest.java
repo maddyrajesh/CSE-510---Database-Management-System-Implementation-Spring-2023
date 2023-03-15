@@ -2,11 +2,9 @@ package tests;
 
 import java.io.*; 
 import global.*;
-import bufmgr.*;
-import diskmgr.*;
 import heap.*;
 import iterator.*;
-import index.*;
+
 import java.util.Random;
 
 
@@ -130,9 +128,9 @@ class SORTDriver extends TestDriver
     short[] attrSize = new short[2];
     attrSize[0] = REC_LEN1;
     attrSize[1] = REC_LEN2;
-    TupleOrder[] order = new TupleOrder[2];
-    order[0] = new TupleOrder(TupleOrder.Ascending);
-    order[1] = new TupleOrder(TupleOrder.Descending);
+    MapOrder[] order = new MapOrder[2];
+    order[0] = new MapOrder(MapOrder.Ascending);
+    order[1] = new MapOrder(MapOrder.Descending);
     
     // create a tuple of appropriate size
     Tuple t = new Tuple();
@@ -193,7 +191,7 @@ class SORTDriver extends TestDriver
     FileScan fscan = null;
     
     try {
-      fscan = new FileScan("test1.in", attrType, attrSize, (short) 2, 2, projlist, null);
+      fscan = new FileScan("test1.in", attrSize, projlist, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -203,7 +201,7 @@ class SORTDriver extends TestDriver
     // Sort "test1.in" 
     Sort sort = null;
     try {
-      sort = new Sort(attrType, (short) 2, attrSize, fscan, 1, order[0], REC_LEN1, SORTPGNUM);
+      sort = new Sort(attrSize, fscan, 1, order[0], SORTPGNUM, 1);
     }
     catch (Exception e) {
       status = FAIL;
@@ -290,9 +288,9 @@ class SORTDriver extends TestDriver
     attrType[0] = new AttrType(AttrType.attrString);
     short[] attrSize = new short[1];
     attrSize[0] = REC_LEN1;
-    TupleOrder[] order = new TupleOrder[2];
-    order[0] = new TupleOrder(TupleOrder.Ascending);
-    order[1] = new TupleOrder(TupleOrder.Descending);
+    MapOrder[] order = new MapOrder[2];
+    order[0] = new MapOrder(MapOrder.Ascending);
+    order[1] = new MapOrder(MapOrder.Descending);
     
     // create a tuple of appropriate size
     Tuple t = new Tuple();
@@ -351,7 +349,7 @@ class SORTDriver extends TestDriver
     FileScan fscan = null;
     
     try {
-      fscan = new FileScan("test2.in", attrType, attrSize, (short) 1, 1, projlist, null);
+      fscan = new FileScan("test2.in", attrSize, projlist, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -361,7 +359,7 @@ class SORTDriver extends TestDriver
     // Sort "test2.in"
     Sort sort = null;
     try {
-      sort = new Sort(attrType, (short) 1, attrSize, fscan, 1, order[1], REC_LEN1, SORTPGNUM);
+      sort = new Sort(attrSize, fscan, 1, order[1], SORTPGNUM, 1);
     }
     catch (Exception e) {
       status = FAIL;
@@ -453,9 +451,9 @@ class SORTDriver extends TestDriver
     short[] attrSize = new short[2];
     attrSize[0] = REC_LEN1;
     attrSize[1] = REC_LEN1;
-    TupleOrder[] order = new TupleOrder[2];
-    order[0] = new TupleOrder(TupleOrder.Ascending);
-    order[1] = new TupleOrder(TupleOrder.Descending);
+    MapOrder[] order = new MapOrder[2];
+    order[0] = new MapOrder(MapOrder.Ascending);
+    order[1] = new MapOrder(MapOrder.Descending);
     
     Tuple t = new Tuple();
 
@@ -531,7 +529,7 @@ class SORTDriver extends TestDriver
     System.out.println(" -- Sorting in ascending order on the int field -- ");
     
     try {
-      fscan = new FileScan("test3.in", attrType, attrSize, (short) 4, 4, projlist, null);
+      fscan = new FileScan("test3.in", attrSize, projlist, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -541,7 +539,7 @@ class SORTDriver extends TestDriver
 
     Sort sort = null;
     try {
-      sort = new Sort(attrType, (short) 4, attrSize, fscan, 3, order[0], 4, SORTPGNUM);
+      sort = new Sort(attrSize, fscan, 3, order[0], SORTPGNUM, 1);
     }
     catch (Exception e) {
       status = FAIL;
@@ -630,7 +628,7 @@ class SORTDriver extends TestDriver
     System.out.println(" -- Sorting in descending order on the float field -- ");
     
     try {
-      fscan = new FileScan("test3.in", attrType, attrSize, (short) 4, 4, projlist, null);
+      fscan = new FileScan("test3.in", attrSize, projlist, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -638,7 +636,7 @@ class SORTDriver extends TestDriver
     }
      
     try {
-      sort = new Sort(attrType, (short) 4, attrSize, fscan, 4, order[1], 4, SORTPGNUM);
+      sort = new Sort(attrSize, fscan, 4, order[1], SORTPGNUM, 1);
     }
     catch (Exception e) {
       status = FAIL;
@@ -740,9 +738,9 @@ class SORTDriver extends TestDriver
     short[] attrSize = new short[2];
     attrSize[0] = REC_LEN1;
     attrSize[1] = REC_LEN2;
-    TupleOrder[] order = new TupleOrder[2];
-    order[0] = new TupleOrder(TupleOrder.Ascending);
-    order[1] = new TupleOrder(TupleOrder.Descending);
+    MapOrder[] order = new MapOrder[2];
+    order[0] = new MapOrder(MapOrder.Ascending);
+    order[1] = new MapOrder(MapOrder.Descending);
     
     // create a tuple of appropriate size
     Tuple t = new Tuple();
@@ -807,8 +805,8 @@ class SORTDriver extends TestDriver
     FileScan fscan2 = null;
     
     try {
-      fscan1 = new FileScan("test4-1.in", attrType, attrSize, (short) 2, 2, projlist, null);
-      fscan2 = new FileScan("test4-2.in", attrType, attrSize, (short) 2, 2, projlist, null);
+      fscan1 = new FileScan("test4-1.in", attrSize, projlist, null);
+      fscan2 = new FileScan("test4-2.in", attrSize, projlist, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -820,8 +818,8 @@ class SORTDriver extends TestDriver
     Sort sort1 = null;
     Sort sort2 = null;
     try {
-      sort1 = new Sort(attrType, (short) 2, attrSize, fscan1, 1, order[0], REC_LEN1, SORTPGNUM);
-      sort2 = new Sort(attrType, (short) 2, attrSize, fscan2, 1, order[1], REC_LEN1, SORTPGNUM);
+      sort1 = new Sort(attrSize, fscan1, 1, order[0], SORTPGNUM, 1);
+      sort2 = new Sort(attrSize, fscan2, 1, order[1], SORTPGNUM, 1);
     }
     catch (Exception e) {
       status = FAIL;

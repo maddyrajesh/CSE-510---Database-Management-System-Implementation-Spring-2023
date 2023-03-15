@@ -5,36 +5,36 @@ package global;
  * 
  */
 
-public class TupleOrder {
+public class MapOrder {
 
   public static final int Ascending  = 0;
   public static final int Descending = 1;
   public static final int Random     = 2;
 
-  public int tupleOrder;
+  public int mapOrder;
 
   /** 
-   * TupleOrder Constructor
+   * MapOrder Constructor
    * <br>
    * A tuple ordering can be defined as 
    * <ul>
-   * <li>   TupleOrder tupleOrder = new TupleOrder(TupleOrder.Random);
+   * <li>   MapOrder mapOrder = new MapOrder(MapOrder.Random);
    * </ul>
    * and subsequently used as
    * <ul>
-   * <li>   if (tupleOrder.tupleOrder == TupleOrder.Random) ....
+   * <li>   if (mapOrder.mapOrder == MapOrder.Random) ....
    * </ul>
    *
-   * @param _tupleOrder The possible ordering of the tuples 
+   * @param _mapOrder The possible ordering of the tuples
    */
 
-  public TupleOrder (int _tupleOrder) {
-    tupleOrder = _tupleOrder;
+  public MapOrder(int _mapOrder) {
+    mapOrder = _mapOrder;
   }
 
   public String toString() {
     
-    switch (tupleOrder) {
+    switch (mapOrder) {
     case Ascending:
       return "Ascending";
     case Descending:
@@ -42,7 +42,7 @@ public class TupleOrder {
     case Random:
       return "Random";
     }
-    return ("Unexpected TupleOrder " + tupleOrder);
+    return ("Unexpected MapOrder " + mapOrder);
   }
 
 }

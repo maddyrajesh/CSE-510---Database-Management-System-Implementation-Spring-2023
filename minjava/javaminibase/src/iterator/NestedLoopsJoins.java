@@ -1,10 +1,10 @@
 package iterator;
    
 
+import BigT.Map;
 import heap.*;
 import global.*;
 import bufmgr.*;
-import diskmgr.*;
 import index.*;
 import java.lang.*;
 import java.io.*;
@@ -14,8 +14,8 @@ import java.io.*;
  *  algorithm as described in the Shapiro paper.
  *  The algorithm is extremely simple:
  *
- *      foreach tuple r in R do
- *          foreach tuple s in S do
+ *      foreach map r in R do
+ *          foreach map s in S do
  *              if (ri == sj) then add (r, s) to the result.
  */
 
@@ -29,9 +29,9 @@ public class NestedLoopsJoins  extends Iterator
   private   CondExpr RightFilter[];
   private   int        n_buf_pgs;        // # of buffer pages available.
   private   boolean        done,         // Is the join complete
-    get_from_outer;                 // if TRUE, a tuple is got from outer
-  private   Tuple     outer_tuple, inner_tuple;
-  private   Tuple     Jtuple;           // Joined tuple
+    get_from_outer;                 // if TRUE, a map is got from outer
+  private   Map outer_map, inner_map;
+  private   Map Jmap;           // Joined map
   private   FldSpec   perm_mat[];
   private   int        nOutFlds;
   private   Heapfile  hf;
@@ -51,7 +51,7 @@ public class NestedLoopsJoins  extends Iterator
    *@param relationName  access hfapfile for right i/p to join
    *@param outFilter   select expressions
    *@param rightFilter reference to filter applied on right i/p
-   *@param proj_list shows what input fields go where in the output tuple
+   *@param proj_list shows what input fields go where in the output map
    *@param n_out_flds number of outer relation fileds
    *@exception IOException some I/O fault
    *@exception NestedLoopException exception from this class
@@ -82,8 +82,8 @@ public class NestedLoopsJoins  extends Iterator
       
       outer = am1;
       t2_str_sizescopy =  t2_str_sizes;
-      inner_tuple = new Tuple();
-      Jtuple = new Tuple();
+      inner_map = new Map();
+      Jmap = new Map();
       OutputFilter = outFilter;
       RightFilter  = rightFilter;
       
@@ -98,12 +98,13 @@ public class NestedLoopsJoins  extends Iterator
       perm_mat = proj_list;
       nOutFlds = n_out_flds;
       try {
-	t_size = TupleUtils.setup_op_tuple(Jtuple, Jtypes,
+		  // This will need to be changed with the map utils updates.
+	t_size = MapUtils.setup_op_map(Jmap, Jtypes,
 					   in1, len_in1, in2, len_in2,
 					   t1_str_sizes, t2_str_sizes,
 					   proj_list, nOutFlds);
-      }catch (TupleUtilsException e){
-	throw new NestedLoopException(e,"TupleUtilsException is caught by NestedLoopsJoins.java");
+      }catch (MapUtilsException e){
+	throw new NestedLoopException(e,"MapUtilsException is caught by NestedLoopsJoins.java");
       }
       
       
@@ -118,14 +119,14 @@ public class NestedLoopsJoins  extends Iterator
     }
   
   /**  
-   *@return The joined tuple is returned
+   *@return The joined map is returned
    *@exception IOException I/O errors
    *@exception JoinsException some join exception
    *@exception IndexException exception from super class
-   *@exception InvalidTupleSizeException invalid tuple size
-   *@exception InvalidTypeException tuple type not valid
+   *@exception InvalidMapSizeException invalid map size
+   *@exception InvalidTypeException map type not valid
    *@exception PageNotReadException exception from lower layer
-   *@exception TupleUtilsException exception from using tuple utilities
+   *@exception MapUtilsException exception from using map utilities
    *@exception PredEvalException exception from PredEval class
    *@exception SortException sort exception
    *@exception LowMemException memory error
@@ -134,14 +135,14 @@ public class NestedLoopsJoins  extends Iterator
    *@exception Exception other exceptions
 
    */
-  public Tuple get_next()
+  public Map get_next()
     throws IOException,
 	   JoinsException ,
 	   IndexException,
-	   InvalidTupleSizeException,
+          InvalidMapSizeException,
 	   InvalidTypeException, 
 	   PageNotReadException,
-	   TupleUtilsException, 
+	   MapUtilsException,
 	   PredEvalException,
 	   SortException,
 	   LowMemException,
@@ -157,7 +158,7 @@ public class NestedLoopsJoins  extends Iterator
       
       do
 	{
-	  // If get_from_outer is true, Get a tuple from the outer, delete
+	  // If get_from_outer is true, Get a map from the outer, delete
 	  // an existing scan on the file, and reopen a new scan on the file.
 	  // If a get_next on the outer returns DONE?, then the nested loops
 	  //join is done too.
@@ -178,7 +179,7 @@ public class NestedLoopsJoins  extends Iterator
 		throw new NestedLoopException(e, "openScan failed");
 	      }
 	      
-	      if ((outer_tuple=outer.get_next()) == null)
+	      if ((outer_map =outer.get_next()) == null)
 		{
 		  done = true;
 		  if (inner != null) 
@@ -192,24 +193,23 @@ public class NestedLoopsJoins  extends Iterator
 	    }  // ENDS: if (get_from_outer == TRUE)
 	 
 	  
-	  // The next step is to get a tuple from the inner,
+	  // The next step is to get a map from the inner,
 	  // while the inner is not completely scanned && there
-	  // is no match (with pred),get a tuple from the inner.
-	  
-	 
-	      RID rid = new RID();
-	      while ((inner_tuple = inner.getNext(rid)) != null)
+	  // is no match (with pred),get a map from the inner.
+
+	      MID mid = new MID();
+	      while ((inner_map = inner.getNext(mid)) != null)
 		{
-		  inner_tuple.setHdr((short)in2_len, _in2,t2_str_sizescopy);
-		  if (PredEval.Eval(RightFilter, inner_tuple, null, _in2, null) == true)
+		  inner_map.setHdr(t2_str_sizescopy);
+		  if (PredEval.Eval(RightFilter, inner_map, null, _in2, null) == true)
 		    {
-		      if (PredEval.Eval(OutputFilter, outer_tuple, inner_tuple, _in1, _in2) == true)
+		      if (PredEval.Eval(OutputFilter, outer_map, inner_map, _in1, _in2) == true)
 			{
-			  // Apply a projection on the outer and inner tuples.
-			  Projection.Join(outer_tuple, _in1, 
-					  inner_tuple, _in2, 
-					  Jtuple, perm_mat, nOutFlds);
-			  return Jtuple;
+			  // Apply a projection on the outer and inner maps.
+			  Projection.Join(outer_map,
+					  inner_map,
+					  Jmap, perm_mat, nOutFlds);
+			  return Jmap;
 			}
 		    }
 		}
@@ -218,7 +218,7 @@ public class NestedLoopsJoins  extends Iterator
 	      //returned from t//he while loop. Hence, inner is 
 	      //exhausted, => set get_from_outer = TRUE, go to top of loop
 	      
-	      get_from_outer = true; // Loop back to top and get next outer tuple.	      
+	      get_from_outer = true; // Loop back to top and get next outer map.
 	} while (true);
     } 
  

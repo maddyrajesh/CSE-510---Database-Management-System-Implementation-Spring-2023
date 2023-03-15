@@ -1,9 +1,7 @@
 
 package iterator;
 import global.*;
-import bufmgr.*;
-import diskmgr.*;
-import heap.*;
+
 import java.io.*;
 
 /**
@@ -23,7 +21,7 @@ public abstract class pnodePQ
   protected AttrType              fld_type;
 
   /** the sorting order (Ascending or Descending) */
-  protected TupleOrder            sort_order;
+  protected MapOrder sort_order;
 
   /**
    * class constructor, set <code>count</code> to <code>0</code>.
@@ -49,10 +47,10 @@ public abstract class pnodePQ
    * @exception IOException from lower layers
    * @exception UnknowAttrType <code>attrSymbol</code> or
    *                           <code>attrNull</code> encountered
-   * @exception TupleUtilsException error in tuple compare routines
+   * @exception MapUtilsException error in map compare routines
    */
   abstract public void  enq(pnode  item) 
-           throws IOException, UnknowAttrType, TupleUtilsException;      
+           throws IOException, UnknowAttrType, MapUtilsException;
 
   /**
    * removes the minimum (Ascending) or maximum (Descending) element
@@ -72,11 +70,11 @@ public abstract class pnodePQ
    * @exception IOException from lower layers
    * @exception UnknowAttrType <code>attrSymbol</code> or 
    *                           <code>attrNull</code> encountered
-   * @exception TupleUtilsException error in tuple compare routines
+   * @exception MapUtilsException error in map compare routines
    */
   public int pnodeCMP(pnode a, pnode b) 
-         throws IOException, UnknowAttrType, TupleUtilsException {
-    int ans = TupleUtils.CompareTupleWithTuple(fld_type, a.tuple, fld_no, b.tuple, fld_no);
+         throws IOException, UnknowAttrType, MapUtilsException {
+    int ans = MapUtils.CompareMapWithMap(a.map, b.map, fld_no);
     return ans;
   }
 
@@ -89,9 +87,9 @@ public abstract class pnodePQ
    * @exception IOException from lower layers
    * @exception UnknowAttrType <code>attrSymbol</code> or 
    *                           <code>attrNull</code> encountered
-   * @exception TupleUtilsException error in tuple compare routines
+   * @exception MapUtilsException error in map compare routines
    */  
-  public boolean pnodeEQ(pnode a, pnode b) throws IOException, UnknowAttrType, TupleUtilsException {
+  public boolean pnodeEQ(pnode a, pnode b) throws IOException, UnknowAttrType, MapUtilsException {
     return pnodeCMP(a, b) == 0;
   }
   
@@ -103,13 +101,13 @@ public abstract class pnodePQ
    *         <code>false</code> otherwise
    * @exception IOException from lower layers
    * @exception UnknowAttrType attrSymbol or attrNull encountered
-   * @exception TupleUtilsException error in tuple compare routines
+   * @exception MapUtilsException error in map compare routines
    */  
   /*
-  public boolean pnodeLE(pnode a, pnode b)throws IOException, UnknowAttrType, TupleUtilsException {
-    if (sort_order.tupleOrder == TupleOrder.Ascending) 
+  public boolean pnodeLE(pnode a, pnode b)throws IOException, UnknowAttrType, MapUtilsException {
+    if (sort_order.MapOrder == MapOrder.Ascending)
       return pnodeCMP(a, b) <= 0;
-    else if (sort_order.tupleOrder == TupleOrder.Descending)
+    else if (sort_order.mapOrder == MapOrder.Descending)
       return pnodeCMP(a, b) >= 0;
     else throw new UnknowAttrType("error in pnodePQ.java"); 
   }

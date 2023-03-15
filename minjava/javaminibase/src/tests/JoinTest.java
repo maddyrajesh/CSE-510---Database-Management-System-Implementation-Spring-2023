@@ -8,10 +8,8 @@ import index.*;
 import java.io.*;
 import java.util.*;
 import java.lang.*;
-import diskmgr.*;
-import bufmgr.*;
-import btree.*; 
-import catalog.*;
+
+import btree.*;
 
 /**
    Here is the implementation for the tests. There are N tests performed.
@@ -572,9 +570,8 @@ class JoinsDriver implements GlobalConst {
  
     FileScan am = null;
     try {
-      am  = new FileScan("sailors.in", Stypes, Ssizes, 
-				  (short)4, (short)4,
-				  Sprojection, null);
+      am  = new FileScan("sailors.in", Ssizes,
+              Sprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -601,9 +598,8 @@ class JoinsDriver implements GlobalConst {
  
     FileScan am2 = null;
     try {
-      am2 = new FileScan("reserves.in", Rtypes, Rsizes, 
-				  (short)3, (short) 3,
-				  Rprojection, null);
+      am2 = new FileScan("reserves.in", Rsizes,
+              Rprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -625,7 +621,7 @@ class JoinsDriver implements GlobalConst {
     jtype[0] = new AttrType (AttrType.attrString);
     jtype[1] = new AttrType (AttrType.attrString);
  
-    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+    MapOrder ascending = new MapOrder(MapOrder.Ascending);
     SortMerge sm = null;
     try {
       sm = new SortMerge(Stypes, 4, Ssizes,
@@ -949,11 +945,11 @@ class JoinsDriver implements GlobalConst {
       Runtime.getRuntime().exit(1);
     }
     
-    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+    MapOrder ascending = new MapOrder(MapOrder.Ascending);
     Sort sort_names = null;
     try {
-      sort_names = new Sort (JJtype,(short)1, JJsize,
-			     (iterator.Iterator) nlj2, 1, ascending, JJsize[0], 10);
+      sort_names = new Sort (JJsize,
+			     (iterator.Iterator) nlj2, 1, ascending, 10, 1);
     }
     catch (Exception e) {
       System.err.println ("*** Error preparing for nested_loop_join");
@@ -1048,9 +1044,8 @@ class JoinsDriver implements GlobalConst {
  
     iterator.Iterator am = null;
     try {
-      am  = new FileScan("sailors.in", Stypes, Ssizes,
-				  (short)4, (short) 4,
-				  Sprojection, null);
+      am  = new FileScan("sailors.in", Ssizes,
+              Sprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -1071,9 +1066,8 @@ class JoinsDriver implements GlobalConst {
  
     iterator.Iterator am2 = null;
     try {
-      am2 = new FileScan("reserves.in", Rtypes, Rsizes, 
-				  (short)3, (short)3,
-				  Rprojection, null);
+      am2 = new FileScan("reserves.in", Rsizes,
+              Rprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -1092,7 +1086,7 @@ class JoinsDriver implements GlobalConst {
 
     AttrType [] jtype     = { new AttrType(AttrType.attrString) };
  
-    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+    MapOrder ascending = new MapOrder(MapOrder.Ascending);
     SortMerge sm = null;
     try {
       sm = new SortMerge(Stypes, 4, Ssizes,
@@ -1204,9 +1198,8 @@ class JoinsDriver implements GlobalConst {
  
     iterator.Iterator am = null;
     try {
-      am  = new FileScan("sailors.in", Stypes, Ssizes,
-				  (short)4, (short) 4,
-				  Sprojection, null);
+      am  = new FileScan("sailors.in", Ssizes,
+              Sprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -1227,9 +1220,8 @@ class JoinsDriver implements GlobalConst {
  
     iterator.Iterator am2 = null;
     try {
-      am2 = new FileScan("reserves.in", Rtypes, Rsizes, 
-				  (short)3, (short)3,
-				  Rprojection, null);
+      am2 = new FileScan("reserves.in", Rsizes,
+              Rprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -1248,7 +1240,7 @@ class JoinsDriver implements GlobalConst {
 
     AttrType [] jtype     = { new AttrType(AttrType.attrString) };
  
-    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+    MapOrder ascending = new MapOrder(MapOrder.Ascending);
     SortMerge sm = null;
     short  []  jsizes    = new short[1];
     jsizes[0] = 30;
@@ -1277,7 +1269,7 @@ class JoinsDriver implements GlobalConst {
 
     DuplElim ed = null;
     try {
-      ed = new DuplElim(jtype, (short)1, jsizes, sm, 10, false);
+      ed = new DuplElim(jsizes, sm, 10, false, );
     }
     catch (Exception e) {
       System.err.println (""+e);
@@ -1388,9 +1380,8 @@ class JoinsDriver implements GlobalConst {
 
     iterator.Iterator am = null;
     try {
-      am  = new FileScan("sailors.in", Stypes, Ssizes, 
-				  (short)4, (short)4,
-				  Sprojection, null);
+      am  = new FileScan("sailors.in", Ssizes,
+              Sprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -1405,9 +1396,8 @@ class JoinsDriver implements GlobalConst {
 
     iterator.Iterator am2 = null;
     try {
-      am2 = new FileScan("reserves.in", Rtypes, Rsizes, 
-			 (short)3, (short)3,
-			 Rprojection, null);
+      am2 = new FileScan("reserves.in", Rsizes,
+              Rprojection, null);
     }
     catch (Exception e) {
       status = FAIL;
@@ -1420,7 +1410,7 @@ class JoinsDriver implements GlobalConst {
       Runtime.getRuntime().exit(1);
     }
  
-    TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+    MapOrder ascending = new MapOrder(MapOrder.Ascending);
     SortMerge sm = null;
     try {
       sm = new SortMerge(Stypes, 4, Ssizes,
@@ -1573,9 +1563,8 @@ class JoinsDriver implements GlobalConst {
       
       FileScan am = null;
       try {
-	am  = new FileScan("sailors.in", Stypes, Ssizes, 
-			   (short)4, (short)4,
-			   Sprojection, null);
+	am  = new FileScan("sailors.in", Ssizes,
+            Sprojection, null);
       }
       catch (Exception e) {
 	status = FAIL;
@@ -1626,11 +1615,11 @@ class JoinsDriver implements GlobalConst {
       
       System.out.print( "After nested loop join R.bid|><|B.bid AND B.color=red.\n");
       
-      TupleOrder ascending = new TupleOrder(TupleOrder.Ascending);
+      MapOrder ascending = new MapOrder(MapOrder.Ascending);
       Sort sort_names = null;
       try {
-	sort_names = new Sort (JJtype,(short)1, JJsize,
-			       (iterator.Iterator) nlj, 1, ascending, JJsize[0], 10);
+	sort_names = new Sort (JJsize,
+			       (iterator.Iterator) nlj, 1, ascending, 10, 1);
       }
       catch (Exception e) {
 	System.err.println ("*** Error preparing for sorting");

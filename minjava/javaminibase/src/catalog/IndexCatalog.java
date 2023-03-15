@@ -514,9 +514,9 @@ public class IndexCatalog extends Heapfile
       indexRec.accessType = accessType;
       
       if (accessType.indexType == IndexType.B_Index)
-	indexRec.order = new TupleOrder(TupleOrder.Ascending);
+	indexRec.order = new MapOrder(MapOrder.Ascending);
       else
-	indexRec.order = new TupleOrder(TupleOrder.Random);
+	indexRec.order = new MapOrder(MapOrder.Random);
       
       indexRec.distinctKeys = DISTINCTKEYS;
       indexRec.clustered = 0;  // 0 means non-clustered!!!!
@@ -644,13 +644,13 @@ public class IndexCatalog extends Heapfile
 	    else
 	      System.out.println("Invalid accessType in IndexCatalog::make_tupl");
 	
-	if (record.order.tupleOrder == TupleOrder.Ascending)
+	if (record.order.mapOrder == MapOrder.Ascending)
 	  tuple.setIntFld(4, 0);
 	else
-	  if (record.order.tupleOrder == TupleOrder.Descending)
+	  if (record.order.mapOrder == MapOrder.Descending)
 	    tuple.setIntFld(4, 1);
 	  else
-	    if (record.order.tupleOrder == TupleOrder.Random)
+	    if (record.order.mapOrder == MapOrder.Random)
 	      tuple.setIntFld(4, 2);
 	    else
 	      System.out.println("Invalid order in IndexCatalog::make_tuple");
@@ -689,13 +689,13 @@ public class IndexCatalog extends Heapfile
 	
 	temp = tuple.getIntFld(4);
 	if (temp == 0)
-	  record.order = new TupleOrder(TupleOrder.Ascending);
+	  record.order = new MapOrder(MapOrder.Ascending);
 	else
 	  if (temp == 1)
-	    record.order = new TupleOrder(TupleOrder.Descending);
+	    record.order = new MapOrder(MapOrder.Descending);
 	  else
 	    if (temp == 2)
-	      record.order = new TupleOrder(TupleOrder.Random);
+	      record.order = new MapOrder(MapOrder.Random);
 	    else
 	      System.out.println("222Error in IndexCatalog::read_tuple");
 	

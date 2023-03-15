@@ -1,9 +1,8 @@
 
 package iterator;
+import BigT.Map;
 import heap.*;
 import global.*;
-import diskmgr.*;
-import bufmgr.*;
 
 import java.io.*;
 
@@ -43,13 +42,13 @@ public class IoBuf implements GlobalConst{
   
   
   /**
-   * Writes a tuple to the output buffer
-   *@param buf the tuple written to buffer
+   * Writes a map to the output buffer
    *@exception NoOutputBuffer the buffer is a input bufer now
    *@exception IOException  some I/O fault
    *@exception Exception  other exceptions
+   * @param buf the map written to buffer
    */
-  public void Put(Tuple buf)
+  public void Put(Map buf)
     throws NoOutputBuffer,
 	   IOException,
 	   Exception
@@ -58,7 +57,7 @@ public class IoBuf implements GlobalConst{
 	throw new NoOutputBuffer("IoBuf:Trying to write to io buffer when it is acting as a input buffer");
       
       byte[] copybuf;
-      copybuf = buf.getTupleByteArray();
+      copybuf = buf.getMapByteArray();
       System.arraycopy(copybuf,0,_bufs[curr_page],t_wr_to_pg*t_size,t_size); 
       
       t_written++; t_wr_to_pg++; t_wr_to_buf++; dirty = true;
@@ -78,18 +77,18 @@ public class IoBuf implements GlobalConst{
     }
 
   /**
-   *get a tuple from current buffer,pass reference buf to this method
-   *usage:temp_tuple = tuple.Get(buf); 
-   *@param buf write the result to buf
-   *@return the result tuple
+   *get a map from current buffer,pass reference buf to this method
+   *usage:temp_map = map.Get(buf);
+   *@return the result map
    *@exception IOException some I/O fault
    *@exception Exception other exceptions
+   * @param buf write the result to buf
    */
-  public Tuple Get(Tuple  buf)
+  public Map Get(Map buf)
     throws IOException,
 	   Exception
     {
-      Tuple temptuple;
+      Map tempmap;
       if (done){
 	buf =null;
 	return null;
@@ -99,8 +98,8 @@ public class IoBuf implements GlobalConst{
       
       if (flushed)
 	{
-	  // get tuples from 
-	  if ((temptuple= i_buf.Get(buf)) == null)
+	  // get maps from
+	  if ((tempmap= i_buf.Get(buf)) == null)
 	    {
 	      done = true;
 	      return null;
@@ -108,14 +107,14 @@ public class IoBuf implements GlobalConst{
 	}
       else
 	{
-	  // just reading tuples from the buffer pages.
+	  // just reading maps from the buffer pages.
 	  if ((curr_page * t_per_pg + t_rd_from_pg) == t_written)
 	    {
 	      done = true;
 	      buf = null;
 	      return null;
 	    }
-	  buf.tupleSet(_bufs[curr_page],t_rd_from_pg*t_size,t_size);      
+	  buf.mapSet(_bufs[curr_page],t_rd_from_pg*t_size);
 	  
 	  // Setup for next read
 	  t_rd_from_pg++;
@@ -130,8 +129,8 @@ public class IoBuf implements GlobalConst{
   
   
   /**
-   * returns the numbers of tuples written
-   *@return the numbers of tuples written
+   * returns the numbers of maps written
+   *@return the numbers of maps written
    *@exception IOException some I/O fault
    *@exception Exception other exceptions
    */
@@ -145,14 +144,14 @@ public class IoBuf implements GlobalConst{
 	{
 	  for (count = 0; count <= curr_page; count++)
 	    {
-	      RID rid;
+	      MID mid;
 
-	      // Will have to go thru entire buffer writing tuples to disk
+	      // Will have to go thru entire buffer writing maps to disk
 	      for (int i = 0; i < t_wr_to_pg; i++)
 		{
 		  System.arraycopy(_bufs[count],t_size*i,tempbuf,0,t_size);
 		  try {
-		    rid =  _temp_fd.insertRecord(tempbuf);
+		    mid =  _temp_fd.insertRecord(tempbuf);
 		  }
 		  catch (Exception e){
 		    throw e;
@@ -178,13 +177,13 @@ public class IoBuf implements GlobalConst{
       mode = READ_BUFFER;
       if (flushed)                   // Has the output buffe been flushed?
 	{
-	  // flush all the remaining tuples to disk.
+	  // flush all the remaining maps to disk.
 	  flush();
 	  i_buf.init(_temp_fd, _bufs, _n_pages, t_size, (int)t_written);
 	}
       else
 	{
-	  // All the tuples are in the buffer, just read them out.
+	  // All the maps are in the buffer, just read them out.
 	  t_rd_from_pg = 0;
 	  curr_page    = 0;
 	}
@@ -194,20 +193,20 @@ public class IoBuf implements GlobalConst{
   public static final int READ_BUFFER  =1;
   private boolean done;
   private  boolean dirty;              // Does this buffer contain dirty pages?
-  private  int  t_per_pg,              // # of tuples that fit in 1 page
-    t_in_buf;                        // # of tuples that fit in the buffer
-  private  int  t_wr_to_pg,          // # of tuples written to current page
-    t_wr_to_buf;                      // # of tuples written to buffer.
+  private  int  t_per_pg,              // # of maps that fit in 1 page
+    t_in_buf;                        // # of maps that fit in the buffer
+  private  int  t_wr_to_pg,          // # of maps written to current page
+    t_wr_to_buf;                      // # of maps written to buffer.
   private  int  curr_page;            // Current page being written to.
   private  byte _bufs[][];            // Array of pointers to buffer pages.
   private  int  _n_pages;             // number of pages in array
-  private  int  t_size;               // Size of a tuple
-  private  long t_written;           // # of tuples written so far
+  private  int  t_size;               // Size of a map
+  private  long t_written;           // # of maps written so far
   private  int  _TEST_temp_fd;       // fd of a temporary file
   private  Heapfile _temp_fd;
   private  boolean  flushed;        // TRUE => buffer has been flushed.
   private  int  mode;
-  private  int  t_rd_from_pg;      // # of tuples read from current page
+  private  int  t_rd_from_pg;      // # of maps read from current page
   private  SpoofIbuf i_buf;        // gets input from a temporary file
 }
 

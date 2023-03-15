@@ -1,7 +1,6 @@
 package index;
+import BigT.Map;
 import global.*;
-import bufmgr.*;
-import diskmgr.*; 
 import btree.*;
 import iterator.*;
 import heap.*; 
@@ -31,7 +30,7 @@ public class IndexScan extends Iterator {
    * @param indexOnly whether the answer requires only the key or the tuple
    * @exception IndexException error from the lower layer
    * @exception InvalidTypeException tuple type not valid
-   * @exception InvalidTupleSizeException tuple size not valid
+   * @exception InvalidMapSizeException tuple size not valid
    * @exception UnknownIndexTypeException index type unknown
    * @exception IOException from the lower layer
    */
@@ -50,7 +49,7 @@ public class IndexScan extends Iterator {
 	   ) 
     throws IndexException, 
 	   InvalidTypeException,
-	   InvalidTupleSizeException,
+          InvalidMapSizeException,
 	   UnknownIndexTypeException,
 	   IOException
   {
@@ -133,7 +132,7 @@ public class IndexScan extends Iterator {
    * @exception UnknownKeyTypeException key type unknown
    * @exception IOException from the lower layer
    */
-  public Tuple get_next() 
+  public Map get_next()
     throws IndexException, 
 	   UnknownKeyTypeException,
 	   IOException
@@ -231,7 +230,7 @@ public class IndexScan extends Iterator {
       if (eval) {
 	// need projection.java
 	try {
-	  Projection.Project(tuple1, _types, Jtuple, perm_mat, _noOutFlds);
+	  Projection.Project(tuple1, Jtuple, perm_mat, _noOutFlds);
 	}
 	catch (Exception e) {
 	  throw new IndexException(e, "IndexScan.java: Heapfile error");
