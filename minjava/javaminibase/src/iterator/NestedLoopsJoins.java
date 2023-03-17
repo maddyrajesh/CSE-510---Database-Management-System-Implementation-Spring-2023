@@ -201,13 +201,13 @@ public class NestedLoopsJoins  extends Iterator
 	      while ((inner_map = inner.getNext(mid)) != null)
 		{
 		  inner_map.setHdr(t2_str_sizescopy);
-		  if (PredEval.Eval(RightFilter, inner_map, null, _in2, null) == true)
+		  if (PredEval.Eval(RightFilter, inner_map, null))
 		    {
-		      if (PredEval.Eval(OutputFilter, outer_map, inner_map, _in1, _in2) == true)
+		      if (PredEval.Eval(OutputFilter, outer_map, inner_map))
 			{
 			  // Apply a projection on the outer and inner maps.
-			  Projection.Join(outer_map,
-					  inner_map,
+			  Projection.Join(outer_map, _in1,
+					  inner_map, _in2,
 					  Jmap, perm_mat, nOutFlds);
 			  return Jmap;
 			}

@@ -8,10 +8,10 @@ import java.io.*;
 
 
 /**
- * Index Scan iterator will directly access the required tuple using
+ * Index Scan iterator will directly access the required map using
  * the provided key. It will also perform selections and projections.
- * information about the tuples and the index are passed to the constructor,
- * then the user calls <code>get_next()</code> to get the tuples.
+ * information about the maps and the index are passed to the constructor,
+ * then the user calls <code>get_next()</code> to get the maps.
  */
 public class IndexScan extends Iterator {
 
@@ -22,15 +22,15 @@ public class IndexScan extends Iterator {
    * @param indName name of the input index
    * @param types array of types in this relation
    * @param str_sizes array of string sizes (for attributes that are string)
-   * @param noInFlds number of fields in input tuple
-   * @param noOutFlds number of fields in output tuple
+   * @param noInFlds number of fields in input map
+   * @param noOutFlds number of fields in output map
    * @param outFlds fields to project
    * @param selects conditions to apply, first one is primary
    * @param fldNum field number of the indexed field
-   * @param indexOnly whether the answer requires only the key or the tuple
+   * @param indexOnly whether the answer requires only the key or the map
    * @exception IndexException error from the lower layer
-   * @exception InvalidTypeException tuple type not valid
-   * @exception InvalidMapSizeException tuple size not valid
+   * @exception InvalidTypeException map type not valid
+   * @exception InvalidMapSizeException map size not valid
    * @exception UnknownIndexTypeException index type unknown
    * @exception IOException from the lower layer
    */
@@ -60,30 +60,27 @@ public class IndexScan extends Iterator {
     
     AttrType[] Jtypes = new AttrType[noOutFlds];
     short[] ts_sizes;
-    Jtuple = new Tuple();
+    Jmap = new Map();
     
     try {
-      ts_sizes = TupleUtils.setup_op_tuple(Jtuple, Jtypes, types, noInFlds, str_sizes, outFlds, noOutFlds);
+      ts_sizes = MapUtils.setup_op_map(Jmap, Jtypes, types, noInFlds, str_sizes, outFlds, noOutFlds);
     }
-    catch (TupleUtilsException e) {
-      throw new IndexException(e, "IndexScan.java: TupleUtilsException caught from TupleUtils.setup_op_tuple()");
-    }
-    catch (InvalidRelation e) {
-      throw new IndexException(e, "IndexScan.java: InvalidRelation caught from TupleUtils.setup_op_tuple()");
+    catch (MapUtilsException e) {
+      throw new IndexException(e, "IndexScan.java: MapUtilsException caught from MapUtils.setup_op_map()");
     }
      
     _selects = selects;
     perm_mat = outFlds;
     _noOutFlds = noOutFlds;
-    tuple1 = new Tuple();    
+    map1 = new Map();    
     try {
-      tuple1.setHdr((short) noInFlds, types, str_sizes);
+      map1.setHdr(str_sizes);
     }
     catch (Exception e) {
       throw new IndexException(e, "IndexScan.java: Heapfile error");
     }
     
-    t1_size = tuple1.size();
+    t1_size = map1.size();
     index_only = indexOnly;  // added by bingjie miao
     
     try {
@@ -123,11 +120,10 @@ public class IndexScan extends Iterator {
   }
   
   /**
-   * returns the next tuple.
-   * if <code>index_only</code>, only returns the key value 
-   * (as the first field in a tuple)
-   * otherwise, retrive the tuple and returns the whole tuple
-   * @return the tuple
+   * returns the next map.
+   * if <code>index_only</code>, only returns the key value
+   * otherwise, retrive the map and returns the whole map
+   * @return the map
    * @exception IndexException error from the lower layer
    * @exception UnknownKeyTypeException key type unknown
    * @exception IOException from the lower layer
@@ -137,7 +133,7 @@ public class IndexScan extends Iterator {
 	   UnknownKeyTypeException,
 	   IOException
   {
-    RID rid;
+    MID mid;
     int unused;
     KeyDataEntry nextentry = null;
 
@@ -154,24 +150,52 @@ public class IndexScan extends Iterator {
 
 	AttrType[] attrType = new AttrType[1];
 	short[] s_sizes = new short[1];
-	
-	if (_types[_fldNum -1].attrType == AttrType.attrInteger) {
-	  attrType[0] = new AttrType(AttrType.attrInteger);
+
+	if (_fldNum - 1 == 0) {
+	  attrType[0] = new AttrType(AttrType.attrString);
 	  try {
-	    Jtuple.setHdr((short) 1, attrType, s_sizes);
+	    Jmap.setHdr(s_sizes);
 	  }
 	  catch (Exception e) {
 	    throw new IndexException(e, "IndexScan.java: Heapfile error");
 	  }
-	  
+
 	  try {
-	    Jtuple.setIntFld(1, ((IntegerKey)nextentry.key).getKey().intValue());
+          Jmap.setRowLabel(((StringKey)nextentry.key).getKey());
 	  }
 	  catch (Exception e) {
 	    throw new IndexException(e, "IndexScan.java: Heapfile error");
-	  }	  
+	  }
 	}
-	else if (_types[_fldNum -1].attrType == AttrType.attrString) {
+    else if(_fldNum - 1 == 1) {
+        attrType[0] = new AttrType(AttrType.attrString);
+        try {
+            Jmap.setHdr(s_sizes);
+        } catch (Exception e) {
+            throw new IndexException(e, "IndexScan.java: Heapfile error");
+        }
+
+        try {
+            Jmap.setColumnLabel(((StringKey) nextentry.key).getKey());
+        } catch (Exception e) {
+            throw new IndexException(e, "IndexScan.java: Heapfile error");
+        }
+    }
+    else if(_fldNum - 1 == 2) {
+        attrType[0] = new AttrType(AttrType.attrInteger);
+        try {
+            Jmap.setHdr(s_sizes);
+        } catch (Exception e) {
+            throw new IndexException(e, "IndexScan.java: Heapfile error");
+        }
+
+        try {
+            Jmap.setTimeStamp(((IntegerKey) nextentry.key).getKey());
+        } catch (Exception e) {
+            throw new IndexException(e, "IndexScan.java: Heapfile error");
+        }
+    }
+    else if (_types[_fldNum -1].attrType == AttrType.attrString) {
 	  
 	  attrType[0] = new AttrType(AttrType.attrString);
 	  // calculate string size of _fldNum
@@ -183,14 +207,14 @@ public class IndexScan extends Iterator {
 	  s_sizes[0] = _s_sizes[count-1];
 	  
 	  try {
-	    Jtuple.setHdr((short) 1, attrType, s_sizes);
+	    Jmap.setHdr(s_sizes);
 	  }
 	  catch (Exception e) {
 	    throw new IndexException(e, "IndexScan.java: Heapfile error");
 	  }
 	  
 	  try {
-	    Jtuple.setStrFld(1, ((StringKey)nextentry.key).getKey());
+	    Jmap.setValue(((StringKey)nextentry.key).getKey());
 	  }
 	  catch (Exception e) {
 	    throw new IndexException(e, "IndexScan.java: Heapfile error");
@@ -200,20 +224,20 @@ public class IndexScan extends Iterator {
 	  // attrReal not supported for now
 	  throw new UnknownKeyTypeException("Only Integer and String keys are supported so far"); 
 	}
-	return Jtuple;
+	return Jmap;
       }
       
-      // not index_only, need to return the whole tuple
-      rid = ((LeafData)nextentry.data).getData();
+      // not index_only, need to return the whole map
+      mid = ((LeafData)nextentry.data).getData();
       try {
-	tuple1 = f.getRecord(rid);
+	map1 = f.getRecord(mid);
       }
       catch (Exception e) {
 	throw new IndexException(e, "IndexScan.java: getRecord failed");
       }
       
       try {
-	tuple1.setHdr((short) _noInFlds, _types, _s_sizes);
+	map1.setHdr(_s_sizes);
       }
       catch (Exception e) {
 	throw new IndexException(e, "IndexScan.java: Heapfile error");
@@ -221,7 +245,7 @@ public class IndexScan extends Iterator {
     
       boolean eval;
       try {
-	eval = PredEval.Eval(_selects, tuple1, null, _types, null);
+	eval = PredEval.Eval(_selects, map1, Jmap);
       }
       catch (Exception e) {
 	throw new IndexException(e, "IndexScan.java: Heapfile error");
@@ -230,13 +254,13 @@ public class IndexScan extends Iterator {
       if (eval) {
 	// need projection.java
 	try {
-	  Projection.Project(tuple1, Jtuple, perm_mat, _noOutFlds);
+	  Projection.Project(map1, _types, Jmap, perm_mat, _noOutFlds);
 	}
 	catch (Exception e) {
 	  throw new IndexException(e, "IndexScan.java: Heapfile error");
 	}
 
-	return Jtuple;
+	return Jmap;
       }
 
       try {
@@ -281,8 +305,8 @@ public class IndexScan extends Iterator {
   private int           _noInFlds;
   private int           _noOutFlds;
   private Heapfile      f;
-  private Tuple         tuple1;
-  private Tuple         Jtuple;
+  private Map         map1;
+  private Map         Jmap;
   private int           t1_size;
   private int           _fldNum;       
   private boolean       index_only;    
