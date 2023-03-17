@@ -7,8 +7,10 @@ import java.io.*;
  * The type Map.
  */
 public class Map implements GlobalConst {
+    public static final int max_string_size = 64 * 1024;
+    public static final int max_int_size = 4;
     // 3 strings with max size 64kb and an int with size 4b
-    public static final int max_size = 64 * 1024 * 3 + 4;
+    public static final int max_size = max_string_size * 3 + max_int_size;
     public static final short fldCnt = 4;
     private byte [] data;
     private int map_offset;
