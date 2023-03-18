@@ -44,7 +44,7 @@ public class Sort extends Iterator implements GlobalConst
   private PageId[]     bufs_pids;
   AttrType[] mapAttributes = new AttrType[4];
   private boolean useBM = true; // flag for whether to use buffer manager
-  
+
   /**
    * Set up for merging the runs.
    * Open an input buffer for each run, and insert the first element (min)
@@ -554,14 +554,14 @@ public class Sort extends Iterator implements GlobalConst
    * @exception IOException from lower layers
    * @exception SortException something went wrong in the lower layer. 
    */
-  public void Sort(AttrType[] attrTypes,
-                      short[] fld_sizes,
-                      Iterator map_iter,
-                      int sort_fld,
-                      MapOrder map_order,
-                      int n_pages,
-                      int sortFldlen,
-                      boolean mapInsertOrder)
+  public Sort(AttrType[] attrTypes,
+              short[] fld_sizes,
+              Iterator map_iter,
+              int sort_fld,
+              MapOrder map_order,
+              int n_pages,
+              int sortFldlen,
+              boolean mapInsertOrder)
           throws SortException {
     int str_att_count = 0; // number of string field in maps
     for (int i = 0; i < num_cols; i++) {
@@ -594,7 +594,7 @@ public class Sort extends Iterator implements GlobalConst
     }
     map_size = tempMap.size();
     //Iterator mapIterObj = map_iter; //iterator passed to the sort object.
-    //int _sort_fld = sort_fld;
+    _sort_fld = sort_fld;
     //MapOrder mapOrder = map_order;
     //int _num_pages = n_pages; //memory available for sorting in terms of pages
     bufs_pids = new PageId[n_pages];

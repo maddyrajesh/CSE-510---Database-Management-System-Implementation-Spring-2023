@@ -20,8 +20,7 @@ public class DuplElim extends Iterator
   
   private Iterator _am;
   private boolean      done;
-  
-  private int orderType;
+
   private Map Jmap;
   
   private Map TempMap1, TempMap2;
@@ -30,16 +29,19 @@ public class DuplElim extends Iterator
    *Constructor to set up some information.
    *@exception IOException some I/O fault
    *@exception DuplElimException the exception from DuplElim.java
+   * @param in[]  Array containing field types of R
+   * @param s_sizes[] store the length of string appeared in map
    * @param am input relation iterator, access method for left input to join,
    * @param amt_of_mem the page numbers required IN PAGES
-   * @param orderType the ordering type
+   * @param fieldNo the field number that will be used for duplication elimination
    */
   public DuplElim(
-		  short[] s_sizes,
-		  Iterator am,
-		  int amt_of_mem,
-		  boolean inp_sorted,
-		  int orderType)throws IOException ,DuplElimException
+          AttrType[] in,
+          short[] s_sizes,
+          Iterator am,
+          int amt_of_mem,
+          boolean inp_sorted,
+          int fieldNo)throws IOException ,DuplElimException
     {
       Jmap =  new Map();
       try {
@@ -47,15 +49,19 @@ public class DuplElim extends Iterator
       }catch (Exception e){
 	throw new DuplElimException(e, "setHdr() failed");
       }
-     
-      this.orderType = orderType;
+      int fieldLen = 4;
+      if(fieldNo < 3)
+          fieldLen = s_sizes[fieldNo-1];
+      else if(fieldNo > 3)
+          fieldLen = s_sizes[2];
       _am = am;
+      _in = in;
       MapOrder order = new MapOrder(MapOrder.Ascending);
       if (!inp_sorted)
 	{
 	  try {
-	    _am = new Sort(s_sizes, am, 1, order,
-				amt_of_mem, orderType);
+	    _am = new Sort(_in, s_sizes, am, fieldNo, order,
+				amt_of_mem, fieldLen, true);
 	  }catch(SortException e){
 	    e.printStackTrace();
 	    throw new DuplElimException(e, "SortException is caught by DuplElim.java");
