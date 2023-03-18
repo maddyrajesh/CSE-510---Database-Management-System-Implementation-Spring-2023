@@ -554,7 +554,7 @@ public class Sort extends Iterator implements GlobalConst
    * @exception IOException from lower layers
    * @exception SortException something went wrong in the lower layer. 
    */
-  public void MapSort(AttrType[] attrTypes,
+  public void Sort(AttrType[] attrTypes,
                       short[] fld_sizes,
                       Iterator map_iter,
                       int sort_fld,
