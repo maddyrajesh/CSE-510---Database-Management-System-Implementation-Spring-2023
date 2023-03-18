@@ -69,21 +69,12 @@ public class MapUtils
      *@exception MapUtilsException exception from this class
      */
     public static int CompareMapWithValue(Map m1, int m1_fld_no,
-                                            String  value)
+                                            Map  value)
             throws IOException,
             UnknowAttrType,
             MapUtilsException
     {
-        Map m2 = new Map();
-        switch(m1_fld_no){
-            case 1:
-                m2.setRowLabel(value);
-            case 2:
-                m2.setColumnLabel(value);
-            case 3:
-                m2.setValue(value);
-        }
-        return CompareMapWithMap(m1, m2, m1_fld_no);
+        return CompareMapWithMap(m1, value, m1_fld_no);
     }
 
     /**
