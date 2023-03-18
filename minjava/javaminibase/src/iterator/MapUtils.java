@@ -251,8 +251,7 @@ public class MapUtils
                                        short t1_str_sizes[],
                                        FldSpec proj_list[], int nOutFlds)
             throws IOException,
-            MapUtilsException
-    {
+            MapUtilsException, InvalidRelation {
         short [] sizesT1 = new short [len_in1];
         int i, count = 0;
 
@@ -265,7 +264,7 @@ public class MapUtils
         {
             if (proj_list[i].relation.key == RelSpec.outer)
                 res_attrs[i] = new AttrType(in1[proj_list[i].offset-1].attrType);
-            else throw new InvalidRelation("Invalid relation: inner relation")
+            else throw new InvalidRelation("Invalid relation: inner relation");
         }
 
         // Now construct the res_str_sizes array.
