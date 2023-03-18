@@ -596,7 +596,7 @@ public class Sort extends Iterator implements GlobalConst
     //Iterator mapIterObj = map_iter; //iterator passed to the sort object.
     //int _sort_fld = sort_fld;
     //MapOrder mapOrder = map_order;
-    /int _num_pages = n_pages; //memory available for sorting in terms of pages
+    //int _num_pages = n_pages; //memory available for sorting in terms of pages
     bufs_pids = new PageId[n_pages];
     bufs = new byte[n_pages][];
     try {
