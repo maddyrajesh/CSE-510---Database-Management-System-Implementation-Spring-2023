@@ -6,7 +6,7 @@ import java.io.*;
 import bufmgr.*;
 import global.*;
 
-public class DB implements GlobalConst {
+public class bigDB implements GlobalConst {
 
   
   private static final int bits_per_page = MAX_SPACE * 8;
@@ -50,7 +50,7 @@ public class DB implements GlobalConst {
   
   /** default constructor.
    */
-  public DB() { }
+  public  bigDB() { }
   
   
   /** DB Constructors.
@@ -149,6 +149,7 @@ public class DB implements GlobalConst {
     byte [] buffer = apage.getpage();  //new byte[MINIBASE_PAGESIZE];
     try{
       fp.read(buffer);
+      pcounter.readIncrement();
     }
     catch (IOException e) {
       throw new FileIOException(e, "DB file I/O error");
@@ -179,6 +180,7 @@ public class DB implements GlobalConst {
     // Write the appropriate number of bytes.
     try{
       fp.write(apage.getpage());
+      pcounter.writeIncrement();
     }
     catch (IOException e) {
       throw new FileIOException(e, "DB file I/O error");
@@ -458,6 +460,7 @@ public class DB implements GlobalConst {
 	hpid.pid = nexthpid.pid;
 	
 	pinPage(hpid, apage, true/*no diskIO*/);
+    apage.emptyPage();
 	dp = new DBDirectoryPage(apage);
 	
 	free_slot = 0;
@@ -818,7 +821,7 @@ public class DB implements GlobalConst {
       SystemDefs.JavabaseBM.pinPage(pageno, page, emptyPage);
     }
     catch (Exception e) {
-      throw new DiskMgrException(e,"DB.java: pinPage() failed");
+      throw new DiskMgrException(e,"bigDB.java: pinPage() failed");
     }
 
   } // end of pinPage
@@ -834,7 +837,7 @@ public class DB implements GlobalConst {
       SystemDefs.JavabaseBM.unpinPage(pageno, dirty); 
     }
     catch (Exception e) {
-      throw new DiskMgrException(e,"DB.java: unpinPage() failed");
+      throw new DiskMgrException(e,"bigDB.java: unpinPage() failed");
     }
 
   } // end of unpinPage
