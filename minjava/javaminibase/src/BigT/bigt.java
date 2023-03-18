@@ -4,9 +4,7 @@ import btree.*;
 import global.*;
 import heap.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * The type Bigt.
@@ -15,9 +13,8 @@ public class bigt {
 
     private final String name;
     private final int type;
-    private int mapCount = 0;
-    private int rowCount = 0;
-    private int columnCount = 0;
+    private HashSet<String> rowSet;
+    private HashSet<String> columnSet;
     private Heapfile heapFile;
     private BTreeFile btree1;
     private BTreeFile btree2;
@@ -98,9 +95,6 @@ public class bigt {
         heapFile.deleteFile();
         btree1.destroyFile();
         btree2.destroyFile();
-        mapCount = 0;
-        rowCount = 0;
-        columnCount = 0;
     }
 
     /**
@@ -123,7 +117,7 @@ public class bigt {
      * @return the row cnt
      */
     public int getRowCnt() {
-        return rowCount;
+        return rowSet.size();
     }
 
     /**
@@ -132,7 +126,7 @@ public class bigt {
      * @return the column cnt
      */
     public int getColumnCnt() {
-        return columnCount;
+        return columnSet.size();
     }
 
     /**
@@ -190,8 +184,22 @@ public class bigt {
             else
             {
                 MID newMID = heapFile.insertRecord(mapPtr);
-                indexedMap.get(rowColumnKey).add(newMID);
+                // MID with same row column key already exists
+                if (indexedMap.containsKey(rowColumnKey))
+                {
+                    indexedMap.get(rowColumnKey).add(newMID);
+                }
+                // MID with same row column key doesn't exist, needs to be put
+                else
+                {
+                    indexedMap.put(rowColumnKey, new ArrayList<MID>(Arrays.asList(newMID)));
+                }
                 insertIndex(newMID);
+
+                // update row and column sets
+                rowSet.add(map.getRowLabel());
+                columnSet.add(map.getColumnLabel());
+
                 return newMID;
             }
         }
