@@ -38,7 +38,7 @@ public class MapSort extends MapIterator implements GlobalConst {
     private PageId[] bufs_pids;
 
     /**
-     * Class constructor, take information about the tuples, and set up
+     * Class constructor, take information about the map, and set up
      * the sorting
      *
      * @param attrTypes   array containing attribute types of the relation
@@ -479,7 +479,7 @@ public class MapSort extends MapIterator implements GlobalConst {
      * from each run into a heap. <code>delete_min() </code> will then get
      * the minimum of all runs.
      *
-     * @param mapSize  size (in bytes) of each tuple
+     * @param mapSize  size (in bytes) of each map
      * @param n_R_runs number of runs
      * @throws IOException     from lower layers
      * @throws LowMemException there is not enough memory to
@@ -548,7 +548,7 @@ public class MapSort extends MapIterator implements GlobalConst {
     /**
      * Remove the minimum value among all the runs.
      *
-     * @return the minimum tuple removed
+     * @return the minimum map removed
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
@@ -608,7 +608,7 @@ public class MapSort extends MapIterator implements GlobalConst {
     /**
      * Set lastElem to be the minimum value of the appropriate type
      *
-     * @param lastElem    the tuple
+     * @param lastElem    the map
      * @param sortFldType the sort field type
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered
@@ -651,7 +651,7 @@ public class MapSort extends MapIterator implements GlobalConst {
     /**
      * Set lastElem to be the maximum value of the appropriate type
      *
-     * @param lastElem    the tuple
+     * @param lastElem    the map
      * @param sortFldType the sort field type
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered

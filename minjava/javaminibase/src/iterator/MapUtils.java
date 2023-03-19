@@ -1,9 +1,10 @@
 package iterator;
 
 import BigT.Map;
-import global.AttrType;
-import java.io.IOException;
 import cmdline.MiniTable;
+import global.AttrType;
+
+import java.io.IOException;
 
 /**
  *some useful method when processing Tuple
@@ -78,10 +79,8 @@ public class MapUtils
 
     /**
      *This function Compares two Tuple inn all fields
-     * @param t1 the first tuple
-     * @param t2 the secocnd tuple
-     * @param type[] the field types
-     * @param len the field numbers
+     * @param m1 the first map
+     * @param m2 the secocnd map
      * @return  0        if the two are not equal,
      *          1        if the two are equal,
      *@exception UnknowAttrType don't know the attribute type
@@ -160,16 +159,16 @@ public class MapUtils
 
 
     /**
-     *set up the Jtuple's attrtype, string size,field number for using join
-     *@param Jtuple  reference to an actual tuple  - no memory has been malloced
-     *@param res_attrs  attributes type of result tuple
-     *@param in1  array of the attributes of the tuple (ok)
-     *@param len_in1  num of attributes of in1
-     *@param in2  array of the attributes of the tuple (ok)
-     *@param len_in2  num of attributes of in2
-     *@param t1_str_sizes shows the length of the string fields in S
-     *@param t2_str_sizes shows the length of the string fields in R
-     *@param proj_list shows what input fields go where in the output tuple
+     *set up the Jmap's attrtype, string size,field number for using join
+     *@param Jmap  reference to an actual map  - no memory has been malloced
+     *@param res_attrs  attributes type of result map
+     *@param in1  array of the attributes of the map (ok)
+     *@param len_in1  length of attributes of in1
+     *@param in2  array of the attributes of the map (ok)
+     *@param len_in2  length of attributes of in2
+     *@param t1_str_sizes shows the size of the string fields in S
+     *@param t2_str_sizes shows the size of the string fields in R
+     *@param proj_list shows what input fields go where in the output map
      *@param nOutFlds number of outer relation fileds
      *@exception IOException some I/O fault
      *@exception MapUtilsException exception from this class
@@ -223,7 +222,7 @@ public class MapUtils
         }
         try {
             //Jmap.setHdr((short)nOutFlds, res_attrs, res_str_sizes);
-            Jmap.setHdr(res_str_sizes); //Not sure
+            Jmap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
         }catch (Exception e){
             throw new MapUtilsException(e,"setHdr() failed");
         }
@@ -232,12 +231,12 @@ public class MapUtils
 
 
     /**
-     *set up the Jtuple's attrtype, string size,field number for using project
-     *@param Jtuple  reference to an actual tuple  - no memory has been malloced
-     *@param res_attrs  attributes type of result tuple
-     *@param in1  array of the attributes of the tuple (ok)
-     *@param len_in1  num of attributes of in1
-     *@param t1_str_sizes shows the length of the string fields in S
+     *set up the Jmap's attrtype, string size,field number for using project
+     *@param Jmap  reference to an actual map  - no memory has been malloced
+     *@param res_attrs  attributes type of result map
+     *@param in1  array of the attributes of the map (ok)
+     *@param len_in1  length of attributes of in1
+     *@param t1_str_sizes shows the size of the string fields in S
      *@param proj_list shows what input fields go where in the output tuple
      *@param nOutFlds number of outer relation fileds
      *@exception IOException some I/O fault
@@ -281,7 +280,7 @@ public class MapUtils
                 res_str_sizes[count++] = sizesT1[proj_list[i].offset-1];
         }
         try {
-            Jmap.setHdr(res_str_sizes);  //Not sure
+            Jmap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
         }catch (Exception e){
             throw new MapUtilsException(e,"setHdr() failed");
         }
