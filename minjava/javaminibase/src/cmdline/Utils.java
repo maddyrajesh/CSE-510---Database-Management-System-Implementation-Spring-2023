@@ -172,13 +172,13 @@ public class Utils {
             br.close();
         }
 
-        SystemDefs.JavabaseBM.setNumBuffers(0);
+//        SystemDefs.JavabaseBM.setNumBuffers(0);
 //        SystemDefs.JavabaseBM.flushAllPages();
 //        SystemDefs.JavabaseDB.closeDB();
     }
 
 
-    public static void query(String tableName, Integer orderType, String rowFilter, String colFilter, String valFilter, Integer NUMBUF) throws Exception {
+    public static void query(String tableName, Integer type, Integer orderType, String rowFilter, String colFilter, String valFilter, Integer NUMBUF) throws Exception {
         //String dbPath = getDBPath(tableName, type);
         String dbPath = getDBPath();
         new SystemDefs(dbPath, 0, NUMBUF, "Clock");
@@ -187,7 +187,7 @@ public class Utils {
 
         try {
 
-            bigT bigTable = new bigT(tableName, false);
+            bigt bigTable = new bigt(tableName, type);
             Stream mapStream = bigTable.openStream(orderType, rowFilter, colFilter, valFilter);
             MID mapId = null;
 
@@ -199,7 +199,7 @@ public class Utils {
                 resultCount++;
             }
             bigTable.close();
-            mapStream.closeStream();
+            mapStream.closestream();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -220,7 +220,7 @@ public class Utils {
         return "/tmp/" + userAccName + ".db";
     }
 
-    public static void rowJoinWrapper(int numBuf, String btName1, String btName2, String outBtName, String columnFilter) throws Exception {
+/*    public static void rowJoinWrapper(int numBuf, String btName1, String btName2, String outBtName, String columnFilter) throws Exception {
         rowJoin rj;
         new SystemDefs(Utils.getDBPath(), Utils.NUM_PAGES, numBuf, "Clock");
         pcounter.initialize();
@@ -235,9 +235,9 @@ public class Utils {
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("\n=======================================\n");
-    }
+    }*/
 
-    public static void rowSort(String inTableName, String outTableName, String columnName, int NUMBUF) throws Exception {
+/*    public static void rowSort(String inTableName, String outTableName, String columnName, int NUMBUF) throws Exception {
 
         String dbPath = getDBPath();
         new SystemDefs(dbPath, 0, NUMBUF, "Clock");
@@ -274,7 +274,7 @@ public class Utils {
         
         }
         SystemDefs.JavabaseBM.setNumBuffers(0);
-    }
+    }*/
 
 
     static CondExpr[] getCondExpr(String filter) {
@@ -331,10 +331,10 @@ public class Utils {
         }
     }
 
-    public static List<String> getAllTablesInventory() throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFBufMgrException, HFException {
+    public static List<String> getAllTablesInventory() throws InvalidTupleSizeException, IOException, HFDiskMgrException, HFBufMgrException, HFException, InvalidMapSizeException {
         List<String> bigTableList = new ArrayList<>();
         Heapfile bigTInventory = new Heapfile("bigT_inventory");
-        MapScan mapScan = bigTInventory.openMapScan();
+        Scan mapScan = bigTInventory.openScan();
         MID mid = new MID();
         Map m = mapScan.getNext(mid);
         while (m != null) {
@@ -346,7 +346,7 @@ public class Utils {
         return bigTableList;
     }
 
-    public static void getCounts(Integer numBufs) throws Exception {
+/*    public static void getCounts(Integer numBufs) throws Exception {
         try {
             new SystemDefs(Utils.getDBPath(), Utils.NUM_PAGES, numBufs, "Clock");
             pcounter.initialize();
@@ -373,7 +373,7 @@ public class Utils {
             throw new Exception("Error while getting counts : " + exp.toString());
         }
 
-    }
+    }*/
     public static void insertMap(String bigtName, int indextype, String rowLabel, String columnLabel, String ValueInfo, int timeStampVal, int NUMBUF) throws Exception {
         new SystemDefs(Utils.getDBPath(), Utils.NUM_PAGES, NUMBUF, "Clock");
         pcounter.initialize();
