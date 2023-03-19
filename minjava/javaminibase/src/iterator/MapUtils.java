@@ -287,11 +287,11 @@ public class MapUtils
         return res_str_sizes;
     }
 
-    public static int CompareMapsOnOrderType(Map mapObj1, Map mapObj2) throws IOException {
-        int mapRowCompare = mapObj1.getRowLabel().compareTo(mapObj2.getRowLabel());
-        int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
-        int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
-        boolean mapTsCompare = (mapObj1.getTimeStamp() >= mapObj2.getTimeStamp());
+    public static int CompareMapsOnOrderType(Map m1, Map m2) throws IOException {
+        int mapRowCompare = m1.getRowLabel().compareTo(m2.getRowLabel());
+        int mapColumnCompare = m1.getColumnLabel().compareTo(m2.getColumnLabel());
+        int mapValueCompare = m1.getValue().compareTo(m2.getValue());
+        boolean mapTsCompare = (m1.getTimeStamp() >= m2.getTimeStamp());
 
         if (MiniTable.orderType == 2) {
             if (mapColumnCompare > 0) return 1;
@@ -332,10 +332,10 @@ public class MapUtils
         }
     }
     
-    public static int CompareMapsOnInsertType(Map mapObj1, Map mapObj2) throws Exception {
-        int mapRowCompare = mapObj1.getRowLabel().compareTo(mapObj2.getRowLabel());
-        int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
-        int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
+    public static int CompareMapsOnInsertType(Map m1, Map m2) throws Exception {
+        int mapRowCompare = m1.getRowLabel().compareTo(m2.getRowLabel());
+        int mapColumnCompare = m1.getColumnLabel().compareTo(mj2.getColumnLabel());
+        int mapValueCompare = m1.getValue().compareTo(m2.getValue());
     
         switch (MiniTable.insertType) {
             case 1:
