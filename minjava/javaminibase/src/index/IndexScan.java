@@ -33,6 +33,7 @@ public class IndexScan extends Iterator {
    * @exception InvalidMapSizeException map size not valid
    * @exception UnknownIndexTypeException index type unknown
    * @exception IOException from the lower layer
+   * @throws InvalidRelation
    */
   public IndexScan(
 	   IndexType     index,        
@@ -51,7 +52,7 @@ public class IndexScan extends Iterator {
 	   InvalidTypeException,
           InvalidMapSizeException,
 	   UnknownIndexTypeException,
-	   IOException
+	   IOException, InvalidRelation
   {
     _fldNum = fldNum;
     _noInFlds = noInFlds;

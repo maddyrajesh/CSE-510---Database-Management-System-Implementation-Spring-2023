@@ -1,6 +1,9 @@
 package BigT;
 
 import global.*;
+import heap.InvalidMapSizeException;
+import heap.InvalidTypeException;
+
 import java.io.*;
 
 /**
@@ -9,12 +12,14 @@ import java.io.*;
 public class Map implements GlobalConst {
     public static final int max_string_size = 64 * 1024;
     public static final int max_int_size = 4;
+    public static final int MAX_SIZE = MINIBASE_PAGESIZE;
     // 3 strings with max size 64kb and an int with size 4b
     public static final int max_size = max_string_size * 3 + max_int_size;
-    public static final short fldCnt = 4;
+    public static short fldCnt = 4;
     private byte [] data;
     private int map_offset;
     private short [] fldOffset;
+    private int map_length;
 
     /**
      * Instantiates a new Map.
@@ -98,6 +103,45 @@ public class Map implements GlobalConst {
         return Convert.getStrValue(fldOffset[1], data, fldOffset[2] - fldOffset[1]);
     }
 
+    public void setHeader(AttrType[] types, short[] stringSizes) throws InvalidMapSizeException, IOException, InvalidTypeException, InvalidStringSizeArrayException {
+        
+        if (stringSizes.length != 3) {
+            throw new InvalidStringSizeArrayException(null, "String sizes array must exactly be 3");
+        }
+
+        Convert.setShortValue(max_int_size, this.map_offset, this.data);
+        this.fldOffset = new short[max_int_size + 1];
+        int position = this.map_offset + 2;
+        this.fldOffset[0] = (short) ((max_int_size + 2) * 2 + this.map_offset);
+        Convert.setShortValue(this.fldOffset[0], position, data);
+        position += 2;
+
+        short increment;
+        short stringCount = 0;
+        for (short i = 0; i < max_int_size; i++) {
+            switch (types[i].attrType) {
+                case AttrType.attrInteger:
+                    increment = 4;
+                    break;
+                case AttrType.attrString:
+                    increment = (short) (stringSizes[stringCount++] + 2);
+                    break;
+                default:
+                    throw new InvalidTypeException(null, "MAP: MAP_TYPE_ERROR");
+            }
+            this.fldOffset[i + 1] = (short) (this.fldOffset[i] + increment);
+            Convert.setShortValue(this.fldOffset[i + 1], position, data);
+            position += 2;
+        }
+
+        this.map_length = this.fldOffset[max_int_size] - this.map_offset;
+
+        if (this.map_length > MAX_SIZE) {
+            throw new InvalidMapSizeException(null, "MAP: MAP_TOOBIG_ERROR");
+        }
+
+    }
+    
     /**
      * Gets time stamp.
      *
@@ -172,6 +216,14 @@ public class Map implements GlobalConst {
     public Map setValue(String val) throws IOException {
         Convert.setStrValue(val, fldOffset[1], data);
         return this;
+    }
+
+        /**
+     * @param fromMap Copy the map object to this map object.
+     */
+    public void copyMap(Map fromMap) {
+        byte[] tempArray = fromMap.getMapByteArray();
+        System.arraycopy(tempArray, 0, data, map_offset, map_length);
     }
 
     /**

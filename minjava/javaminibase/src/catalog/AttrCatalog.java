@@ -7,6 +7,8 @@
 package catalog;
 
 import java.io.*;
+
+import BigT.Map;
 import global.*;
 import heap.*;
 import bufmgr.*;
@@ -28,7 +30,7 @@ public class AttrCatalog extends Heapfile
       
       int sizeOfInt = 4;
       int sizeOfFloat = 4;
-      tuple = new Tuple(Tuple.max_size);
+      map = new Map();
       attrs = new AttrType[9];
       
       attrs[0] = new AttrType(AttrType.attrString);
@@ -60,7 +62,7 @@ public class AttrCatalog extends Heapfile
       str_sizes[3] = max;
       
       try {
-	tuple.setHdr((short)9, attrs, str_sizes);
+		map.setHdr(str_sizes);
       }
       catch (Exception e) {
 	throw new AttrCatalogException(e, "setHdr() failed");
@@ -77,7 +79,7 @@ public class AttrCatalog extends Heapfile
 	   Catalogattrnotfound
     {
       int recSize;
-      RID rid = null;
+      MID rid = null;
       Scan pscan = null; 
       
       
@@ -98,10 +100,10 @@ public class AttrCatalog extends Heapfile
       
       while (true){
 	try {
-	  tuple = pscan.getNext(rid);
-	  if (tuple == null)
+	  Map  map = pscan.getNext(mid);
+	  if (map == null)
 	    throw new Catalogattrnotfound(null,"Catalog: Attribute not Found!");
-	  read_tuple(tuple, record);
+	  read_tuple(map, record);
 	}
 	catch (Exception e4) {
 	  throw new AttrCatalogException(e4, "read_tuple failed");
@@ -130,7 +132,7 @@ public class AttrCatalog extends Heapfile
       AttrDesc attrRec = null;
       int status;
       int recSize;
-      RID rid = null;
+      MID mid = null;
       Scan pscan = null;
       int count = 0;
       
@@ -187,11 +189,11 @@ public class AttrCatalog extends Heapfile
       while(true) 
 	{
 	  try {
-	    tuple = pscan.getNext(rid);
-	    if (tuple == null) 
+	    Map map = pscan.getNext(mid);
+	    if (map == null) 
 	      throw new Catalogindexnotfound(null,
 					     "Catalog: Index not Found!");
-	    read_tuple(tuple, attrRec);
+	    read_tuple(map, attrRec);
 	  }
 	  catch (Exception e4) {
 	    throw new AttrCatalogException(e4, "read_tuple failed");
@@ -302,17 +304,17 @@ public class AttrCatalog extends Heapfile
     throws AttrCatalogException, 
 	   IOException
     {
-      RID rid;
+      MID rid;
       
       try {
-	make_tuple(tuple, record);
+	make_tuple(map, record);
       }
       catch (Exception e4) {
 	throw new AttrCatalogException(e4, "make_tuple failed");
       }
       
       try {
-	insertRecord(tuple.getTupleByteArray());
+	insertRecord(map.getTupleByteArray());
       }
       catch (Exception e2) {
 	throw new AttrCatalogException(e2, "insertRecord failed");
@@ -330,7 +332,7 @@ public class AttrCatalog extends Heapfile
 	   
     {
       int recSize;
-      RID rid = null;
+      MID rid = null;
       Scan pscan = null;
       AttrDesc record = null;
       
@@ -350,11 +352,11 @@ public class AttrCatalog extends Heapfile
       // SCAN FILE
       while (true) {
 	try {
-	  tuple = pscan.getNext(rid);
-	  if (tuple == null) 
+	    map = pscan.getNext(mid);
+	  if (map == null) 
 	    throw new Catalogattrnotfound(null,
 					  "Catalog: Attribute not Found!");
-	  read_tuple(tuple, record);
+	  read_tuple(map, record);
 	}
 	catch (Exception e4) {
 	  throw new AttrCatalogException(e4, "read_tuple failed");
@@ -419,7 +421,7 @@ public class AttrCatalog extends Heapfile
   // READ_TUPLE
   //--------------------------------------------------
   
-  public void read_tuple(Tuple tuple, AttrDesc record)
+  public void read_map(Map map, AttrDesc record)
     throws IOException, 
 	   AttrCatalogException
     {
@@ -473,7 +475,7 @@ public class AttrCatalog extends Heapfile
 		       IndexType accessType){};
   
   
-  Tuple tuple;
+  Map map;
   short [] str_sizes;
   AttrType [] attrs;
   short max;

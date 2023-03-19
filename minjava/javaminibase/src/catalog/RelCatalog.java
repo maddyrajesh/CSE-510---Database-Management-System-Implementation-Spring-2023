@@ -7,6 +7,8 @@
 package catalog;
 
 import java.io.*;
+
+import BigT.Map;
 import bufmgr.*;
 import global.*;
 import heap.*;
@@ -27,7 +29,7 @@ public class RelCatalog extends Heapfile
     {
         super(filename);
       
-      tuple = new Tuple(Tuple.max_size);
+      Map map = new Map();
       
       attrs = new AttrType[5];
       attrs[0] = new AttrType(AttrType.attrString);
@@ -59,7 +61,7 @@ public class RelCatalog extends Heapfile
 	   Catalogrelnotfound
     {
       int recSize;
-      RID rid = null;
+      MID mid = null;
       Scan pscan = null;
       
       if (relation == null)
@@ -75,7 +77,7 @@ public class RelCatalog extends Heapfile
       
       while (true) {
 	try {
-	  tuple = pscan.getNext(rid);
+	  Map map = pscan.getNext(mid);
 	  if (tuple == null)
 	    throw new Catalogrelnotfound(null, "Catalog: Relation not Found!");
 	  read_tuple(tuple, record);
@@ -288,7 +290,7 @@ public class RelCatalog extends Heapfile
     throws RelCatalogException, 
 	   IOException
     {
-      RID rid;
+      MID mid;
       
       try {
 	make_tuple(tuple, record);
@@ -314,7 +316,7 @@ public class RelCatalog extends Heapfile
 	   Catalogmissparam,
 	   Catalogattrnotfound
     {
-      RID rid = null;
+      MID mid = null;
       Scan pscan = null;
       int recSize;
       RelDesc record = null;
@@ -332,7 +334,7 @@ public class RelCatalog extends Heapfile
       
       while(true) {
 	try {
-	  tuple = pscan.getNext(rid);
+	  Map map = pscan.getNext(mid);
 	  if (tuple == null) 
 	    throw new Catalogattrnotfound(null,
 					  "Catalog Attribute not Found!");
@@ -345,7 +347,7 @@ public class RelCatalog extends Heapfile
 	
 	if (record.relName.equalsIgnoreCase(relation)==true) {
 	  try {
-	    deleteRecord(rid);
+	    deleteRecord(mid);
 	  }
 	  catch (Exception e3) {
 	    System.err.println ("deleteRecord"+e3);

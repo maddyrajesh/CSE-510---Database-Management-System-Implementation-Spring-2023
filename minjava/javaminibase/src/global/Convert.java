@@ -216,11 +216,11 @@ public class Convert{
   /**
    * update a short integer in the given byte array at the specified position
    * @param  	data 		a byte array
-   * @param	value   	the value to be copied into data[]
+   * @param	maxIntSize   	the value to be copied into data[]
    * @param	position  	the position of tht value in data[]
    * @exception   java.io.IOException I/O errors
    */
-  public static void setShortValue (short value, int position, byte []data) 
+  public static void setShortValue (int maxIntSize, int position, byte []data) 
     throws java.io.IOException
     {
       /* creates a new data output stream to write data to 
@@ -232,7 +232,7 @@ public class Convert{
       
       // write the value to the output stream
       
-      outstr.writeShort(value);
+      outstr.writeShort(maxIntSize);
       
       // creates a byte array with this output stream size and the
       // valid contents of the buffer have been copied into it

@@ -1,6 +1,14 @@
 package BigT;
 
 import btree.*;
+import bufmgr.BufMgrException;
+import bufmgr.HashEntryNotFoundException;
+import bufmgr.HashOperationException;
+import bufmgr.InvalidFrameNumberException;
+import bufmgr.PageNotFoundException;
+import bufmgr.PagePinnedException;
+import bufmgr.PageUnpinnedException;
+import bufmgr.ReplacerException;
 import global.*;
 import heap.*;
 import java.io.IOException;
@@ -75,6 +83,14 @@ public class bigt {
         }
     }
 
+    public void close() throws PageUnpinnedException, PagePinnedException, PageNotFoundException, HashOperationException, BufMgrException, IOException, HashEntryNotFoundException, InvalidFrameNumberException, ReplacerException {
+        if(this.btree1 != null)
+            this.btree1.close();
+        
+        if(this.btree2 != null)
+            this.btree2.close();    
+    }
+    
     /**
      * Delete bigt.
      *

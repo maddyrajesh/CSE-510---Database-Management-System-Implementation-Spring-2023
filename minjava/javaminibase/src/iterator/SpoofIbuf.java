@@ -159,6 +159,8 @@ public class SpoofIbuf implements GlobalConst  {
   private  int    t_per_pg;
   private  boolean   done;
   private  int    n_maps;
+public void close() {
+}
 }
 
 
