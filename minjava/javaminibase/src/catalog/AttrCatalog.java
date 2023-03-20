@@ -15,6 +15,7 @@ import bufmgr.*;
 import diskmgr.*;
 
 
+
 public class AttrCatalog extends Heapfile
         implements GlobalConst, Catalogglobal {
     //OPEN ATTRIBUTE CATALOG
@@ -77,7 +78,7 @@ public class AttrCatalog extends Heapfile
             IOException,
             Catalogattrnotfound {
         int recSize;
-        RID rid = null;
+        MID mid = null;
         Scan pscan = null;
 
 
@@ -97,7 +98,7 @@ public class AttrCatalog extends Heapfile
 
         while (true) {
             try {
-                tuple = pscan.getNext(rid);
+                tuple = pscan.getNextTuple(mid);
                 if (tuple == null)
                     throw new Catalogattrnotfound(null, "Catalog: Attribute not Found!");
                 read_tuple(tuple, record);
@@ -129,7 +130,7 @@ public class AttrCatalog extends Heapfile
         AttrDesc attrRec = null;
         int status;
         int recSize;
-        RID rid = null;
+        MID mid = null;
         Scan pscan = null;
         int count = 0;
 
@@ -179,7 +180,7 @@ public class AttrCatalog extends Heapfile
 
         while (true) {
             try {
-                tuple = pscan.getNext(rid);
+                tuple = pscan.getNextTuple(mid);
                 if (tuple == null)
                     throw new Catalogindexnotfound(null,
                             "Catalog: Index not Found!");
@@ -329,11 +330,11 @@ public class AttrCatalog extends Heapfile
         // SCAN FILE
         while (true) {
             try {
-                map = pscan.getNext(mid);
+                tuple = pscan.getNextTuple(mid);
                 if (map == null)
                     throw new Catalogattrnotfound(null,
                             "Catalog: Attribute not Found!");
-                read_tuple(map, record);
+                read_tuple(tuple, record);
             } catch (Exception e4) {
                 throw new AttrCatalogException(e4, "read_tuple failed");
             }
@@ -449,4 +450,5 @@ public class AttrCatalog extends Heapfile
     short[] str_sizes;
     AttrType[] attrs;
     short max;
+    private Tuple tuple;
 };

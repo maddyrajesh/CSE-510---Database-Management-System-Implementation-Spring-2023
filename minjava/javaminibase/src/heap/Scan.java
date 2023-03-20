@@ -52,8 +52,12 @@ public class Scan implements GlobalConst{
     /** record ID of the current record (from the current data page) */
     private MID usermid = new MID();
 
+    private RID userrid = new RID();
+
     /** Status of next user status */
     private boolean nextUserStatus;
+
+    public boolean nextRecordExists;
     
      
     /** The constructor pins the first directory page in the file
@@ -113,6 +117,38 @@ public class Scan implements GlobalConst{
      
     return recptrmap;
   }
+
+    public Tuple getNextTuple(MID mid)
+            throws InvalidMapSizeException,
+            IOException
+    {
+        Tuple recptrtuple = null;
+
+        if (nextUserStatus != true) {
+            nextDataPage();
+        }
+
+        if (datapage == null)
+            return null;
+
+        mid.pageNo.pid = userrid.pageNo.pid;
+        mid.slotNo = userrid.slotNo;
+
+        try {
+            recptrtuple = datapage.getTupleRecord(mid);
+        }
+
+        catch (Exception e) {
+            //    System.err.println("SCAN: Error in Scan" + e);
+            e.printStackTrace();
+        }
+
+        usermid = datapage.nextRecord(mid);
+        if(usermid == null) nextUserStatus = false;
+        else nextUserStatus = true;
+
+        return recptrtuple;
+    }
 
 
     /** Position the scan cursor to the record with the given mid.

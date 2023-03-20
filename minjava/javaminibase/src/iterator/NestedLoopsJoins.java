@@ -71,8 +71,7 @@ public class NestedLoopsJoins  extends Iterator
 			   CondExpr rightFilter[],    
 			   FldSpec   proj_list[],
 			   int        n_out_flds
-			   ) throws IOException,NestedLoopException, TupleUtilsException, InvalidRelation
-    {
+			   ) throws IOException, NestedLoopException, TupleUtilsException, InvalidRelation, MapUtilsException {
       
       _in1 = new AttrType[in1.length];
       _in2 = new AttrType[in2.length];

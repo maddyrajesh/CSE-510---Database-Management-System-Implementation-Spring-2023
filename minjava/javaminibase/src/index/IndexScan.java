@@ -48,13 +48,12 @@ public class IndexScan extends Iterator {
 	   CondExpr      selects[],  
 	   final int     fldNum,
 	   final boolean indexOnly
-	   ) 
-    throws IndexException, 
-	   InvalidTypeException,
+	   )
+          throws IndexException,
+          InvalidTypeException,
           InvalidMapSizeException,
-	   UnknownIndexTypeException,
-	   IOException, InvalidRelation, TupleUtilsException
-  {
+          UnknownIndexTypeException,
+          IOException, InvalidRelation, TupleUtilsException, MapUtilsException {
     _fldNum = fldNum;
     _noInFlds = noInFlds;
     _types = types;
