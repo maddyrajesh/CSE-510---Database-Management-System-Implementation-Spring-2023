@@ -278,7 +278,7 @@ public class SortMerge extends Iterator implements GlobalConst
 	      // Note that depending on whether the sort order
 	      // is ascending or descending,
 	      // this loop will be modified.
-	      comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
+	      comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
 	      while ((comp_res < 0 && _order.mapOrder == MapOrder.Ascending) ||
 		     (comp_res > 0 && _order.mapOrder == MapOrder.Descending))
 		{
@@ -287,10 +287,10 @@ public class SortMerge extends Iterator implements GlobalConst
 		    return null;
 		  }
 
-		  comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
+		  comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
 		}
 
-	      comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
+	      comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
 	      while ((comp_res > 0 && _order.mapOrder == MapOrder.Ascending) ||
 		     (comp_res < 0 && _order.mapOrder == MapOrder.Descending))
 		{
@@ -300,7 +300,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		      return null;
 		    }
 
-		  comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
+		  comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
 		}
 
 	      if (comp_res != 0)
@@ -315,7 +315,7 @@ public class SortMerge extends Iterator implements GlobalConst
 	      io_buf1.init(_bufs1,       1, t1_size, temp_file_fd1);
 	      io_buf2.init(_bufs2,       1, t2_size, temp_file_fd2);
 
-	      while (MapUtils.CompareMapWithMap(map1, TempMap1, jc_in1) == 0)
+	      while (MapUtils.CompareMapToMap(map1, TempMap1, jc_in1) == 0)
 		{
 		  // Insert map1 into io_buf1
 		  try {
@@ -331,7 +331,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		    }
 		}
 
-	      while (MapUtils.CompareMapWithMap(map2, TempMap2, jc_in2) == 0)
+	      while (MapUtils.CompareMapToMap(map2, TempMap2, jc_in2) == 0)
 		{
 		  // Insert map2 into io_buf2
 

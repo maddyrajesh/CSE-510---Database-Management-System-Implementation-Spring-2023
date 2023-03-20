@@ -7,7 +7,6 @@ import global.*;
 import bufmgr.*;
 
 
-import java.lang.*;
 import java.io.*;
 
 /**
@@ -23,7 +22,6 @@ public class FileScan extends  Iterator
   private Scan scan;
   private Map map1;
   private Map Jmap;
-  private int        t1_size;
   private int _nOutFlds;
   private CondExpr[]  OutputFilter;
   public FldSpec[] perm_mat;
@@ -70,7 +68,7 @@ public class FileScan extends  Iterator
       }catch (Exception e){
 	throw new FileScanException(e, "setHdr() failed");
       }
-      t1_size = map1.size();
+      map1.size();
       
       try {
 	f = new Heapfile(file_name);
@@ -107,6 +105,7 @@ public class FileScan extends  Iterator
    *@exception UnknowAttrType attribute type unknown
    *@exception FieldNumberOutOfBoundException array out of bounds
    *@exception WrongPermat exception for wrong FldSpec argument
+   * @throws InvalidFieldNo
    */
   public Map get_next()
     throws JoinsException,
@@ -117,7 +116,7 @@ public class FileScan extends  Iterator
 	   PredEvalException,
 	   UnknowAttrType,
 	   FieldNumberOutOfBoundException,
-	   WrongPermat
+	   WrongPermat, InvalidFieldNo
     {     
       MID mid = new MID();
       
