@@ -224,7 +224,7 @@ public class Sort extends Iterator implements GlobalConst
       else {
 	// set lastElem to have the value of the current tuple,
 	// need tuple_utils.java
-	MapUtils.SetValue(lastElem, cur_node.map, _sort_fld);
+	MapUtils.SetValue(cur_node.map, lastElem, comp_res, sortFldType);
 	// write tuple to output file, need io_bufs.java, type cast???
 	//	System.out.println("Putting tuple into run " + (run_num + 1)); 
 	//	cur_node.tuple.print(_in);

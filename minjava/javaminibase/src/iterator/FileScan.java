@@ -38,6 +38,7 @@ public class FileScan extends MapIterator
    * @param file_name heapfile to be opened
    * @param proj_list  shows what input fields go where in the output map
    * @param outFilter  select expressions
+   * @throws TupleUtilsException
    */
   public  FileScan(String file_name,
                    AttrType[] in1,
@@ -46,7 +47,7 @@ public class FileScan extends MapIterator
                    int n_out_flds,
                    FldSpec[] proj_list,
                    CondExpr[] outFilter)
-          throws IOException, FileScanException, InvalidRelation, MapUtilsException
+          throws IOException, FileScanException, InvalidRelation, MapUtilsException, TupleUtilsException
     {
       s_sizes = s1_sizes;
       _in1 = in1;

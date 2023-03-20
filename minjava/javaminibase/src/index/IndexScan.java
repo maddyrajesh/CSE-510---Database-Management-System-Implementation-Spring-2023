@@ -34,6 +34,7 @@ public class IndexScan extends Iterator {
    * @exception UnknownIndexTypeException index type unknown
    * @exception IOException from the lower layer
    * @throws InvalidRelation
+   * @throws TupleUtilsException
    */
   public IndexScan(
 	   IndexType     index,        
@@ -52,7 +53,7 @@ public class IndexScan extends Iterator {
 	   InvalidTypeException,
           InvalidMapSizeException,
 	   UnknownIndexTypeException,
-	   IOException, InvalidRelation
+	   IOException, InvalidRelation, TupleUtilsException
   {
     _fldNum = fldNum;
     _noInFlds = noInFlds;
@@ -63,12 +64,7 @@ public class IndexScan extends Iterator {
     short[] ts_sizes;
     Jmap = new Map();
     
-    try {
-      ts_sizes = MapUtils.setup_op_map(Jmap, Jtypes, types, noInFlds, str_sizes, outFlds, noOutFlds);
-    }
-    catch (MapUtilsException e) {
-      throw new IndexException(e, "IndexScan.java: MapUtilsException caught from MapUtils.setup_op_map()");
-    }
+    ts_sizes = MapUtils.setup_op_map(Jmap, Jtypes, types, noInFlds, str_sizes, outFlds, noOutFlds);
      
     _selects = selects;
     perm_mat = outFlds;
