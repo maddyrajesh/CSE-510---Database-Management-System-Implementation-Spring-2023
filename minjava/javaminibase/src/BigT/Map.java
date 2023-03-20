@@ -170,6 +170,10 @@ public class Map implements GlobalConst {
         return map_offset;
     }
 
+    public short[] getFieldOffset() {
+        return fldOffset;
+    }
+
     /**
      * Sets row label.
      *

@@ -74,7 +74,7 @@ public abstract class pnodePQ
    */
   public int pnodeCMP(pnode a, pnode b) 
          throws IOException, UnknowAttrType, MapUtilsException {
-    int ans = MapUtils.CompareMapWithMap(a.map, b.map, fld_no);
+    int ans = MapUtils.CompareMapToMap(a.map, b.map, fld_no);
     return ans;
   }
 

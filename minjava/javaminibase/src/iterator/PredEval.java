@@ -20,6 +20,7 @@ public class PredEval
    *@exception InvalidTypeException type of map not valid
    *@exception FieldNumberOutOfBoundException field number exceeds limit
    *@exception PredEvalException exception from this method
+ * @throws InvalidFieldNo
    */
   public static boolean Eval(CondExpr[] p, Map m1, Map m2)
     throws IOException,
@@ -27,7 +28,7 @@ public class PredEval
           InvalidMapSizeException,
 	   InvalidTypeException,
 	   FieldNumberOutOfBoundException,
-	   PredEvalException
+	   PredEvalException, InvalidFieldNo
     {
       CondExpr temp_ptr;
       int       i = 0;
@@ -118,12 +119,7 @@ public class PredEval
 		}
 	      
 	      
-	      // Got the arguments, now perform a comparison.
-	      try {
-		comp_res = MapUtils.CompareMapWithMap(map1, map2, fldNo);
-	      }catch (MapUtilsException e){
-		throw new PredEvalException (e,"MapUtilsException is caught by PredEval.java");
-	      }
+	      comp_res = MapUtils.CompareMapToMap(map1, map2, fldNo);
 	      op_res = false;
 	      
 	      switch (temp_ptr.op.attrOperator)
