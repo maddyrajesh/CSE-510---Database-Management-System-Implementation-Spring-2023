@@ -72,8 +72,8 @@ public abstract class pnodePQ
    *                           <code>attrNull</code> encountered
    * @exception MapUtilsException error in map compare routines
    */
-  public int pnodeCMP(pnode a, pnode b) 
-         throws IOException, UnknowAttrType, MapUtilsException {
+  public int pnodeCMP(pnode a, pnode b)
+          throws IOException, UnknowAttrType, MapUtilsException, InvalidFieldNo {
     int ans = MapUtils.CompareMapToMap(a.map, b.map, fld_no);
     return ans;
   }

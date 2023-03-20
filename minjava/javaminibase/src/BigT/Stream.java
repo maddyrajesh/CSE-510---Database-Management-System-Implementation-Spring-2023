@@ -941,6 +941,7 @@ public class Stream implements GlobalConst{
         } else {
             return filter.equals(starFilter);
         }
+        return false;
     }
 }
 
