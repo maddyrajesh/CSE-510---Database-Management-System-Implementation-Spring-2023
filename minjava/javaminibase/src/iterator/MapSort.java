@@ -671,7 +671,7 @@ public class MapSort extends MapIterator implements GlobalConst {
 
         switch (sortFldType.attrType) {
             case AttrType.attrInteger:
-                lastElem.setTimeStamp(Integer.MIN_VALUE);
+                lastElem.setTimeStamp(Integer.MAX_VALUE);
                 break;
             case AttrType.attrString:
                 if (_sort_fld == 1)
