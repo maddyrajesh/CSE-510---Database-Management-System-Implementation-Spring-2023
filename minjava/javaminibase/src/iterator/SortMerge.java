@@ -41,34 +41,35 @@ public class SortMerge extends Iterator implements GlobalConst
   private  FldSpec   perm_mat[];
   private  int        nOutFlds;
 
-  /**
-   *constructor,initialization
-   *@param in1[]   Array containing field types of R
-   *@param len_in1  # of columns in R
-   *@param s1_sizes  shows the length of the string fields in R.
-   *@param in2[]  Array containing field types of S
-   *@param len_in2  # of columns in S
-   *@param s2_sizes shows the length of the string fields in S
-   *@param sortFld1Len the length of sorted field in R
-   *@param sortFld2Len the length of sorted field in S
-   *@param join_col_in1  The col of R to be joined with S
-   *@param join_col_in2  the col of S to be joined with R
-   *@param amt_of_mem   IN PAGES
-   *@param am1  access method for left input to join
-   *@param am2  access method for right input to join
-   *@param in1_sorted  is am1 sorted?
-   *@param in2_sorted  is am2 sorted?
-   *@param order the order of the map: assending or desecnding?
-   *@param outFilter[]  Ptr to the output filter
-   *@param proj_list shows what input fields go where in the output map
-   *@param n_out_flds number of outer relation fileds
-   *@exception JoinNewFailed allocate failed
-   *@exception JoinLowMemory memory not enough
-	 *@exception SortException exception from sorting
-	 *@exception MapUtilsException exception from using map utils
-   *@exception IOException some I/O fault
-   */
-  public SortMerge(AttrType    in1[],
+	/**
+	 * constructor,initialization
+	 *
+	 * @param in1          the in 1
+	 * @param len_in1      # of columns in R
+	 * @param s1_sizes     shows the length of the string fields in R.
+	 * @param in2          the in 2
+	 * @param len_in2      # of columns in S
+	 * @param s2_sizes     shows the length of the string fields in S
+	 * @param join_col_in1 The col of R to be joined with S
+	 * @param sortFld1Len  the length of sorted field in R
+	 * @param join_col_in2 the col of S to be joined with R
+	 * @param sortFld2Len  the length of sorted field in S
+	 * @param amt_of_mem   IN PAGES
+	 * @param am1          access method for left input to join
+	 * @param am2          access method for right input to join
+	 * @param in1_sorted   is am1 sorted?
+	 * @param in2_sorted   is am2 sorted?
+	 * @param order        the order of the map: assending or desecnding?
+	 * @param outFilter    the out filter
+	 * @param proj_list    shows what input fields go where in the output map
+	 * @param n_out_flds   number of outer relation fileds
+	 * @throws JoinNewFailed     the join new failed
+	 * @throws JoinLowMemory     the join low memory
+	 * @throws SortException     the sort exception
+	 * @throws MapUtilsException the map utils exception
+	 * @throws IOException       the io exception
+	 */
+	public SortMerge(AttrType    in1[],
 		   int     len_in1,
 		   short   s1_sizes[],
 		   AttrType    in2[],
@@ -278,7 +279,7 @@ public class SortMerge extends Iterator implements GlobalConst
 	      // Note that depending on whether the sort order
 	      // is ascending or descending,
 	      // this loop will be modified.
-	      comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
+	      comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
 	      while ((comp_res < 0 && _order.mapOrder == MapOrder.Ascending) ||
 		     (comp_res > 0 && _order.mapOrder == MapOrder.Descending))
 		{
@@ -287,10 +288,10 @@ public class SortMerge extends Iterator implements GlobalConst
 		    return null;
 		  }
 
-		  comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
+		  comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
 		}
 
-	      comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
+	      comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
 	      while ((comp_res > 0 && _order.mapOrder == MapOrder.Ascending) ||
 		     (comp_res < 0 && _order.mapOrder == MapOrder.Descending))
 		{
@@ -300,7 +301,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		      return null;
 		    }
 
-		  comp_res = MapUtils.CompareMapToMap(map1, map2, jc_in2);
+		  comp_res = MapUtils.CompareMapWithMap(map1, map2, jc_in2);
 		}
 
 	      if (comp_res != 0)
@@ -315,7 +316,7 @@ public class SortMerge extends Iterator implements GlobalConst
 	      io_buf1.init(_bufs1,       1, t1_size, temp_file_fd1);
 	      io_buf2.init(_bufs2,       1, t2_size, temp_file_fd2);
 
-	      while (MapUtils.CompareMapToMap(map1, TempMap1, jc_in1) == 0)
+	      while (MapUtils.CompareMapWithMap(map1, TempMap1, jc_in1) == 0)
 		{
 		  // Insert map1 into io_buf1
 		  try {
@@ -331,7 +332,7 @@ public class SortMerge extends Iterator implements GlobalConst
 		    }
 		}
 
-	      while (MapUtils.CompareMapToMap(map2, TempMap2, jc_in2) == 0)
+	      while (MapUtils.CompareMapWithMap(map2, TempMap2, jc_in2) == 0)
 		{
 		  // Insert map2 into io_buf2
 

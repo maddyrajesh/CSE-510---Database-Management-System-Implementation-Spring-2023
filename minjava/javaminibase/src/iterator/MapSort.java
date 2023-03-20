@@ -49,8 +49,7 @@ public class MapSort extends MapIterator implements GlobalConst {
      * @param n_pages     amount of memory (attrTypes pages) available for sorting
      * @throws SortException something went wrong attrTypes the lower layer.
      */
-    public MapSort(AttrType[] attrTypes, short[] field_sizes, MapIterator am, int sort_fld, MapOrder sort_order, int n_pages, int sortFieldLength, boolean mapInsertOrder) throws SortException {
-        MiniTable.mapInsertOrder = mapInsertOrder;
+    public MapSort(AttrType[] attrTypes, short[] field_sizes, MapIterator am, int sort_fld, MapOrder sort_order, int n_pages, int sortFieldLength) throws SortException {
         int str_att_count = 0; // number of string field in maps
         for (int i = 0; i < num_cols; i++) {
             mapAttributes[i] = new AttrType(attrTypes[i].attrType);
@@ -269,11 +268,7 @@ public class MapSort extends MapIterator implements GlobalConst {
 
             // comp_res = TupleUtils.CompareTupleWithValue(sortFldType, cur_node.tuple, _sort_fld, lastElem);  // need tuple_utils.java
             // comp_res = MapUtils.CompareMapWithValue(cur_node.map, _sort_fld, lastElem);
-            if (MiniTable.mapInsertOrder) {
-                comp_res = MapUtils.CompareMapsOnInsertType(cur_node.map, lastElem);
-            } else {
-                comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem);
-            }
+            comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem);
 
 
             if ((comp_res < 0 && sortOrder.mapOrder == MapOrder.Ascending) || (comp_res > 0 && sortOrder.mapOrder == MapOrder.Descending)) {

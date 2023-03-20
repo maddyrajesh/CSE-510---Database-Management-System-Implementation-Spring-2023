@@ -224,7 +224,7 @@ public class Sort extends Iterator implements GlobalConst
       else {
 	// set lastElem to have the value of the current tuple,
 	// need tuple_utils.java
-	MapUtils.SetValue(cur_node.map, lastElem, comp_res, sortFldType);
+	MapUtils.SetValue(cur_node.map, lastElem, comp_res);
 	// write tuple to output file, need io_bufs.java, type cast???
 	//	System.out.println("Putting tuple into run " + (run_num + 1)); 
 	//	cur_node.tuple.print(_in);
@@ -539,22 +539,24 @@ public class Sort extends Iterator implements GlobalConst
     
     return;
   }
-  
-  /** 
-   * Class constructor, take information about the tuples, and set up 
-   * the sorting
-   * @param in array containing attribute types of the relation
-   * @param len_in number of columns in the relation
-   * @param str_sizes array of sizes of string attributes
-   * @param am an iterator for accessing the tuples
-   * @param sort_fld the field number of the field to sort on
-   * @param sort_order the sorting order (ASCENDING, DESCENDING)
-   * @param sort_field_len the length of the sort field
-   * @param n_pages amount of memory (in pages) available for sorting
-   * @exception IOException from lower layers
-   * @exception SortException something went wrong in the lower layer. 
-   */
-  public Sort(AttrType[] attrTypes,
+
+    /**
+     * Class constructor, take information about the tuples, and set up
+     * the sorting
+     *
+     * @param attrTypes      the attr types
+     * @param fld_sizes      the fld sizes
+     * @param map_iter       the map iter
+     * @param sort_fld       the field number of the field to sort on
+     * @param map_order      the map order
+     * @param n_pages        amount of memory (in pages) available for sorting
+     * @param sortFldlen     the sort fldlen
+     * @param mapInsertOrder the map insert order
+     * @throws SortException the sort exception
+     * @throws IOException   from lower layers
+     * @throws SortException something went wrong in the lower layer.
+     */
+    public Sort(AttrType[] attrTypes,
               short[] fld_sizes,
               Iterator map_iter,
               int sort_fld,

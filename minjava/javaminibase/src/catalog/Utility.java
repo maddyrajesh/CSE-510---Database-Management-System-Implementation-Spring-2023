@@ -22,10 +22,12 @@ public class Utility implements Catalogglobal{
  void deleteRecUT(String relation, attrNode item){};
 
  // DELETES INDEX ENRIES FOR RECORDS
+/*
  void deleteRecIndexesUT(String relation, RID rid, Tuple tuple){};
+*/
 
  // WRAPS INSERT UTILITY  IN TX
- public static void insertRecordUT(String relation, int attrCnt, attrNode [] attrList)
+/* public static void insertRecordUT(String relation, int attrCnt, attrNode [] attrList)
    throws Catalogmissparam, 
 	  Catalogrelexists, 
 	  Catalogdupattrs, 
@@ -42,7 +44,7 @@ public class Utility implements Catalogglobal{
 	  Exception
  {
 	insertRecUT(relation, attrCnt, attrList);
- };
+ };*/
 
 
 //---------------------------------------------------
@@ -58,7 +60,7 @@ public class Utility implements Catalogglobal{
 //   4. inserts into each indexfile
 //---------------------------------------------------
 
-public static void insertRecUT(String relation, int attrCnt, attrNode [] attrList)
+/*public static void insertRecUT(String relation, int attrCnt, attrNode [] attrList)
   throws Catalogmissparam, 
 	 Catalogrelexists, 
 	 Catalogdupattrs, 
@@ -266,7 +268,7 @@ ExtendedSystemDefs.MINIBASE_RELCAT.getInfo(relation, relRec);
 	}
 
  } // end for loop - errors break out of loop
-};
+};*/
 
  // WRAPS LOAD UTILITY IN TX
  void loadUT(String relation, String fileName){};
@@ -275,8 +277,8 @@ ExtendedSystemDefs.MINIBASE_RELCAT.getInfo(relation, relRec);
  void loadRecordsUT(String relation, String fileName){};
 
  // LOADS INDEXES
- void loadIndexesUT(Tuple tuple, int attrCnt, int indexCnt,
-     AttrDesc [] attrs, IndexDesc [] indexes, void [] iFiles, RID rid ){};
+/* void loadIndexesUT(Tuple tuple, int attrCnt, int indexCnt,
+     AttrDesc [] attrs, IndexDesc [] indexes, void [] iFiles, RID rid ){};*/
 
 //-------------------------------
 // TYPECHECK INTS

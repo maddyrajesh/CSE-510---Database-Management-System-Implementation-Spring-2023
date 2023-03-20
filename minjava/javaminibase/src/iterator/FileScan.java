@@ -25,22 +25,25 @@ public class FileScan extends MapIterator
   private int _nOutFlds;
   private CondExpr[]  OutputFilter;
   public FldSpec[] perm_mat;
- 
 
-  /**
-   *constructor
-   *@exception IOException some I/O fault
-   *@exception FileScanException exception from this class
-   *@exception MapUtilsException exception from this class
-   *@exception InvalidRelation invalid relation
-   * @param in1[]  array showing what the attributes of the input fields are.
-   * @param s1_sizes[]  shows the length of the string fields.
-   * @param file_name heapfile to be opened
-   * @param proj_list  shows what input fields go where in the output map
-   * @param outFilter  select expressions
-   * @throws TupleUtilsException
-   */
-  public  FileScan(String file_name,
+
+    /**
+     * constructor
+     *
+     * @param file_name  heapfile to be opened
+     * @param in1        the in 1
+     * @param s1_sizes   the s 1 sizes
+     * @param len_in1    the len in 1
+     * @param n_out_flds the n out flds
+     * @param proj_list  shows what input fields go where in the output map
+     * @param outFilter  select expressions
+     * @throws IOException         the io exception
+     * @throws FileScanException   the file scan exception
+     * @throws InvalidRelation     the invalid relation
+     * @throws MapUtilsException   the map utils exception
+     * @throws TupleUtilsException the tuple utils exception
+     */
+    public  FileScan(String file_name,
                    AttrType[] in1,
                    short[] s1_sizes,
                    short len_in1,
@@ -109,16 +112,15 @@ public class FileScan extends MapIterator
    * @throws InvalidFieldNo
    */
   public Map get_next()
-    throws JoinsException,
-	   IOException,
+          throws JoinsException,
+          IOException,
           InvalidMapSizeException,
-	   InvalidTypeException,
-	   PageNotReadException, 
-	   PredEvalException,
-	   UnknowAttrType,
-	   FieldNumberOutOfBoundException,
-	   WrongPermat, InvalidFieldNo
-    {     
+          InvalidTypeException,
+          PageNotReadException,
+          PredEvalException,
+          UnknowAttrType,
+          FieldNumberOutOfBoundException,
+          WrongPermat, InvalidFieldNo, MapUtilsException {
       MID mid = new MID();
       
       while(true) {

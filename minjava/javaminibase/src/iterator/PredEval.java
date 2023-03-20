@@ -23,13 +23,12 @@ public class PredEval
  * @throws InvalidFieldNo
    */
   public static boolean Eval(CondExpr[] p, Map m1, Map m2)
-    throws IOException,
-	   UnknowAttrType,
-          InvalidMapSizeException,
-	   InvalidTypeException,
-	   FieldNumberOutOfBoundException,
-	   PredEvalException, InvalidFieldNo
-    {
+		  throws IOException,
+		  UnknowAttrType,
+		  InvalidMapSizeException,
+		  InvalidTypeException,
+		  FieldNumberOutOfBoundException,
+		  PredEvalException, InvalidFieldNo, MapUtilsException {
       CondExpr temp_ptr;
       int       i = 0;
       Map    map1 = null, map2 = null;
@@ -119,7 +118,7 @@ public class PredEval
 		}
 	      
 	      
-	      comp_res = MapUtils.CompareMapToMap(map1, map2, fldNo);
+	      comp_res = MapUtils.CompareMapWithMap(map1, map2, fldNo);
 	      op_res = false;
 	      
 	      switch (temp_ptr.op.attrOperator)

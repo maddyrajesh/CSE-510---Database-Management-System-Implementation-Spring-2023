@@ -99,9 +99,6 @@ public class MapUtils
         return true;
     }
 
-    public static boolean checkSameMap(Map m1, Map m2) throws IOException {
-        return m1.getRowLabel().equals(m2.getRowLabel()) && m1.getColumnLabel().equals(m2.getColumnLabel());
-    }
     /**
      *get the string specified by the field number
      *@param tuple the tuple
