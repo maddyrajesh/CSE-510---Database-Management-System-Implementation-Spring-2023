@@ -55,6 +55,8 @@ public class NestedLoopsJoins  extends Iterator
    *@param n_out_flds number of outer relation fileds
    *@exception IOException some I/O fault
    *@exception NestedLoopException exception from this class
+   * @throws InvalidRelation
+   * @throws TupleUtilsException
    */
   public NestedLoopsJoins( AttrType    in1[],    
 			   int     len_in1,           
@@ -69,7 +71,7 @@ public class NestedLoopsJoins  extends Iterator
 			   CondExpr rightFilter[],    
 			   FldSpec   proj_list[],
 			   int        n_out_flds
-			   ) throws IOException,NestedLoopException
+			   ) throws IOException,NestedLoopException, TupleUtilsException, InvalidRelation
     {
       
       _in1 = new AttrType[in1.length];
@@ -97,15 +99,9 @@ public class NestedLoopsJoins  extends Iterator
       
       perm_mat = proj_list;
       nOutFlds = n_out_flds;
-      try {
-		  // This will need to be changed with the map utils updates.
-	t_size = MapUtils.setup_op_map(Jmap, Jtypes,
-					   in1, len_in1, in2, len_in2,
-					   t1_str_sizes, t2_str_sizes,
-					   proj_list, nOutFlds);
-      }catch (MapUtilsException e){
-	throw new NestedLoopException(e,"MapUtilsException is caught by NestedLoopsJoins.java");
-      }
+      // This will need to be changed with the map utils updates.
+      t_size = MapUtils.setup_op_map(Jmap, Jtypes,
+				   in1, len_in1, t1_str_sizes, proj_list, nOutFlds);
       
       
       

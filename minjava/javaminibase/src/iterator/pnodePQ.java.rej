@@ -1,0 +1,13 @@
+diff a/minjava/javaminibase/src/iterator/pnodePQ.java b/minjava/javaminibase/src/iterator/pnodePQ.java	(rejected hunks)
+@@ -71,9 +72,10 @@ public abstract class pnodePQ
+    * @exception UnknowAttrType <code>attrSymbol</code> or 
+    *                           <code>attrNull</code> encountered
+    * @exception MapUtilsException error in map compare routines
++   * @throws InvalidFieldNo
+    */
+   public int pnodeCMP(pnode a, pnode b) 
+-         throws IOException, UnknowAttrType, MapUtilsException {
++         throws IOException, UnknowAttrType, MapUtilsException, InvalidFieldNo {
+     int ans = MapUtils.CompareMapToMap(a.map, b.map, fld_no);
+     return ans;
+   }

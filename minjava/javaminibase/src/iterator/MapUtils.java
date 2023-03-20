@@ -332,30 +332,29 @@ public class MapUtils
         }
     }
     
-    public static int CompareMapsOnInsertType(Map mapObj1, Map mapObj2) throws Exception {
-        int mapRowCompare = mapObj1.getRowLabel().compareTo(mapObj2.getRowLabel());
-        int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
-        int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
+    // public static int CompareMapsOnInsertType(Map mapObj1, Map mapObj2) throws Exception {
+    //     int mapRowCompare = mapObj1.getRowLabel().compareTo(mapObj2.getRowLabel());
+    //     int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
+    //     int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
     
-        switch (MiniTable.insertType) {
-            case 1:
-                return mapRowCompare;
-            case 2:
-                return mapColumnCompare;
-            case 3:
-                if (mapColumnCompare > 0) return 1;
-                else if (mapColumnCompare < 0) return -1;
-                return mapRowCompare;
-            case 4:
-                if (mapRowCompare > 0) return 1;
-                else if (mapRowCompare < 0) return -1;
-                return mapValueCompare;
-            default:
-                throw new Exception("Invalid value");
-        }
-    }
+    //     switch (mapObj1.) {
+    //         case 1:
+    //             return mapRowCompare;
+    //         case 2:
+    //             return mapColumnCompare;
+    //         case 3:
+    //             if (mapColumnCompare > 0) return 1;
+    //             else if (mapColumnCompare < 0) return -1;
+    //             return mapRowCompare;
+    //         case 4:
+    //             if (mapRowCompare > 0) return 1;
+    //             else if (mapRowCompare < 0) return -1;
+    //             return mapValueCompare;
+    //         default:
+    //             throw new Exception("Invalid value");
+    //     }
+    // }
 }
-
 
 
 

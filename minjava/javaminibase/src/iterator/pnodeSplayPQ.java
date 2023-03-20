@@ -55,8 +55,9 @@ public class pnodeSplayPQ extends pnodePQ
    * @exception UnknowAttrType <code>attrSymbol</code> or 
    *                           <code>attrNull</code> encountered
    * @exception MapUtilsException error in map compare routines
+   * @throws InvalidFieldNo
    */
-  public void enq(pnode item) throws IOException, UnknowAttrType, MapUtilsException
+  public void enq(pnode item) throws IOException, UnknowAttrType, MapUtilsException, InvalidFieldNo
   {
     count ++;
     pnodeSplayNode newnode = new pnodeSplayNode(item);

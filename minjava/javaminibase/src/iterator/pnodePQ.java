@@ -48,9 +48,10 @@ public abstract class pnodePQ
    * @exception UnknowAttrType <code>attrSymbol</code> or
    *                           <code>attrNull</code> encountered
    * @exception MapUtilsException error in map compare routines
+ * @throws InvalidFieldNo
    */
   abstract public void  enq(pnode  item) 
-           throws IOException, UnknowAttrType, MapUtilsException;
+           throws IOException, UnknowAttrType, MapUtilsException, InvalidFieldNo;
 
   /**
    * removes the minimum (Ascending) or maximum (Descending) element
@@ -88,8 +89,9 @@ public abstract class pnodePQ
    * @exception UnknowAttrType <code>attrSymbol</code> or 
    *                           <code>attrNull</code> encountered
    * @exception MapUtilsException error in map compare routines
+   * @throws InvalidFieldNo
    */  
-  public boolean pnodeEQ(pnode a, pnode b) throws IOException, UnknowAttrType, MapUtilsException {
+  public boolean pnodeEQ(pnode a, pnode b) throws IOException, UnknowAttrType, MapUtilsException, InvalidFieldNo {
     return pnodeCMP(a, b) == 0;
   }
   
