@@ -4,6 +4,8 @@ import btree.*;
 import global.*;
 import diskmgr.*;
 import heap.*;
+import iterator.*;
+import org.w3c.dom.Attr;
 
 import java.io.IOException;
 
@@ -27,6 +29,8 @@ public class Stream implements GlobalConst{
     private String columnFilter;
     private String valueFilter;
     private int tableType;
+    private MapSort sort;
+    private Scan scan;
 
 
     /**
@@ -63,9 +67,9 @@ public class Stream implements GlobalConst{
 
     /** Add on (stephanie)*/
     private String rangeRegex = "\\[\\S+,\\S+\\]";
-    private String starFilter;
+    private String starFilter = "*";
     private boolean scanAll = false;
-    private String lastChar;
+    private String lastChar = "Z";
     private BTFileScan btreeScanner;
     /** Add on (stephanie)*/
 
@@ -76,8 +80,6 @@ public class Stream implements GlobalConst{
         this.columnFilter = columnFilter;
         this.valueFilter = valueFilter;
         tableType = bigtable.getType();
-        this.starFilter = "*";
-        this.lastChar = "Z";
     }
 
     /**
@@ -815,6 +817,130 @@ public class Stream implements GlobalConst{
 
     }
 
+    public void filterAndSortData(int orderType) throws Exception {
+        /* orderType is for ordering by
+        · 1, then results are first ordered in row label, then column label, then time stamp
+        · 2, then results are first ordered in column label, then row label, then time stamp
+        · 3, then results are first ordered in row label, then time stamp
+        · 4, then results are first ordered in column label, then time stamp
+        · 6, then results are ordered in time stamp
+        * */
 
+        Heapfile tempHeapFile = new Heapfile("tempSort");
+
+        MID mid = new MID();
+        if (this.scanAll) {
+            //scanning whole bigt file.
+            scan = bigtable.getHeapFile().openScan();
+
+            //mapObj.setHeader();
+            Map map = null;
+
+//            if (rowFilter.equals(starFilter) && columnFilter.equals(starFilter) && valueFilter.equals(starFilter)) {
+//                System.out.println("rowFilter = " + rowFilter);
+//                tempHeapFile = this.bigtable.heapfile;
+//            } else {
+
+            int count = 0;
+            map = this.scan.getNext(mid);
+            while (map != null) {
+                count++;
+                short kaka = 0;
+                if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
+                    tempHeapFile.insertMap(map.getMapByteArray());
+                }
+                map = scan.getNext(mid);
+            }
+
+        } else {
+
+            KeyDataEntry entry = btreeScanner.get_next();
+            while (entry != null) {
+                MID currMid = ((LeafData) entry.data).getData();
+                if (currMid != null) {
+                    MID tempMid = new MID(currMid.pageNo, currMid.slotNo);
+                    Map map = bigtable.getHeapFile().getRecord(tempMid);
+                    if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
+                        tempHeapFile.insertMap(map.getMapByteArray());
+                    }
+
+                }
+                entry = btreeScanner.get_next();
+            }
+        }
+
+
+        FldSpec[] projection = new FldSpec[4];
+        RelSpec rel = new RelSpec(RelSpec.outer);
+        projection[0] = new FldSpec(rel, 1);
+        projection[1] = new FldSpec(rel, 2);
+        projection[2] = new FldSpec(rel, 3);
+        projection[3] = new FldSpec(rel, 4);
+
+        FileScan fscan = null;
+        AttrType[] attrTypes = new AttrType[]{new AttrType(0), new AttrType(0), new AttrType(1), new AttrType(0)};
+
+        try {
+            fscan = new FileScan("tempSort4", attrTypes, new short[]{(short) (32 * 1024), (short) (32 * 1024), (short) (32 * 1024)}, (short) 4, 4, projection, null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        int sortField, num_pages = 10, sortFieldLength;
+        switch (orderType) {
+            case 1:
+            case 3:
+                sortField = 1;
+                sortFieldLength = 32 * 1024;
+                break;
+            case 2:
+            case 4:
+                sortField = 2;
+                sortFieldLength = 32 * 1024;
+                break;
+            case 5:
+                sortField = 3;
+                sortFieldLength = 32 * 1024;
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + orderType);
+        }
+        try {
+            this.sort = new MapSort(attrTypes, new short[]{(short) (32 * 1024), (short) (32 * 1024), (short) (32 * 1024)}, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    /**
+     * @param map Map object to compare field with filter.
+     * @param field field type to be compared - row, column or value.
+     * @param filter Filter on fields - row, column or value.
+     * @return
+     * @throws Exception
+     */
+    private boolean genericMatcher(Map map, String field, String filter) throws Exception {
+        if (filter.matches(rangeRegex)) {
+            String[] range = filter.replaceAll("[\\[ \\]]", "").split(",");
+//            String[] range = ",".split(genericFilter.replaceAll("[\\[ \\]]", ""));
+            // so now row is in range
+//            System.out.println("range = " + Arrays.toString(range));
+            switch (field)
+            {
+                case "row":
+                    return map.getRowLabel().compareTo(range[0]) >= 0 && map.getRowLabel().compareTo(range[1]) <= 0;
+                case "column":
+                    return map.getColumnLabel().compareTo(range[0]) >= 0 && map.getColumnLabel().compareTo(range[1]) <= 0;
+                case "value":
+                    return map.getValue().compareTo(range[0]) >= 0 && map.getValue().compareTo(range[1]) <= 0;
+            }
+
+        } else if (filter.equals(map.getRowLabel()) || filter.equals(map.getColumnLabel()) || filter.equals(map.getValue())) {
+            return true;
+        } else {
+            return filter.equals(starFilter);
+        }
+    }
 }
 

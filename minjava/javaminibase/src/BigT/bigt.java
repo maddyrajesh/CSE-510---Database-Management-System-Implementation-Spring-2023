@@ -315,4 +315,8 @@ public class bigt {
     public int getType() {
         return type;
     }
+
+    public Heapfile getHeapFile() {
+        return heapFile;
+    }
 }
