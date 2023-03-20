@@ -1,5 +1,6 @@
 package BigT;
 
+import btree.*;
 import global.*;
 import diskmgr.*;
 import heap.*;
@@ -60,6 +61,14 @@ public class Stream implements GlobalConst{
     /** Status of next user status */
     private boolean nextUserStatus;
 
+    /** Add on (stephanie)*/
+    private String rangeRegex = "\\[\\S+,\\S+\\]";
+    private String starFilter;
+    private boolean scanAll = false;
+    private String lastChar;
+    private BTFileScan btreeScanner;
+    /** Add on (stephanie)*/
+
     public Stream(bigt bigtable, int orderType, String rowFilter, String columnFilter, String valueFilter) {
         this.bigtable = bigtable;
         this.orderType = orderType;
@@ -67,6 +76,8 @@ public class Stream implements GlobalConst{
         this.columnFilter = columnFilter;
         this.valueFilter = valueFilter;
         tableType = bigtable.getType();
+        this.starFilter = "*";
+        this.lastChar = "Z";
     }
 
     /**
@@ -646,6 +657,163 @@ public class Stream implements GlobalConst{
         }
 
     } // end of unpinPage
+    public void queryConditions(int indexType) throws Exception {
+
+
+        StringKey start = null, end = null;
+
+        /*
+        type is an integer denoting the different clustering and indexing strategies you will use for the graph database.
+        orderType is for ordering by
+        · 1, then results are first ordered in row label, then column label, then time stamp
+        · 2, then results are first ordered in column label, then row label, then time stamp
+        · 3, then results are first ordered in row label, then time stamp
+        · 4, then results are first ordered in column label, then time stamp
+        · 5, then results are ordered in time stamp
+        * */
+        switch (indexType) {
+            case 1:
+            default:
+                // same as case 1
+                this.scanAll = true;
+                break;
+            case 2:
+                if (rowFilter.equals(starFilter)) {
+                    this.scanAll = true;
+                } else {
+                    // check if range
+                    if (rowFilter.matches(rangeRegex)) {
+                        String[] range = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        start = new StringKey(range[0]);
+                        end = new StringKey(range[1] + this.lastChar);
+                    } else {
+                        start = new StringKey(rowFilter);
+                        end = new StringKey(rowFilter + this.lastChar);
+                    }
+                }
+                break;
+            case 3:
+                if (columnFilter.equals(starFilter)) {
+                    this.scanAll = true;
+                } else {
+                    // check if range
+                    if (columnFilter.matches(rangeRegex)) {
+                        String[] range = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        start = new StringKey(range[0]);
+                        end = new StringKey(range[1] + this.lastChar);
+                    } else {
+                        start = new StringKey(columnFilter);
+                        end = new StringKey(columnFilter + this.lastChar);
+                    }
+                }
+                break;
+            case 4:
+                if ((rowFilter.equals(starFilter)) && (columnFilter.equals(starFilter))) {
+                    scanAll = true;
+                } else {
+
+                    // check if both range
+                    if ((rowFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
+
+                        String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        String[] columnRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        start = new StringKey(columnRange[0] + "$" + rowRange[0]);
+                        end = new StringKey(columnRange[1] + "$" + rowRange[1] + this.lastChar);
+
+                        //check row range and column fixed/*
+                    } else if ((rowFilter.matches(rangeRegex)) && (!columnFilter.matches(rangeRegex))) {
+                        String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        if (columnFilter.equals(starFilter)) {
+                            scanAll = true;
+                        } else {
+                            start = new StringKey(columnFilter + "$" + rowRange[0]);
+                            end = new StringKey(columnFilter + "$" + rowRange[1] + this.lastChar);
+                        }
+                        // check column range and row fixed/*
+                    } else if ((!rowFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
+                        String[] columnRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        if (rowFilter.equals(starFilter)) {
+                            start = new StringKey(columnRange[0]);
+                            end = new StringKey(columnRange[1] + this.lastChar);
+                        } else {
+
+                            start = new StringKey(columnRange[0] + "$" + rowFilter);
+                            end = new StringKey(columnRange[1] + "$" + rowFilter + this.lastChar);
+                        }
+
+                        //row and col are fixed val or *,fixed fixed,*
+                    } else {
+                        if (columnFilter.equals(starFilter)) {
+                            scanAll = true;
+                        } else if (rowFilter.equals(starFilter)) {
+                            start = end = new StringKey(columnFilter);
+                        } else {
+                            start = new StringKey(columnFilter + "$" + rowFilter);
+                            end = new StringKey(columnFilter + "$" + rowFilter + this.lastChar);
+                        }
+                    }
+                }
+                break;
+            case 5:
+
+                if ((valueFilter.equals(starFilter)) && (rowFilter.equals(starFilter))) {
+                    scanAll = true;
+                } else {
+
+                    // check if both range
+                    if ((valueFilter.matches(rangeRegex)) && (rowFilter.matches(rangeRegex))) {
+
+                        String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        start = new StringKey(rowRange[0] + "$" + valueRange[0]);
+                        end = new StringKey(rowRange[1] + "$" + valueRange[1] + this.lastChar);
+
+                        //check row range and column fixed/*
+                    } else if ((valueFilter.matches(rangeRegex)) && (!rowFilter.matches(rangeRegex))) {
+                        String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        if (rowFilter.equals(starFilter)) {
+                            scanAll = true;
+                        } else {
+                            start = new StringKey(rowFilter + "$" + valueRange[0]);
+                            end = new StringKey(rowFilter + "$" + valueRange[1] + this.lastChar);
+                        }
+                        // check column range and row fixed/*
+                    } else if ((!valueFilter.matches(rangeRegex)) && (rowFilter.matches(rangeRegex))) {
+                        String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        if (valueFilter.equals("*")) {
+                            start = new StringKey(rowRange[0]);
+                            end = new StringKey(rowRange[1] + this.lastChar);
+                        } else {
+
+                            start = new StringKey(rowRange[0] + "$" + valueFilter);
+                            end = new StringKey(rowRange[1] + "$" + valueFilter + this.lastChar);
+                        }
+
+                        //row and col are fixed val or *,fixed fixed,*
+                    } else {
+                        if (rowFilter.equals(starFilter)) {
+                            // *, fixed
+                            scanAll = true;
+                        } else if (valueFilter.equals(starFilter)) {
+                            // fixed, *
+                            start = new StringKey(rowFilter);
+                            end = new StringKey(rowFilter + lastChar);
+                        } else {
+                            // both fixed
+                            start = new StringKey(rowFilter + "$" + valueFilter);
+                            end = new StringKey(rowFilter + "$" + valueFilter + this.lastChar);
+                        }
+                    }
+                }
+                break;
+        }
+
+        if (!this.scanAll) {
+            this.btreeScanner = bigtable.indexFiles[indexType].new_scan(start, end);
+        }
+
+
+    }
 
 
 }
