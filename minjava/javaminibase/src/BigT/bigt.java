@@ -28,6 +28,7 @@ public class bigt {
     private BTreeFile btree1;
     private BTreeFile btree2;
     private HashMap<ArrayList<String>, ArrayList<MID>> indexedMap;
+    BTreeFile[] indexFiles;
 
     /**
      * Instantiates a new Bigt.
