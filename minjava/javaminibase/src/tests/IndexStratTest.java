@@ -67,8 +67,8 @@ public class IndexStratTest {
             bigt database4 = new bigt("strat4.in", 4);
 
 */
-            File f = new File(basePath + "/tmp/strat5.db");
-            new SystemDefs(basePath + "/tmp/strat5.db", numPages, NUMBUF, "Clock");
+            File f = new File(basePath + "/strat5.db");
+            new SystemDefs(basePath + "/strat5.db", numPages, NUMBUF, "Clock");
             bigt database5 = new bigt("strat5", 5);
             fileStream = new FileInputStream("test_data1.csv");
             br = new BufferedReader(new InputStreamReader(fileStream, "UTF-8"));
