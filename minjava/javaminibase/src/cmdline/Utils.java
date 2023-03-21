@@ -115,7 +115,7 @@ class Utils {
     }
 
     public static String getDBPath(String tableName) {
-        return "/tmp/" + tableName  + ".db";
+        return tableName  + ".db";
     }
 
 

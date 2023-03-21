@@ -9,6 +9,7 @@ import bufmgr.PageNotFoundException;
 import bufmgr.PagePinnedException;
 import bufmgr.PageUnpinnedException;
 import bufmgr.ReplacerException;
+import cmdline.MiniTable;
 import global.*;
 import heap.*;
 
@@ -48,23 +49,25 @@ public class bigt {
         this.type = type;
         this.heapFile = new Heapfile(name);
         this.indexedMap = new HashMap<>();
+        this.rowSet = new HashSet<>();
+        this.columnSet = new HashSet<>();
 
         switch(type)
         {
             // one btree to index row labels
             case 1:
-                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, Map.max_string_size, 0);
+                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0], 0);
                 break;
             // one btree to index column labels
             case 2:
-                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, Map.max_string_size, 0);
+                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[1], 0);
                 break;
             /*
             one btree to index column label and row label (combined key) and
             one btree to index timestamps
              */
             case 3:
-                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, Map.max_string_size * 2, 0);
+                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[1], 0);
                 this.btree2 = new BTreeFile("timestampIndex", AttrType.attrString, Map.max_int_size, 0);
                 break;
             /*
@@ -72,7 +75,7 @@ public class bigt {
             one btree to index timestamps
              */
             case 4:
-                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, Map.max_string_size * 2, 0);
+                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[2], 0);
                 this.btree2 = new BTreeFile("timestampIndex", AttrType.attrString, Map.max_int_size, 0);
                 break;
             /*
@@ -80,7 +83,7 @@ public class bigt {
             one btree to index timestamps
              */
             case 5:
-                this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, Map.max_string_size * 2, 0);
+                this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[1] + MiniTable.BIGT_STR_SIZES[2], 0);
                 this.btree2 = new BTreeFile("timestampIndex", AttrType.attrString, Map.max_int_size, 0);
                 break;
         }
@@ -110,7 +113,7 @@ public class bigt {
      * @throws FreePageException           the free page exception
      * @throws DeleteFileEntryException    the delete file entry exception
      */
-    public void deleteBigt() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, FileAlreadyDeletedException, IOException, IteratorException, ConstructPageException, PinPageException, UnpinPageException, FreePageException, DeleteFileEntryException {
+    public void deleteBigt() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, FileAlreadyDeletedException, IOException, IteratorException, ConstructPageException, PinPageException, UnpinPageException, FreePageException, DeleteFileEntryException, InvalidTupleSizeException {
         heapFile.deleteFile();
         btree1.destroyFile();
         btree2.destroyFile();
@@ -127,7 +130,7 @@ public class bigt {
      * @throws HFBufMgrException          the hf buf mgr exception
      * @throws IOException                the io exception
      */
-    public int getMapCnt() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public int getMapCnt() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         return heapFile.getRecCnt();
     }
 
@@ -170,7 +173,7 @@ public class bigt {
             {
                 for (MID mid : indexedMap.get(rowColumnKey))
                 {
-                    timestampMap.put(heapFile.getRecord(mid).getTimeStamp(), mid);
+                    timestampMap.put(heapFile.getMap(mid).getTimeStamp(), mid);
                 }
             }
 
@@ -181,8 +184,8 @@ public class bigt {
                 if (map.getTimeStamp() > oldestTimestamp)
                 {
                     // delete record
-                    heapFile.deleteRecord(timestampMap.get(oldestTimestamp));
-                    MID newMID = heapFile.insertRecord(mapPtr);
+                    heapFile.deleteMap(timestampMap.get(oldestTimestamp));
+                    MID newMID = heapFile.insertMap(mapPtr);
 
                     // update indexedMap
                     indexedMap.get(rowColumnKey).remove(timestampMap.get(oldestTimestamp));
@@ -203,7 +206,7 @@ public class bigt {
             // timestamp limit has not been reached so just insert
             else
             {
-                MID newMID = heapFile.insertRecord(mapPtr);
+                MID newMID = heapFile.insertMap(mapPtr);
                 // MID with same row column key already exists
                 if (indexedMap.containsKey(rowColumnKey))
                 {
@@ -238,7 +241,7 @@ public class bigt {
      * @throws Exception the exception
      */
     public void insertIndex(MID mid) throws Exception {
-        Map map = heapFile.getRecord(mid);
+        Map map = heapFile.getMap(mid);
         switch(type)
         {
             case 1:
@@ -269,7 +272,7 @@ public class bigt {
      * @throws Exception the exception
      */
     public void deleteIndex(MID mid) throws Exception {
-        Map map = heapFile.getRecord(mid);
+        Map map = heapFile.getMap(mid);
         switch(type)
         {
             case 1:

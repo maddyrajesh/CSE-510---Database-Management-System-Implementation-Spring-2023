@@ -226,7 +226,7 @@ public class IndexScan extends Iterator {
       // not index_only, need to return the whole map
       mid = ((LeafData)nextentry.data).getData();
       try {
-	map1 = f.getRecord(mid);
+	map1 = f.getMap(mid);
       }
       catch (Exception e) {
 	throw new IndexException(e, "IndexScan.java: getRecord failed");

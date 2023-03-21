@@ -347,7 +347,7 @@ public class RelCatalog extends Heapfile
 	
 	if (record.relName.equalsIgnoreCase(relation)==true) {
 	  try {
-	    deleteRecord(mid);
+	    deleteMap(mid);
 	  }
 	  catch (Exception e3) {
 	    System.err.println ("deleteRecord"+e3);

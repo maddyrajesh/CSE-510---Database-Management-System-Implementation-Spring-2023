@@ -342,7 +342,7 @@ public class AttrCatalog extends Heapfile
             if (record.relName.equalsIgnoreCase(relation) == true
                     && record.attrName.equalsIgnoreCase(attrName) == true) {
                 try {
-                    deleteRecord(mid);
+                    deleteMap(mid);
                 } catch (Exception e3) {
                     throw new AttrCatalogException(e3, "deleteRecord failed");
                 }

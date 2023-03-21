@@ -336,66 +336,63 @@ public class HFPage extends Page
    * @exception IOException I/O errors
    * in C++ Status insertRecord(char *recPtr, int recLen, MID& mid)
    */
-  public MID insertRecord ( byte [] record)
-    throws IOException
-    {
-      MID mid = new MID();
-      
+  public RID insertRecord(byte[] record)
+          throws IOException {
+      RID rid = new RID();
+
       int recLen = record.length;
       int spaceNeeded = recLen + SIZE_OF_SLOT;
-      
+
       // Start by checking if sufficient space exists.
       // This is an upper bound check. May not actually need a slot
       // if we can find an empty one.
-      
-      freeSpace = Convert.getShortValue (FREE_SPACE, data);
+
+      freeSpace = Convert.getShortValue(FREE_SPACE, data);
       if (spaceNeeded > freeSpace) {
-        return null;
-	
+          return null;
+
       } else {
-	
-	// look for an empty slot
-	slotCnt = Convert.getShortValue (SLOT_CNT, data); 
-	int i; 
-	short length;
-	for (i= 0; i < slotCnt; i++) 
-	  {
-	    length = getSlotLength(i); 
-	    if (length == EMPTY_SLOT)
-	      break;
-	  }
-	
-	if(i == slotCnt)   //use a new slot
-	  {           
-	    // adjust free space        
-	    freeSpace -= spaceNeeded;
-	    Convert.setShortValue (freeSpace, FREE_SPACE, data);
-	    
-	    slotCnt++;
-	    Convert.setShortValue (slotCnt, SLOT_CNT, data);
-	    
-	  }
-	else {
-	  // reusing an existing slot
-	  freeSpace -= recLen;
-	  Convert.setShortValue (freeSpace, FREE_SPACE, data);
-	}
-        
-	usedPtr = Convert.getShortValue (USED_PTR, data);
-        usedPtr -= recLen;    // adjust usedPtr
-	Convert.setShortValue (usedPtr, USED_PTR, data);
-	
-	//insert the slot info onto the data page
-	setSlot(i, recLen, usedPtr);   
-	
-	// insert data onto the data page
-	System.arraycopy (record, 0, data, usedPtr, recLen);
-	curPage.pid = Convert.getIntValue (CUR_PAGE, data);
-	mid.pageNo.pid = curPage.pid;
-	mid.slotNo = i;
-	return   mid ;
+
+          // look for an empty slot
+          slotCnt = Convert.getShortValue(SLOT_CNT, data);
+          int i;
+          short length;
+          for (i = 0; i < slotCnt; i++) {
+              length = getSlotLength(i);
+              if (length == EMPTY_SLOT)
+                  break;
+          }
+
+          if (i == slotCnt)   //use a new slot
+          {
+              // adjust free space
+              freeSpace -= spaceNeeded;
+              Convert.setShortValue(freeSpace, FREE_SPACE, data);
+
+              slotCnt++;
+              Convert.setShortValue(slotCnt, SLOT_CNT, data);
+
+          } else {
+              // reusing an existing slot
+              freeSpace -= recLen;
+              Convert.setShortValue(freeSpace, FREE_SPACE, data);
+          }
+
+          usedPtr = Convert.getShortValue(USED_PTR, data);
+          usedPtr -= recLen;    // adjust usedPtr
+          Convert.setShortValue(usedPtr, USED_PTR, data);
+
+          //insert the slot info onto the data page
+          setSlot(i, recLen, usedPtr);
+
+          // insert data onto the data page
+          System.arraycopy(record, 0, data, usedPtr, recLen);
+          curPage.pid = Convert.getIntValue(CUR_PAGE, data);
+          rid.pageNo.pid = curPage.pid;
+          rid.slotNo = i;
+          return rid;
       }
-    } 
+  }
   
   /**
    * delete the record with the specified mid
@@ -404,7 +401,7 @@ public class HFPage extends Page
    * @exception IOException I/O errors
    * in C++ Status deleteRecord(const MID& mid)
    */
-  public void deleteRecord ( MID mid )
+  public void deleteMap ( MID mid )
     throws IOException,  
 	   InvalidSlotNumberException
     {
@@ -459,6 +456,57 @@ public class HFPage extends Page
 	throw new InvalidSlotNumberException (null, "HEAPFILE: INVALID_SLOTNO");
       }
     }
+
+    public void deleteRecord(RID rid)
+            throws IOException,
+            InvalidSlotNumberException {
+        int slotNo = rid.slotNo;
+        short recLen = getSlotLength(slotNo);
+        slotCnt = Convert.getShortValue(SLOT_CNT, data);
+
+        // first check if the record being deleted is actually valid
+        if ((slotNo >= 0) && (slotNo < slotCnt) && (recLen > 0)) {
+            // The records always need to be compacted, as they are
+            // not necessarily stored on the page in the order that
+            // they are listed in the slot index.
+
+            // offset of record being deleted
+            int offset = getSlotOffset(slotNo);
+            usedPtr = Convert.getShortValue(USED_PTR, data);
+            int newSpot = usedPtr + recLen;
+            int size = offset - usedPtr;
+
+            // shift bytes to the right
+            System.arraycopy(data, usedPtr, data, newSpot, size);
+
+            // now need to adjust offsets of all valid slots that refer
+            // to the left of the record being removed. (by the size of the hole)
+
+            int i, n, chkoffset;
+            for (i = 0, n = DPFIXED; i < slotCnt; n += SIZE_OF_SLOT, i++) {
+                if ((getSlotLength(i) >= 0)) {
+                    chkoffset = getSlotOffset(i);
+                    if (chkoffset < offset) {
+                        chkoffset += recLen;
+                        Convert.setShortValue((short) chkoffset, n + 2, data);
+                    }
+                }
+            }
+
+            // move used Ptr forwar
+            usedPtr += recLen;
+            Convert.setShortValue(usedPtr, USED_PTR, data);
+
+            // increase freespace by size of hole
+            freeSpace = Convert.getShortValue(FREE_SPACE, data);
+            freeSpace += recLen;
+            Convert.setShortValue(freeSpace, FREE_SPACE, data);
+
+            setSlot(slotNo, EMPTY_SLOT, 0);  // mark slot free
+        } else {
+            throw new InvalidSlotNumberException(null, "HEAPFILE: INVALID_SLOTNO");
+        }
+    }
   
   /**
    * @return MID of first record on page, null if page contains no records.
@@ -466,7 +514,7 @@ public class HFPage extends Page
    * in C++ Status firstRecord(MID& firstMid)
    * 
    */ 
-  public MID firstRecord()
+  public MID firstMap()
     throws IOException
     {
       MID mid = new MID();
@@ -495,6 +543,34 @@ public class HFPage extends Page
       
       return mid;
     }
+
+    public RID firstRecord()
+            throws IOException {
+        RID rid = new RID();
+        // find the first non-empty slot
+
+
+        slotCnt = Convert.getShortValue(SLOT_CNT, data);
+
+        int i;
+        short length;
+        for (i = 0; i < slotCnt; i++) {
+            length = getSlotLength(i);
+            if (length != EMPTY_SLOT)
+                break;
+        }
+
+        if (i == slotCnt)
+            return null;
+
+        // found a non-empty slot
+
+        rid.slotNo = i;
+        curPage.pid = Convert.getIntValue(CUR_PAGE, data);
+        rid.pageNo.pid = curPage.pid;
+
+        return rid;
+    }
   
   /**
    * @return MID of next record on the page, null if no more
@@ -503,7 +579,7 @@ public class HFPage extends Page
    * @exception  IOException I/O errors
    * in C++ Status nextRecord (MID curMid, MID& nextMid)
    */
-  public MID nextRecord (MID curMid)
+  public MID nextMap(MID curMid)
     throws IOException 
     {
       MID mid = new MID();
@@ -531,6 +607,33 @@ public class HFPage extends Page
       
       return mid;
     }
+
+    public RID nextRecord(RID curRid)
+            throws IOException {
+        RID rid = new RID();
+        slotCnt = Convert.getShortValue(SLOT_CNT, data);
+
+        int i = curRid.slotNo;
+        short length;
+
+        // find the next non-empty slot
+        for (i++; i < slotCnt; i++) {
+            length = getSlotLength(i);
+            if (length != EMPTY_SLOT)
+                break;
+        }
+
+        if (i >= slotCnt)
+            return null;
+
+        // found a non-empty slot
+
+        rid.slotNo = i;
+        curPage.pid = Convert.getIntValue(CUR_PAGE, data);
+        rid.pageNo.pid = curPage.pid;
+
+        return rid;
+    }
   
   /**
    * copies out record with MID mid into record pointer.
@@ -542,7 +645,7 @@ public class HFPage extends Page
    * @exception  	IOException I/O errors
    * @see 	Map
    */
-  public Map getRecord ( MID mid )
+  public Map getMap ( MID mid )
     throws IOException,  
 	   InvalidSlotNumberException
     {
@@ -574,7 +677,35 @@ public class HFPage extends Page
       
     }
 
-    public Tuple getTupleRecord ( MID mid )
+    public Tuple getRecord(RID rid)
+            throws IOException,
+            InvalidSlotNumberException {
+        short recLen;
+        short offset;
+        byte[] record;
+        PageId pageNo = new PageId();
+        pageNo.pid = rid.pageNo.pid;
+        curPage.pid = Convert.getIntValue(CUR_PAGE, data);
+        int slotNo = rid.slotNo;
+
+        // length of record being returned
+        recLen = getSlotLength(slotNo);
+        slotCnt = Convert.getShortValue(SLOT_CNT, data);
+        if ((slotNo >= 0) && (slotNo < slotCnt) && (recLen > 0)
+                && (pageNo.pid == curPage.pid)) {
+            offset = getSlotOffset(slotNo);
+            record = new byte[recLen];
+            System.arraycopy(data, offset, record, 0, recLen);
+            Tuple tuple = new Tuple(record, 0, recLen);
+            return tuple;
+        } else {
+            throw new InvalidSlotNumberException(null, "HEAPFILE: INVALID_SLOTNO");
+        }
+
+
+    }
+
+    public Tuple getRecordFromMid ( MID mid )
             throws IOException,
             InvalidSlotNumberException
     {
@@ -616,125 +747,156 @@ public class HFPage extends Page
    * @exception   IOException I/O errors
    * @see 	Map
    */  
-  public Map returnRecord ( MID mid )
-    throws IOException, 
+  public Tuple returnRecord ( RID rid )
+    throws IOException,
 	   InvalidSlotNumberException
     {
       short recLen;
       short offset;
       PageId pageNo = new PageId();
-      pageNo.pid = mid.pageNo.pid;
-      
+      pageNo.pid = rid.pageNo.pid;
+
       curPage.pid = Convert.getIntValue (CUR_PAGE, data);
-      int slotNo = mid.slotNo;
-      
+      int slotNo = rid.slotNo;
+
       // length of record being returned
       recLen = getSlotLength (slotNo);
       slotCnt = Convert.getShortValue (SLOT_CNT, data);
-      
+
       if (( slotNo >=0) && (slotNo < slotCnt) && (recLen >0)
 	  && (pageNo.pid == curPage.pid))
 	{
-	  
+
 	  offset = getSlotOffset (slotNo);
-	  Map map = new Map(data, offset);
-	  return map;
+	  Tuple tuple = new Tuple(data, offset, recLen);
+	  return tuple;
 	}
-      
-      else {   
+
+      else {
         throw new InvalidSlotNumberException (null, "HEAPFILE: INVALID_SLOTNO");
       }
-      
+
     }
-  
+
+    public Map returnMap ( MID mid )
+            throws IOException,
+            InvalidSlotNumberException
+    {
+        short recLen;
+        short offset;
+        PageId pageNo = new PageId();
+        pageNo.pid = mid.pageNo.pid;
+
+        curPage.pid = Convert.getIntValue (CUR_PAGE, data);
+        int slotNo = mid.slotNo;
+
+        // length of record being returned
+        recLen = getSlotLength (slotNo);
+        slotCnt = Convert.getShortValue (SLOT_CNT, data);
+
+        if (( slotNo >=0) && (slotNo < slotCnt) && (recLen >0)
+                && (pageNo.pid == curPage.pid))
+        {
+
+            offset = getSlotOffset (slotNo);
+            Map map = new Map(data, offset);
+            return map;
+        }
+
+        else {
+            throw new InvalidSlotNumberException (null, "HEAPFILE: INVALID_SLOTNO");
+        }
+
+    }
+
   /**
    * returns the amount of available space on the page.
    * @return  the amount of available space on the page
    * @exception  IOException I/O errors
-   */  
-  public int available_space()  
+   */
+  public int available_space()
     throws IOException
     {
       freeSpace = Convert.getShortValue (FREE_SPACE, data);
       return (freeSpace - SIZE_OF_SLOT);
     }
-  
-  /**      
+
+  /**
    * Determining if the page is empty
-   * @return true if the HFPage is has no records in it, false otherwise  
+   * @return true if the HFPage is has no records in it, false otherwise
    * @exception  IOException I/O errors
    */
-  public boolean empty() 
+  public boolean empty()
     throws IOException
     {
       int i;
       short length;
       // look for an empty slot
       slotCnt = Convert.getShortValue (SLOT_CNT, data);
-      
-      for (i= 0; i < slotCnt; i++) 
+
+      for (i= 0; i < slotCnt; i++)
 	{
 	  length = getSlotLength(i);
 	  if (length != EMPTY_SLOT)
 	    return false;
-	}    
-      
+	}
+
       return true;
     }
-  
+
   /**
    * Compacts the slot directory on an HFPage.
    * WARNING -- this will probably lead to a change in the MIDs of
    * records on the page.  You CAN'T DO THIS on most kinds of pages.
    * @exception  IOException I/O errors
    */
-  protected void compact_slot_dir()  
+  protected void compact_slot_dir()
     throws IOException
     {
       int  current_scan_posn = 0;   // current scan position
       int  first_free_slot   = -1;   // An invalid position.
       boolean move = false;          // Move a record? -- initially false
       short length;
-      short offset;		
-      
+      short offset;
+
       slotCnt = Convert.getShortValue (SLOT_CNT, data);
       freeSpace = Convert.getShortValue (FREE_SPACE, data);
-      
-      while (current_scan_posn < slotCnt) 
+
+      while (current_scan_posn < slotCnt)
 	{
 	  length = getSlotLength (current_scan_posn);
-	  
-	  if ((length == EMPTY_SLOT) && (move == false)) 
+
+	  if ((length == EMPTY_SLOT) && (move == false))
 	    {
 	      move = true;
 	      first_free_slot = current_scan_posn;
-	    } 
-	  else if ((length != EMPTY_SLOT) && (move == true)) 
+	    }
+	  else if ((length != EMPTY_SLOT) && (move == true))
 	    {
 	      offset = getSlotOffset (current_scan_posn);
-	      
+
 	      // slot[first_free_slot].length = slot[current_scan_posn].length;
-	      // slot[first_free_slot].offset = slot[current_scan_posn].offset; 
+	      // slot[first_free_slot].offset = slot[current_scan_posn].offset;
 	      setSlot ( first_free_slot, length, offset);
-	      
+
 	      // Mark the current_scan_posn as empty
 	      //  slot[current_scan_posn].length = EMPTY_SLOT;
 	      setSlot (current_scan_posn, EMPTY_SLOT, 0);
-	      
+
 	      // Now make the first_free_slot point to the next free slot.
 	      first_free_slot++;
-	      
+
 	      // slot[current_scan_posn].length == EMPTY_SLOT !!
-	      while (getSlotLength (first_free_slot) != EMPTY_SLOT)  
+	      while (getSlotLength (first_free_slot) != EMPTY_SLOT)
 		{
 		  first_free_slot++;
 		}
 	    }
-	  
-	  current_scan_posn++;           
+
+	  current_scan_posn++;
 	}
-      
-      if (move == true) 
+
+      if (move == true)
 	{
 	  // Adjust amount of free space on page and slotCnt
 	  freeSpace += SIZE_OF_SLOT * (slotCnt - first_free_slot);
@@ -743,5 +905,64 @@ public class HFPage extends Page
 	  Convert.setShortValue (slotCnt, SLOT_CNT, data);
 	}
     }
-  
+
+    public MID insertMap(byte[] record)
+            throws IOException {
+        MID mid = new MID();
+
+        int recLen = record.length;
+        int spaceNeeded = recLen + SIZE_OF_SLOT;
+
+        // Start by checking if sufficient space exists.
+        // This is an upper bound check. May not actually need a slot
+        // if we can find an empty one.
+
+        freeSpace = Convert.getShortValue(FREE_SPACE, data);
+        if (spaceNeeded > freeSpace) {
+            return null;
+
+        } else {
+
+            // look for an empty slot
+            slotCnt = Convert.getShortValue(SLOT_CNT, data);
+            int i;
+            short length;
+            for (i = 0; i < slotCnt; i++) {
+                length = getSlotLength(i);
+                if (length == EMPTY_SLOT)
+                    break;
+            }
+
+            if (i == slotCnt)   //use a new slot
+            {
+                // adjust free space
+                freeSpace -= spaceNeeded;
+                Convert.setShortValue(freeSpace, FREE_SPACE, data);
+
+                slotCnt++;
+                Convert.setShortValue(slotCnt, SLOT_CNT, data);
+
+            } else {
+                // reusing an existing slot
+                freeSpace -= recLen;
+                Convert.setShortValue(freeSpace, FREE_SPACE, data);
+            }
+
+            usedPtr = Convert.getShortValue(USED_PTR, data);
+            usedPtr -= recLen;    // adjust usedPtr
+            Convert.setShortValue(usedPtr, USED_PTR, data);
+
+            //insert the slot info onto the data page
+            setSlot(i, recLen, usedPtr);
+
+            // insert data onto the data page
+            System.arraycopy(record, 0, data, usedPtr, recLen);
+            curPage.pid = Convert.getIntValue(CUR_PAGE, data);
+            mid.pageNo = curPage;
+            mid.slotNo = i;
+//            rid.pageNo.pid = curPage.pid;
+//            rid.slotNo = i;
+            return mid;
+        }
+    }
 }

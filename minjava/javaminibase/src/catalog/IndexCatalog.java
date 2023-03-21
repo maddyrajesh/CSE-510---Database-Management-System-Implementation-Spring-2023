@@ -393,7 +393,7 @@ public class IndexCatalog extends Heapfile
 	     && (record.accessType == accessType))
 	    {
 	      try {
-		deleteRecord(mid);  //  FOUND -  DELETE        
+		deleteMap(mid);  //  FOUND -  DELETE
 	      }
 	      catch (Exception e){
 		throw new IndexCatalogException(e, "deleteRecord() failed");

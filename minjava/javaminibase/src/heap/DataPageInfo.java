@@ -88,10 +88,27 @@ public class DataPageInfo implements GlobalConst{
       pageId = new PageId();
       pageId.pid = Convert.getIntValue(offset+8, data);
   }
-  
-  
+
+  public DataPageInfo(Tuple _atuple)
+          throws InvalidTupleSizeException, IOException {
+    // need check _atuple size == this.size ?otherwise, throw new exception
+    if (_atuple.getLength() != 12) {
+      throw new InvalidTupleSizeException(null, "HEAPFILE: TUPLE SIZE ERROR");
+    } else {
+      data = _atuple.returnTupleByteArray();
+      offset = _atuple.getOffset();
+
+      availspace = Convert.getIntValue(offset, data);
+      recct = Convert.getIntValue(offset + 4, data);
+      pageId = new PageId();
+      pageId.pid = Convert.getIntValue(offset + 8, data);
+
+    }
+  }
+
+
   /** convert this class object to a map(like cast a DataPageInfo to Map)
-   *  
+   *
    *
    */
   public Map convertToMap()
@@ -106,9 +123,26 @@ public class DataPageInfo implements GlobalConst{
 
     // 2) creat a Map object using this array
     Map amap = new Map(data, offset);
- 
+
     // 3) return map object
     return amap;
+
+  }
+
+  public Tuple convertToTuple()
+          throws IOException {
+
+    // 1) write availspace, recct, pageId into data []
+    Convert.setIntValue(availspace, offset, data);
+    Convert.setIntValue(recct, offset + 4, data);
+    Convert.setIntValue(pageId.pid, offset + 8, data);
+
+
+    // 2) creat a Tuple object using this array
+    Tuple atuple = new Tuple(data, offset, size);
+
+    // 3) return tuple object
+    return atuple;
 
   }
   
@@ -126,6 +160,16 @@ public class DataPageInfo implements GlobalConst{
 
     // here we assume data[] already points to buffer pool
   
+  }
+  public void flushToTuple() throws IOException
+  {
+    // write availspace, recct, pageId into "data[]"
+    Convert.setIntValue(availspace, offset, data);
+    Convert.setIntValue(recct, offset + 4, data);
+    Convert.setIntValue(pageId.pid, offset + 8, data);
+
+    // here we assume data[] already points to buffer pool
+
   }
   
 }

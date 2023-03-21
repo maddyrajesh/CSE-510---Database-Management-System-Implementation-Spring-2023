@@ -14,7 +14,6 @@ public class Map implements GlobalConst {
     public static final int max_int_size = 4;
     public static final int MAX_SIZE = MINIBASE_PAGESIZE;
     // 3 strings with max size 64kb and an int with size 4b
-    public static final int max_size = max_string_size * 3 + max_int_size;
     public static short fldCnt = 4;
     private byte [] data;
     private int map_offset;
@@ -25,8 +24,9 @@ public class Map implements GlobalConst {
      * Instantiates a new Map.
      */
     public Map() {
-        data = new byte[max_size];
+        data = new byte[MAX_SIZE];
         map_offset = 0;
+        map_length = MAX_SIZE;
     }
 
     /**
@@ -57,6 +57,7 @@ public class Map implements GlobalConst {
         data = fromMap.getMapByteArray();
         map_offset = 0;
         fldOffset = fromMap.copyFldOffset();
+        map_length = fromMap.map_length;
     }
 
     private short[] copyFldOffset() {
@@ -244,8 +245,8 @@ public class Map implements GlobalConst {
      * @return a byte array containing the map
      */
     public byte[] getMapByteArray() {
-        byte [] mapcopy = new byte [max_size];
-        System.arraycopy(data, map_offset, mapcopy, 0, size());
+        byte [] mapcopy = new byte [map_length];
+        System.arraycopy(data, map_offset, mapcopy, 0, map_length);
         return mapcopy;
     }
 

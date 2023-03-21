@@ -103,7 +103,7 @@ public class Scan implements GlobalConst{
     mid.slotNo = usermid.slotNo;
          
     try {
-      recptrmap = datapage.getRecord(mid);
+      recptrmap = datapage.getMap(mid);
     }
     
     catch (Exception e) {
@@ -111,7 +111,7 @@ public class Scan implements GlobalConst{
       e.printStackTrace();
     }   
     
-    usermid = datapage.nextRecord(mid);
+usermid = datapage.nextMap(mid);
     if(usermid == null) nextUserStatus = false;
     else nextUserStatus = true;
      
@@ -135,7 +135,7 @@ public class Scan implements GlobalConst{
         mid.slotNo = userrid.slotNo;
 
         try {
-            recptrtuple = datapage.getTupleRecord(mid);
+            recptrtuple = datapage.getRecordFromMid(mid);
         }
 
         catch (Exception e) {
@@ -143,7 +143,7 @@ public class Scan implements GlobalConst{
             e.printStackTrace();
         }
 
-        usermid = datapage.nextRecord(mid);
+        usermid = datapage.nextMap(mid);
         if(usermid == null) nextUserStatus = false;
         else nextUserStatus = true;
 
@@ -195,7 +195,7 @@ public class Scan implements GlobalConst{
     // Now we are on the correct page.
     
     try{
-    	usermid = datapage.firstRecord();
+    	usermid = datapage.firstMap();
 	}
     catch (Exception e) {
       e.printStackTrace();
@@ -306,13 +306,13 @@ public class Scan implements GlobalConst{
 	}
     
     /** now try to get a pointer to the first datapage */
-	 datapageMid = dirpage.firstRecord();
+	 datapageMid = dirpage.firstMap();
 	 
     	if (datapageMid != null) {
     /** there is a datapage record on the first directory page: */
 	
 	try {
-          recmap = dirpage.getRecord(datapageMid);
+          recmap = dirpage.getMap(datapageMid);
 	}  
 				
 	catch (Exception e) {
@@ -361,7 +361,7 @@ public class Scan implements GlobalConst{
 	/** now try again to read a data record: */
 	
 	try {
-	  datapageMid = dirpage.firstRecord();
+	  datapageMid = dirpage.firstMap();
 	}
         
 	catch (Exception e) {
@@ -374,7 +374,7 @@ public class Scan implements GlobalConst{
           
 	  try {
 	  
-	    recmap = dirpage.getRecord(datapageMid);
+	    recmap = dirpage.getMap(datapageMid);
 	  }
 	  
 	  catch (Exception e) {
@@ -484,7 +484,7 @@ public class Scan implements GlobalConst{
 	}
 	
 	try {
-	  usermid = datapage.firstRecord();
+	  usermid = datapage.firstMap();
 	}
 	catch (Exception e) {
 	  e.printStackTrace();
@@ -514,7 +514,7 @@ public class Scan implements GlobalConst{
       return false;
     }
     
-    datapageMid = dirpage.nextRecord(datapageMid);
+    datapageMid = dirpage.nextMap(datapageMid);
     
     if (datapageMid == null) {
       nextDataPageStatus = false;
@@ -556,7 +556,7 @@ public class Scan implements GlobalConst{
 	  return false;
 	
     	try {
-	  datapageMid = dirpage.firstRecord();
+	  datapageMid = dirpage.firstMap();
 	  nextDataPageStatus = true;
 	}
 	catch (Exception e){
@@ -575,7 +575,7 @@ public class Scan implements GlobalConst{
   
     // data page is not yet loaded: read its record from the directory page
    	try {
-	  recmap = dirpage.getRecord(datapageMid);
+	  recmap = dirpage.getMap(datapageMid);
 	}
 	
 	catch (Exception e) {
@@ -603,7 +603,7 @@ public class Scan implements GlobalConst{
      // - this->dirpageId, this->dirpage correct
      // - this->datapageId, this->datapage, this->datapageMid correct
 
-     usermid = datapage.firstRecord();
+     usermid = datapage.firstMap();
      
      if(usermid == null)
      {
@@ -637,7 +637,7 @@ public class Scan implements GlobalConst{
     if (datapage == null)
         return false;
 
-    	nextmid = datapage.nextRecord(mid);
+    	nextmid = datapage.nextMap(mid);
 	
 	if( nextmid != null ){
 	  usermid.pageNo.pid = nextmid.pageNo.pid;

@@ -114,7 +114,7 @@ public class Stream implements GlobalConst{
         mid.slotNo = usermid.slotNo;
 
         try {
-            recptrmap = datapage.getRecord(mid);
+            recptrmap = datapage.getMap(mid);
         }
 
         catch (Exception e) {
@@ -122,7 +122,7 @@ public class Stream implements GlobalConst{
             e.printStackTrace();
         }
 
-        usermid = datapage.nextRecord(mid);
+        usermid = datapage.nextMap(mid);
         if(usermid == null) nextUserStatus = false;
         else nextUserStatus = true;
 
@@ -174,7 +174,7 @@ public class Stream implements GlobalConst{
         // Now we are on the correct page.
 
         try{
-            usermid = datapage.firstRecord();
+            usermid = datapage.firstMap();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -278,13 +278,13 @@ public class Stream implements GlobalConst{
         }
 
         /** now try to get a pointer to the first datapage */
-        datapageMid = dirpage.firstRecord();
+        datapageMid = dirpage.firstMap();
 
         if (datapageMid != null) {
             /** there is a datapage record on the first directory page: */
 
             try {
-                recmap = dirpage.getRecord(datapageMid);
+                recmap = dirpage.getMap(datapageMid);
             }
 
             catch (Exception e) {
@@ -333,7 +333,7 @@ public class Stream implements GlobalConst{
                 /** now try again to read a data record: */
 
                 try {
-                    datapageMid = dirpage.firstRecord();
+                    datapageMid = dirpage.firstMap();
                 }
 
                 catch (Exception e) {
@@ -346,7 +346,7 @@ public class Stream implements GlobalConst{
 
                     try {
 
-                        recmap = dirpage.getRecord(datapageMid);
+                        recmap = dirpage.getMap(datapageMid);
                     }
 
                     catch (Exception e) {
@@ -456,7 +456,7 @@ public class Stream implements GlobalConst{
                 }
 
                 try {
-                    usermid = datapage.firstRecord();
+                    usermid = datapage.firstMap();
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -486,7 +486,7 @@ public class Stream implements GlobalConst{
             return false;
         }
 
-        datapageMid = dirpage.nextRecord(datapageMid);
+        datapageMid = dirpage.nextMap(datapageMid);
 
         if (datapageMid == null) {
             nextDataPageStatus = false;
@@ -528,7 +528,7 @@ public class Stream implements GlobalConst{
                     return false;
 
                 try {
-                    datapageMid = dirpage.firstRecord();
+                    datapageMid = dirpage.firstMap();
                     nextDataPageStatus = true;
                 }
                 catch (Exception e){
@@ -547,7 +547,7 @@ public class Stream implements GlobalConst{
 
         // data page is not yet loaded: read its record from the directory page
         try {
-            recmap = dirpage.getRecord(datapageMid);
+            recmap = dirpage.getMap(datapageMid);
         }
 
         catch (Exception e) {
@@ -575,7 +575,7 @@ public class Stream implements GlobalConst{
         // - this->dirpageId, this->dirpage correct
         // - this->datapageId, this->datapage, this->datapageMid correct
 
-        usermid = datapage.firstRecord();
+        usermid = datapage.firstMap();
 
         if(usermid == null)
         {
@@ -609,7 +609,7 @@ public class Stream implements GlobalConst{
         if (datapage == null)
             return false;
 
-        nextmid = datapage.nextRecord(mid);
+        nextmid = datapage.nextMap(mid);
 
         if( nextmid != null ){
             usermid.pageNo.pid = nextmid.pageNo.pid;
@@ -859,7 +859,7 @@ public class Stream implements GlobalConst{
                 MID currMid = ((LeafData) entry.data).getData();
                 if (currMid != null) {
                     MID tempMid = new MID(currMid.pageNo, currMid.slotNo);
-                    Map map = bigtable.getHeapFile().getRecord(tempMid);
+                    Map map = bigtable.getHeapFile().getMap(tempMid);
                     if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
                         tempHeapFile.insertMap(map.getMapByteArray());
                     }
