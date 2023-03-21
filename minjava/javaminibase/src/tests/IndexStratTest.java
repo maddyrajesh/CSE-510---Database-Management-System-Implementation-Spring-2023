@@ -8,6 +8,7 @@ import btree.ConstructPageException;
 import btree.GetFileEntryException;
 import cmdline.MiniTable;
 import diskmgr.*;
+import global.AttrType;
 import global.MID;
 import global.SystemDefs;
 import heap.*;
@@ -37,38 +38,68 @@ public class IndexStratTest {
 
 
     private static void init() {
-        File f = new File("test_data1.csv");
         Integer numPages = NUM_PAGES;
-        new SystemDefs("test_data1.csv", numPages, NUMBUF, "Clock");
         pcounter.initialize();
 
         FileInputStream fileStream = null;
         BufferedReader br = null;
         try {
-            bigt database1 = new bigt("strat1", 1);
-            bigt database2 = new bigt("strat2", 2);
-            bigt database3 = new bigt("strat3", 3);
-            bigt database4 = new bigt("strat4", 4);
+            //System.out.println(System.getProperty("user.dir"));
+            String basePath = System.getProperty("user.dir");
+            /*System.out.println(System.getProperty("user.dir"));
+            File f = new File(basePath + "/tmp/strat1.db");
+            new SystemDefs(basePath + "/tmp/strat1.db", numPages, NUMBUF, "Clock");
+            bigt database1 = new bigt("strat1.in", 1);
+
+
+            f = new File(basePath + "/tmp/strat2.db");
+            new SystemDefs(basePath + "/tmp/strat2.db", numPages, NUMBUF, "Clock");
+            bigt database2 = new bigt("strat2.in", 2);
+
+
+            f = new File(basePath + "/tmp/strat3.db");
+            new SystemDefs(basePath + "/tmp/strat3.db", numPages, NUMBUF, "Clock");
+            bigt database3 = new bigt("strat3.in", 3);
+
+
+            f = new File(basePath + "/tmp/strat4.db");
+            new SystemDefs(basePath + "/tmp/strat4.db", numPages, NUMBUF, "Clock");
+            bigt database4 = new bigt("strat4.in", 4);
+
+*/
+            File f = new File(basePath + "/tmp/strat5.db");
+            new SystemDefs(basePath + "/tmp/strat5.db", numPages, NUMBUF, "Clock");
             bigt database5 = new bigt("strat5", 5);
             fileStream = new FileInputStream("test_data1.csv");
-            br = new BufferedReader(new InputStreamReader(fileStream));
+            br = new BufferedReader(new InputStreamReader(fileStream, "UTF-8"));
             String inputStr;
             int mapCount = 0;
-
             while ((inputStr = br.readLine()) != null) {
                 String[] input = inputStr.split(",");
                 //set the map
+                System.out.println(input[0]);
+                System.out.println(input[1]);
+                System.out.println(input[2]);
+                System.out.println(input[3]);
                 Map map = new Map();
-                map.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+                short strSizes[] = {(short)input[0].length(), (short)input[1].length(), (short)input[3].length()};
+                AttrType attr[] = {new AttrType(AttrType.attrString),
+                        new AttrType(AttrType.attrString),
+                        new AttrType(AttrType.attrInteger),
+                        new AttrType(AttrType.attrString)};
+                map.setHeader(attr, strSizes);
                 map.setRowLabel(input[0]);
                 map.setColumnLabel(input[1]);
                 map.setTimeStamp(Integer.parseInt(input[2]));
                 map.setValue(input[3]);
-                MID mid = database1.insertMap(map.getMapByteArray());
-                mid = database2.insertMap(map.getMapByteArray());
-                mid = database3.insertMap(map.getMapByteArray());
-                mid = database4.insertMap(map.getMapByteArray());
-                mid = database5.insertMap(map.getMapByteArray());
+                System.out.println("row: " + map.getRowLabel());
+                System.out.println("column: " + map.getColumnLabel());
+                System.out.println("time: " + map.getTimeStamp());
+                //MID mid = database1.insertMap(map.getMapByteArray(), strSizes);
+               // mid = database2.insertMap(map.getMapByteArray(), strSizes);
+                //mid = database3.insertMap(map.getMapByteArray(), strSizes);
+               // mid = database4.insertMap(map.getMapByteArray(), strSizes);
+                MID mid = database5.insertMap(map.getMapByteArray());
                 mapCount++;
             }
         } catch (InvalidMapSizeException e) {
@@ -99,10 +130,10 @@ public class IndexStratTest {
 
     //  Test index strategy 1.
 
-    public static void test1() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public static void test1() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database1.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = database1.openStream(1, null, "Denmark", null);
+        Stream stream = database1.openStream(1, null, "Sweden", null);
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -116,10 +147,10 @@ public class IndexStratTest {
 
     //  Test index strategy 2.
 
-    public static void test2() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public static void test2() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database2.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = database2.openStream(1, null, "Denmark", null);
+        Stream stream = database2.openStream(1, null, "Sweden", null);
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -133,10 +164,10 @@ public class IndexStratTest {
 
     //  Test index strategy 3.
 
-    public static void test3() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public static void test3() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database3.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = database3.openStream(1, null, "Denmark", null);
+        Stream stream = database3.openStream(1, null, "Sweden", null);
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -150,10 +181,10 @@ public class IndexStratTest {
 
     //  Test index strategy 4.
 
-    public static void test4() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public static void test4() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database4.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = database4.openStream(1, null, "Denmark", null);
+        Stream stream = database4.openStream(1, null, "Sweden", null);
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -167,10 +198,10 @@ public class IndexStratTest {
 
     //  Test index strategy 5.
 
-    public static void test5() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public static void test5() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database5.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = database4.openStream(1, null, "Denmark", null);
+        Stream stream = database4.openStream(1, null, "Sweden", null);
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -182,7 +213,8 @@ public class IndexStratTest {
     }
 
 
-    public static void main(String [] args) throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException {
+    public static void main(String [] args) throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
+        init();
         test1();
         System.out.print("test 1 time: " + test1Time);
 
