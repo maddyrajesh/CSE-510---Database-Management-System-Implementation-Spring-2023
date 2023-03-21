@@ -44,32 +44,29 @@ public class IndexStratTest {
         FileInputStream fileStream = null;
         BufferedReader br = null;
         try {
-            //System.out.println(System.getProperty("user.dir"));
-            String basePath = System.getProperty("user.dir");
-            /*System.out.println(System.getProperty("user.dir"));
-            File f = new File(basePath + "/tmp/strat1.db");
-            new SystemDefs(basePath + "/tmp/strat1.db", numPages, NUMBUF, "Clock");
-            bigt database1 = new bigt("strat1.in", 1);
+            File f = new File("strat1.db");
+            new SystemDefs("strat1.db", numPages, NUMBUF, "Clock");
+            database1 = new bigt("index1", 1);
 
-
+/*
             f = new File(basePath + "/tmp/strat2.db");
             new SystemDefs(basePath + "/tmp/strat2.db", numPages, NUMBUF, "Clock");
-            bigt database2 = new bigt("strat2.in", 2);
+            database2 = new bigt("strat2.in", 2);
 
 
             f = new File(basePath + "/tmp/strat3.db");
             new SystemDefs(basePath + "/tmp/strat3.db", numPages, NUMBUF, "Clock");
-            bigt database3 = new bigt("strat3.in", 3);
+            database3 = new bigt("strat3.in", 3);
 
 
             f = new File(basePath + "/tmp/strat4.db");
             new SystemDefs(basePath + "/tmp/strat4.db", numPages, NUMBUF, "Clock");
-            bigt database4 = new bigt("strat4.in", 4);
+            database4 = new bigt("strat4.in", 4);
 
 */
-            File f = new File(basePath + "/strat5.db");
-            new SystemDefs(basePath + "/strat5.db", numPages, NUMBUF, "Clock");
-            bigt database5 = new bigt("strat5", 5);
+            //File f = new File(basePath + "/strat5.db");
+            //new SystemDefs(basePath + "/strat5.db", numPages, NUMBUF, "Clock");
+            //bigt database5 = new bigt("strat5", 5);
             fileStream = new FileInputStream("test_data1.csv");
             br = new BufferedReader(new InputStreamReader(fileStream, "UTF-8"));
             String inputStr;
@@ -77,12 +74,12 @@ public class IndexStratTest {
             while ((inputStr = br.readLine()) != null) {
                 String[] input = inputStr.split(",");
                 //set the map
-                System.out.println(input[0]);
-                System.out.println(input[1]);
-                System.out.println(input[2]);
-                System.out.println(input[3]);
+                //System.out.println(input[0]);
+               // System.out.println(input[1]);
+                //System.out.println(input[2]);
+                //System.out.println(input[3]);
                 Map map = new Map();
-                short strSizes[] = {(short)input[0].length(), (short)input[1].length(), (short)input[3].length()};
+                short strSizes[] = setBigTConstants("test_data1.csv");
                 AttrType attr[] = {new AttrType(AttrType.attrString),
                         new AttrType(AttrType.attrString),
                         new AttrType(AttrType.attrInteger),
@@ -92,16 +89,25 @@ public class IndexStratTest {
                 map.setColumnLabel(input[1]);
                 map.setTimeStamp(Integer.parseInt(input[2]));
                 map.setValue(input[3]);
-                System.out.println("row: " + map.getRowLabel());
-                System.out.println("column: " + map.getColumnLabel());
-                System.out.println("time: " + map.getTimeStamp());
-                //MID mid = database1.insertMap(map.getMapByteArray(), strSizes);
+                ///System.out.println("row: " + map.getRowLabel());
+                //System.out.println("column: " + map.getColumnLabel());
+                //System.out.println("time: " + map.getTimeStamp());
+                MID mid = database1.insertMap(map.getMapByteArray());
                // mid = database2.insertMap(map.getMapByteArray(), strSizes);
                 //mid = database3.insertMap(map.getMapByteArray(), strSizes);
                // mid = database4.insertMap(map.getMapByteArray(), strSizes);
-                MID mid = database5.insertMap(map.getMapByteArray());
+                //MID mid = database5.insertMap(map.getMapByteArray());
                 mapCount++;
             }
+            System.out.println("=======================================\n");
+            System.out.println("map count: " + database1.getMapCnt());
+            System.out.println("Distinct Rows = " + database1.getRowCnt());
+            System.out.println("Distinct Coloumns = " + database1.getColumnCnt());
+            System.out.println("\n=======================================\n");
+            System.out.println("Reads : " + pcounter.rcounter);
+            System.out.println("Writes: " + pcounter.wcounter);
+            System.out.println("NumBUFS: " + NUMBUF);
+            System.out.println("\n=======================================\n");
         } catch (InvalidMapSizeException e) {
             e.printStackTrace();
         } catch (ConstructPageException e) {
@@ -133,7 +139,9 @@ public class IndexStratTest {
     public static void test1() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database1.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
+        System.out.println("stream");
         Stream stream = database1.openStream(1, null, "Sweden", null);
+        System.out.println("after stream");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -201,7 +209,7 @@ public class IndexStratTest {
     public static void test5() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         assert(database5.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = database4.openStream(1, null, "Sweden", null);
+        Stream stream = database5.openStream(1, null, "Sweden", null);
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -213,11 +221,53 @@ public class IndexStratTest {
     }
 
 
+    // Setting the map header constants.
+
+    private static short[] setBigTConstants(String dataFileName) {
+        try (BufferedReader br = new BufferedReader(new FileReader(dataFileName))) {
+            String line;
+            int maxRowKeyLength = Short.MIN_VALUE;
+            int maxColumnKeyLength = Short.MIN_VALUE;
+            int maxValueLength = Short.MIN_VALUE;
+            int maxTimeStampLength = Short.MIN_VALUE;
+            while ((line = br.readLine()) != null) {
+                String[] fields = line.split(",");
+                OutputStream out = new ByteArrayOutputStream();
+                DataOutputStream rowStream = new DataOutputStream(out);
+                DataOutputStream columnStream = new DataOutputStream(out);
+                DataOutputStream timestampStream = new DataOutputStream(out);
+                DataOutputStream valueStream = new DataOutputStream(out);
+
+                rowStream.writeUTF(fields[0]);
+                maxRowKeyLength = Math.max(rowStream.size(), maxRowKeyLength);
+
+                columnStream.writeUTF(fields[1]);
+                maxColumnKeyLength = Math.max(columnStream.size(), maxColumnKeyLength);
+
+                timestampStream.writeUTF(fields[2]);
+                maxTimeStampLength = Math.max(timestampStream.size(), maxTimeStampLength);
+
+                valueStream.writeUTF(fields[3]);
+                maxValueLength = Math.max(valueStream.size(), maxValueLength);
+
+            }
+            return new short[]{
+                    (short) maxRowKeyLength,
+                    (short) maxColumnKeyLength,
+                    (short) maxValueLength
+            };
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return new short[0];
+    }
+
+
     public static void main(String [] args) throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
         init();
         test1();
         System.out.print("test 1 time: " + test1Time);
-
+/*
         test2();
         System.out.print("test 2 time: " + test2Time);
 
@@ -229,6 +279,6 @@ public class IndexStratTest {
 
         test5();
         System.out.print("test 5 time: " + test5Time);
-
+*/
     }
 }
