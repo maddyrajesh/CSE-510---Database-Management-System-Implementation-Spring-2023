@@ -35,9 +35,17 @@ public class Map implements GlobalConst {
      * @param amap   the amap
      * @param offset the offset
      */
-    public Map(byte[] amap, int offset) {
+    public Map(byte[] amap, int offset) throws IOException {
         data = amap;
         map_offset = offset;
+
+        fldOffset = new short[5];
+        int pos = map_offset + 2;
+        for (int i = 0; i < 5; i++)
+        {
+            fldOffset[i] = Convert.getShortValue(pos, data);
+            pos += 2;
+        }
     }
 
     /**

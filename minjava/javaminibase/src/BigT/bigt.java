@@ -47,6 +47,7 @@ public class bigt {
         this.name = name;
         this.type = type;
         this.heapFile = new Heapfile(name);
+        this.indexedMap = new HashMap<>();
 
         switch(type)
         {
