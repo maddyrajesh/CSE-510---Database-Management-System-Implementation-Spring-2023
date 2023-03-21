@@ -252,15 +252,15 @@ public class bigt {
                 break;
             case 3:
                 btree1.insert(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
-                btree1.insert(new IntegerKey(map.getTimeStamp()), mid);
+                btree2.insert(new IntegerKey(map.getTimeStamp()), mid);
                 break;
             case 4:
                 btree1.insert(new StringKey(map.getRowLabel() + map.getValue()), mid);
-                btree1.insert(new IntegerKey(map.getTimeStamp()), mid);
+                btree2.insert(new IntegerKey(map.getTimeStamp()), mid);
                 break;
             case 5:
                 btree1.insert(new StringKey(map.getColumnLabel() + map.getValue()), mid);
-                btree1.insert(new IntegerKey(map.getTimeStamp()), mid);
+                btree2.insert(new IntegerKey(map.getTimeStamp()), mid);
                 break;
         }
     }
@@ -283,15 +283,15 @@ public class bigt {
                 break;
             case 3:
                 btree1.Delete(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
-                btree1.Delete(new IntegerKey(map.getTimeStamp()), mid);
+                btree2.Delete(new IntegerKey(map.getTimeStamp()), mid);
                 break;
             case 4:
                 btree1.Delete(new StringKey(map.getRowLabel() + map.getValue()), mid);
-                btree1.Delete(new IntegerKey(map.getTimeStamp()), mid);
+                btree2.Delete(new IntegerKey(map.getTimeStamp()), mid);
                 break;
             case 5:
                 btree1.Delete(new StringKey(map.getColumnLabel() + map.getValue()), mid);
-                btree1.Delete(new IntegerKey(map.getTimeStamp()), mid);
+                btree2.Delete(new IntegerKey(map.getTimeStamp()), mid);
                 break;
         }
     }
