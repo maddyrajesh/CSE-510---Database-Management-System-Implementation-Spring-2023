@@ -227,7 +227,7 @@ public class Map implements GlobalConst {
      * @exception   IOException I/O errors
      */
     public Map setValue(String val) throws IOException {
-        Convert.setStrValue(val, fldOffset[1], data);
+        Convert.setStrValue(val, fldOffset[3], data);
         return this;
     }
 
