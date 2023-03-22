@@ -231,6 +231,11 @@ public class Map implements GlobalConst {
         return this;
     }
 
+    public void setMap_length(short length)
+    {
+        this.map_length = length;
+    }
+
         /**
      * @param fromMap Copy the map object to this map object.
      */

@@ -5,7 +5,7 @@ import java.io.*;
 /** class MID modeled off of RID
  */
 
-public class MID {
+public class MID implements Serializable {
 
     public int slotNo;
     public PageId pageNo = new PageId();

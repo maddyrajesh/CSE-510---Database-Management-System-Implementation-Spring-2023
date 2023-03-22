@@ -667,6 +667,7 @@ public class HFPage extends Page
 	  record = new byte[recLen];
 	  System.arraycopy(data, offset, record, 0, recLen);
 	  Map map = new Map(record, 0);
+      map.setMap_length(recLen);
 	  return map;
 	}
       

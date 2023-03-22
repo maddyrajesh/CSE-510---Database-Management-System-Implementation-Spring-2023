@@ -83,7 +83,7 @@ class Utils {
 
         try {
 
-            bigt bigTable = new bigt(tableName, type);
+            bigt bigTable = new bigt(tableName);
             if (!type.equals(bigTable.getType())) {
                 System.out.println("Type Mismatch");
                 bigTable.close();

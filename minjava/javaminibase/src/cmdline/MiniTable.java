@@ -49,7 +49,7 @@ public class MiniTable {
 
                     //query BIGTABLENAME TYPE ORDERTYPE ROWFILTER COLUMNFILTER VALUEFILTER NUMBUF
                     String tableName = inputStr[1].trim();
-                    String filename = "/tmp/" + tableName + "_metadata.txt";
+                    String filename = tableName + "_metadata.txt";
 
                     FileReader fileReader;
                     BufferedReader bufferedReader = null;
