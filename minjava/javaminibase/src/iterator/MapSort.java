@@ -169,6 +169,7 @@ public class MapSort extends MapIterator implements GlobalConst {
 
         if (queue.empty()) {
             // no more maps availble
+            System.out.println("null");
             return null;
         }
 

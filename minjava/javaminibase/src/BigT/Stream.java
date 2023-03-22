@@ -73,13 +73,15 @@ public class Stream implements GlobalConst{
     private BTFileScan btreeScanner;
     /** Add on (stephanie)*/
 
-    public Stream(bigt bigtable, int orderType, String rowFilter, String columnFilter, String valueFilter) {
+    public Stream(bigt bigtable, int orderType, String rowFilter, String columnFilter, String valueFilter) throws Exception {
         this.bigtable = bigtable;
         this.orderType = orderType;
         this.rowFilter = rowFilter;
         this.columnFilter = columnFilter;
         this.valueFilter = valueFilter;
         tableType = bigtable.getType();
+        queryConditions(this.bigtable.getType());
+        filterAndSortData(orderType);
     }
 
     /**
@@ -89,7 +91,7 @@ public class Stream implements GlobalConst{
         reset();
     }
 
-    /** Retrieve the next record in a sequential scan
+    /** Retrieve the next record in the stream.
      *
      * @exception InvalidMapSizeException Invalid map size
      * @exception IOException I/O errors
@@ -98,12 +100,14 @@ public class Stream implements GlobalConst{
      * @return the Map of the retrieved record.
      */
     public Map getNext(MID mid)
-            throws InvalidMapSizeException,
-            IOException
-    {
+            throws Exception {
         Map recptrmap = null;
 
-        if (nextUserStatus != true) {
+        recptrmap = this.sort.get_next();
+        mid = new MID();
+
+
+        /*if (nextUserStatus != true) {
             nextDataPage();
         }
 
@@ -125,7 +129,7 @@ public class Stream implements GlobalConst{
         usermid = datapage.nextMap(mid);
         if(usermid == null) nextUserStatus = false;
         else nextUserStatus = true;
-
+        */
         return recptrmap;
     }
 
@@ -848,6 +852,7 @@ public class Stream implements GlobalConst{
                 short kaka = 0;
                 if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
                     tempHeapFile.insertMap(map.getMapByteArray());
+                    System.out.println("inserted map: " + map.getRowLabel());
                 }
                 map = scan.getNext(mid);
             }
@@ -881,7 +886,7 @@ public class Stream implements GlobalConst{
         AttrType[] attrTypes = new AttrType[]{new AttrType(0), new AttrType(0), new AttrType(1), new AttrType(0)};
 
         try {
-            fscan = new FileScan("tempSort4", attrTypes, new short[]{(short) (32 * 1024), (short) (32 * 1024), (short) (32 * 1024)}, (short) 4, 4, projection, null);
+            fscan = new FileScan("tempSort", attrTypes, new short[]{(short) (32 * 1024), (short) (32 * 1024), (short) (32 * 1024)}, (short) 4, 4, projection, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -921,6 +926,7 @@ public class Stream implements GlobalConst{
      * @throws Exception
      */
     private boolean genericMatcher(Map map, String field, String filter) throws Exception {
+        System.out.println("filter is " + filter + " map attr are: " + map.getRowLabel() + ", " + map.getColumnLabel() + ", " + map.getValue());
         if (filter.matches(rangeRegex)) {
             String[] range = filter.replaceAll("[\\[ \\]]", "").split(",");
 //            String[] range = ",".split(genericFilter.replaceAll("[\\[ \\]]", ""));

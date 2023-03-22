@@ -136,26 +136,35 @@ public class IndexStratTest {
 
     //  Test index strategy 1.
 
-    public static void test1() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
-        assert(database1.getMapCnt() == mapCount);
+    public static void test1() throws Exception {
+        pcounter.initialize();
+        bigt databaseTest = new bigt("index1", 1);
+        assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         System.out.println("stream");
-        Stream stream = database1.openStream(1, null, "Sweden", null);
+        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "00002");
         System.out.println("after stream");
         MID mid = new MID();
         Map map = new Map();
+        int numOfMatches = 0 ;
         do {
             map = stream.getNext(mid);
+            if(map != null) {
+                numOfMatches++;
+                System.out.println(map.getColumnLabel());
+            }
         }
         while(map != null);
         test1Time = System.nanoTime();
         test1Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Number of matches found: " + numOfMatches);
     }
 
 
     //  Test index strategy 2.
 
-    public static void test2() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
+    public static void test2() throws Exception {
         assert(database2.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = database2.openStream(1, null, "Sweden", null);
@@ -172,7 +181,7 @@ public class IndexStratTest {
 
     //  Test index strategy 3.
 
-    public static void test3() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
+    public static void test3() throws Exception {
         assert(database3.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = database3.openStream(1, null, "Sweden", null);
@@ -189,7 +198,7 @@ public class IndexStratTest {
 
     //  Test index strategy 4.
 
-    public static void test4() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
+    public static void test4() throws Exception {
         assert(database4.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = database4.openStream(1, null, "Sweden", null);
@@ -206,7 +215,7 @@ public class IndexStratTest {
 
     //  Test index strategy 5.
 
-    public static void test5() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
+    public static void test5() throws Exception {
         assert(database5.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = database5.openStream(1, null, "Sweden", null);
@@ -263,7 +272,7 @@ public class IndexStratTest {
     }
 
 
-    public static void main(String [] args) throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
+    public static void main(String [] args) throws Exception {
         init();
         test1();
         System.out.print("test 1 time: " + test1Time);
