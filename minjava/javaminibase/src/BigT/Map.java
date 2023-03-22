@@ -168,7 +168,7 @@ public class Map implements GlobalConst {
      * @exception   IOException I/O errors
      */
     public String getValue() throws IOException {
-        return Convert.getStrValue(fldOffset[3], data, fldOffset[3] - fldOffset[2]);
+        return Convert.getStrValue(fldOffset[3], data, fldOffset[4] - fldOffset[3]);
     }
 
     /** get the offset of a tuple
