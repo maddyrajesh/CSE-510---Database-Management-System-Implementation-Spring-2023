@@ -100,29 +100,6 @@ public class MapUtils
     }
 
     /**
-     *get the string specified by the field number
-     *@param tuple the tuple
-     *@param fidno the field number
-     *@return the content of the field number
-     *@exception IOException some I/O fault
-     *@exception MapUtilsException exception from this class
-     */
-    /*
-    public static String Value(Tuple  tuple, int fldno)
-            throws IOException,
-            MapUtilsException
-    {
-        String temp;
-        try{
-            temp = tuple.getStrFld(fldno);
-        }catch (FieldNumberOutOfBoundException e){
-            throw new MapUtilsException(e, "FieldNumberOutOfBoundException is caught by TupleUtils.java");
-        }
-        return temp;
-    }
-    */
-
-    /**
      *set up a tuple in specified field from a tuple
      *@param m1 the map to be set
      *@param m2 the given tuple
