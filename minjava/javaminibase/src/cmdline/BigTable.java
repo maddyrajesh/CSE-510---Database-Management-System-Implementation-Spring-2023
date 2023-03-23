@@ -7,7 +7,7 @@ import global.SystemDefs;
 import java.io.*;
 
 
-public class MiniTable {
+public class BigTable {
     public static final AttrType[] BIGT_ATTR_TYPES = new AttrType[]{new AttrType(0), new AttrType(0), new AttrType(1), new AttrType(0)};
     public static short[] BIGT_STR_SIZES = new short[]{(short) 25,  //rowValue
             (short) 25,  //colValue

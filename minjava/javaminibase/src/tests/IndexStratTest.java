@@ -6,7 +6,6 @@ import BigT.*;
 import btree.AddFileEntryException;
 import btree.ConstructPageException;
 import btree.GetFileEntryException;
-import cmdline.MiniTable;
 import diskmgr.*;
 import global.AttrType;
 import global.MID;

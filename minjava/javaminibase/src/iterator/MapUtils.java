@@ -1,7 +1,7 @@
 package iterator;
 
 import BigT.Map;
-import cmdline.MiniTable;
+import cmdline.BigTable;
 import global.AttrType;
 
 import java.io.IOException;
@@ -219,7 +219,7 @@ public class MapUtils
         }
         try {
             //Jmap.setHdr((short)nOutFlds, res_attrs, res_str_sizes);
-            Jmap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+            Jmap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         }catch (Exception e){
             throw new MapUtilsException(e,"setHdr() failed");
         }
@@ -277,7 +277,7 @@ public class MapUtils
                 res_str_sizes[count++] = sizesT1[proj_list[i].offset-1];
         }
         try {
-            Jmap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+            Jmap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         }catch (Exception e){
             throw new MapUtilsException(e,"setHdr() failed");
         }
@@ -290,31 +290,31 @@ public class MapUtils
         int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
         boolean mapTsCompare = (mapObj1.getTimeStamp() >= mapObj2.getTimeStamp());
 
-        if (MiniTable.orderType == 2) {
+        if (BigTable.orderType == 2) {
             if (mapColumnCompare > 0) return 1;
             else if (mapColumnCompare < 0) return -1;
             else if (mapRowCompare > 0) return 1;
             else if (mapRowCompare < 0) return -1;
             else if (mapTsCompare) return 1;
             else return -1;
-        } else if (MiniTable.orderType == 3) {
+        } else if (BigTable.orderType == 3) {
             if (mapRowCompare > 0) return 1;
             else if (mapRowCompare < 0) return -1;
             else {
                 if (mapTsCompare) return 1;
                 else return -1;
             }
-        } else if (MiniTable.orderType == 4) {
+        } else if (BigTable.orderType == 4) {
             if (mapColumnCompare > 0) return 1;
             else if (mapColumnCompare < 0) return -1;
             else {
                 if (mapTsCompare) return 1;
                 else return -1;
             }
-        } else if (MiniTable.orderType == 5) {
+        } else if (BigTable.orderType == 5) {
             if (mapTsCompare) return 1;
             else return -1;
-        } else if (MiniTable.orderType == 9) {
+        } else if (BigTable.orderType == 9) {
             if (mapValueCompare > 0) {
                 return 1;
             } else return -1;

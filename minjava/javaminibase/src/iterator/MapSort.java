@@ -1,7 +1,7 @@
 package iterator;
 
 import BigT.Map;
-import cmdline.MiniTable;
+import cmdline.BigTable;
 import global.AttrType;
 import global.GlobalConst;
 import global.MapOrder;
@@ -75,7 +75,7 @@ public class MapSort extends MapIterator implements GlobalConst {
         Map tempMap = new Map();
 
         try {
-            tempMap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+            tempMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         } catch (Exception e) {
             throw new SortException(e, "Sort.java: t.setHdr() failed");
         }
@@ -126,7 +126,7 @@ public class MapSort extends MapIterator implements GlobalConst {
 
         try {
             op_map_buf = new Map(tempMap);
-            op_map_buf.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+            op_map_buf.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         } catch (Exception e) {
             throw new SortException(e, "Sort.java: op_buf.setHdr() failed");
         }
@@ -205,7 +205,7 @@ public class MapSort extends MapIterator implements GlobalConst {
         //Tuple lastElem = new Tuple(mapSize);  // need tuple.java
         Map lastElem = new Map();
         try {
-            lastElem.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+            lastElem.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
             //lastElem.setHdr((short) num_cols, mapAttributes, str_fld_lens);
         } catch (Exception e) {
             throw new SortException(e, "Sort.java: setHdr() failed");
@@ -374,7 +374,7 @@ public class MapSort extends MapIterator implements GlobalConst {
                     cur_node = new pnode();
                     //cur_node.tuple = new Tuple(tuple); // tuple copy needed --  Bingjie 4/29/98
                     cur_node.map = new Map(map);
-//                    cur_node.map.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+//                    cur_node.map.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
                     try {
                         pcurr_Q.enq(cur_node);
                     } catch (UnknowAttrType e) {
@@ -516,7 +516,7 @@ public class MapSort extends MapIterator implements GlobalConst {
             Map tempMap = new Map();
 
             try {
-                tempMap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+                tempMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
             } catch (Exception e) {
                 throw new SortException(e, "Sort.java: Tuple.setHdr() failed");
             }
@@ -568,7 +568,7 @@ public class MapSort extends MapIterator implements GlobalConst {
             try {
                 //new_tuple = new Tuple(mapSize);
                 newMap = new Map();
-                newMap.setHeader(MiniTable.BIGT_ATTR_TYPES, MiniTable.BIGT_STR_SIZES);
+                newMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
                 //new_tuple.setHdr((short) num_cols, mapAttributes, str_fld_lens);
             } catch (Exception e) {
                 throw new SortException(e, "Sort.java: setHdr() failed");

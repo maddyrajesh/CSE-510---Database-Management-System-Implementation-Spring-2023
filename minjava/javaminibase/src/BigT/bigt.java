@@ -9,7 +9,7 @@ import bufmgr.PageNotFoundException;
 import bufmgr.PagePinnedException;
 import bufmgr.PageUnpinnedException;
 import bufmgr.ReplacerException;
-import cmdline.MiniTable;
+import cmdline.BigTable;
 import diskmgr.DiskMgrException;
 import diskmgr.FileIOException;
 import diskmgr.InvalidPageNumberException;
@@ -66,18 +66,18 @@ public class bigt {
         {
             // one btree to index row labels
             case 1:
-                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0], 0);
+                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
                 break;
             // one btree to index column labels
             case 2:
-                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[1], 0);
+                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
                 break;
             /*
             one btree to index column label and row label (combined key) and
             one btree to index timestamps
              */
             case 3:
-                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[1], 0);
+                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
                 this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
                 break;
             /*
@@ -85,7 +85,7 @@ public class bigt {
             one btree to index timestamps
              */
             case 4:
-                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[2], 0);
+                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
                 this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
                 break;
             /*
@@ -93,7 +93,7 @@ public class bigt {
             one btree to index timestamps
              */
             case 5:
-                this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[1] + MiniTable.BIGT_STR_SIZES[2], 0);
+                this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1] + BigTable.BIGT_STR_SIZES[2], 0);
                 this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
                 break;
         }
@@ -120,18 +120,18 @@ public class bigt {
             switch (type) {
                 // one btree to index row labels
                 case 1:
-                    this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0], 0);
+                    this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
                     break;
                 // one btree to index column labels
                 case 2:
-                    this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[1], 0);
+                    this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
                     break;
             /*
             one btree to index column label and row label (combined key) and
             one btree to index timestamps
              */
                 case 3:
-                    this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[1], 0);
+                    this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
                     this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
                     break;
             /*
@@ -139,7 +139,7 @@ public class bigt {
             one btree to index timestamps
              */
                 case 4:
-                    this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[2], 0);
+                    this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
                     this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
                     break;
             /*
@@ -147,7 +147,7 @@ public class bigt {
             one btree to index timestamps
              */
                 case 5:
-                    this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, MiniTable.BIGT_STR_SIZES[1] + MiniTable.BIGT_STR_SIZES[2], 0);
+                    this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1] + BigTable.BIGT_STR_SIZES[2], 0);
                     this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
                     break;
             }
