@@ -111,14 +111,13 @@ public class IndexStratTest {
         test1Time = System.nanoTime();
         test1Time -= tmpTime;
         /*Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "00002");
-        MID mid = new MID();
         Map map = new Map();
         int numOfMatches = 0 ;
         do {
-            map = stream.getNext(mid);
+            map = stream.getNext();
             if(map != null) {
                 numOfMatches++;
-                System.out.println(map.getColumnLabel());
+                System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
@@ -144,11 +143,11 @@ public class IndexStratTest {
             map = stream.getNext(mid);
             if(map != null) {
                 numOfMatches++;
-                System.out.println(map.getColumnLabel());
+                System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
-        */
+    */
     }
 
 
@@ -170,11 +169,11 @@ public class IndexStratTest {
             map = stream.getNext(mid);
             if(map != null) {
                 numOfMatches++;
-                System.out.println(map.getColumnLabel());
+                System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
-        */
+    */
     }
 
 
@@ -196,11 +195,11 @@ public class IndexStratTest {
             map = stream.getNext(mid);
             if(map != null) {
                 numOfMatches++;
-                System.out.println(map.getColumnLabel());
+                System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
-        */
+    */
     }
 
 
@@ -222,11 +221,11 @@ public class IndexStratTest {
             map = stream.getNext(mid);
             if(map != null) {
                 numOfMatches++;
-                System.out.println(map.getColumnLabel());
+                System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
-        */
+         */
     }
 
 
