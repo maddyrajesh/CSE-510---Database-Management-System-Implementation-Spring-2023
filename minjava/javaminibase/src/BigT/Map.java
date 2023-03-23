@@ -99,7 +99,7 @@ public class Map implements GlobalConst {
      * @exception   IOException I/O errors
      */
     public String getRowLabel() throws IOException {
-        return Convert.getStrValue(fldOffset[0], data, fldOffset[1] - fldOffset[0]);
+        return Convert.getStrValue(fldOffset[0], data, fldOffset[1] - fldOffset[0]).replace("\uFEFF", "");
     }
 
     /**
@@ -109,7 +109,7 @@ public class Map implements GlobalConst {
      * @exception   IOException I/O errors
      */
     public String getColumnLabel() throws IOException {
-        return Convert.getStrValue(fldOffset[1], data, fldOffset[2] - fldOffset[1]);
+        return Convert.getStrValue(fldOffset[1], data, fldOffset[2] - fldOffset[1]).replace("\uFEFF", "");
     }
 
     public void setHeader(AttrType[] types, short[] stringSizes) throws InvalidMapSizeException, IOException, InvalidTypeException, InvalidStringSizeArrayException {
@@ -168,7 +168,7 @@ public class Map implements GlobalConst {
      * @exception   IOException I/O errors
      */
     public String getValue() throws IOException {
-        return Convert.getStrValue(fldOffset[3], data, fldOffset[4] - fldOffset[3]);
+        return Convert.getStrValue(fldOffset[3], data, fldOffset[4] - fldOffset[3]).replace("\uFEFF", "");
     }
 
     /** get the offset of a tuple

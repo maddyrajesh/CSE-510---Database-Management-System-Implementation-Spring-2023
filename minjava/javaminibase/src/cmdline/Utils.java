@@ -53,7 +53,7 @@ class Utils {
             System.out.println("=======================================\n");
             System.out.println("map count: " + bigTable.getMapCnt());
             System.out.println("Distinct Rows = " + bigTable.getRowCnt());
-            System.out.println("Distinct Coloumns = " + bigTable.getColumnCnt());
+            System.out.println("Distinct Columns = " + bigTable.getColumnCnt());
             System.out.println("\n=======================================\n");
             System.out.println("Reads : " + pcounter.rcounter);
             System.out.println("Writes: " + pcounter.wcounter);
@@ -92,15 +92,15 @@ class Utils {
             Stream mapStream = bigTable.openStream(orderType, rowFilter, colFilter, valFilter);
             MID mapId = null;
 
-            // while (true) {
-            //     Map mapObj = mapStream.getNext();
-            //     if (mapObj == null)
-            //         break;
-            //     mapObj.print();
-            //     resultCount++;
-            // }
-            // bigTable.close();
-            // mapStream.closeStream();
+             while (true) {
+                 Map mapObj = mapStream.getNext();
+                 if (mapObj == null)
+                     break;
+                 mapObj.print();
+                 resultCount++;
+             }
+             bigTable.close();
+             mapStream.closestream();
 
         } catch (Exception e) {
             e.printStackTrace();

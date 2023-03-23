@@ -32,6 +32,8 @@ public class Stream implements GlobalConst{
     private MapSort sort;
     private Scan scan;
 
+    private Heapfile tempHeapFile;
+
 
     /**
      * Note that one record in our way-cool HeapFile implementation is
@@ -131,6 +133,20 @@ public class Stream implements GlobalConst{
         else nextUserStatus = true;
         */
         return recptrmap;
+    }
+
+    public Map getNext() throws Exception {
+        Map map = this.sort.get_next();
+        if (map == null)
+        {
+            this.tempHeapFile.deleteFile();
+            closestream();
+            return null;
+        }
+        else
+        {
+            return map;
+        }
     }
 
 
@@ -830,7 +846,7 @@ public class Stream implements GlobalConst{
         · 6, then results are ordered in time stamp
         * */
 
-        Heapfile tempHeapFile = new Heapfile("tempSort");
+        this.tempHeapFile = new Heapfile("tempSort");
 
         MID mid = new MID();
         if (this.scanAll) {
@@ -851,8 +867,9 @@ public class Stream implements GlobalConst{
                 count++;
                 short kaka = 0;
                 if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
-                    tempHeapFile.insertMap(map.getMapByteArray());
-                    System.out.println("inserted map: " + map.getRowLabel());
+                    //this.tempHeapFile.insertMap(map.getMapByteArray());
+                    map.print();
+                    System.out.println();
                 }
                 map = scan.getNext(mid);
             }
@@ -926,7 +943,6 @@ public class Stream implements GlobalConst{
      * @throws Exception
      */
     private boolean genericMatcher(Map map, String field, String filter) throws Exception {
-        System.out.println("filter is " + filter + " map attr are: " + map.getRowLabel() + ", " + map.getColumnLabel() + ", " + map.getValue());
         if (filter.matches(rangeRegex)) {
             String[] range = filter.replaceAll("[\\[ \\]]", "").split(",");
 //            String[] range = ",".split(genericFilter.replaceAll("[\\[ \\]]", ""));

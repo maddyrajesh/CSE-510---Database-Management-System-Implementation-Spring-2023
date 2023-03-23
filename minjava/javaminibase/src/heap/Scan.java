@@ -131,8 +131,8 @@ usermid = datapage.nextMap(mid);
         if (datapage == null)
             return null;
 
-        mid.pageNo.pid = userrid.pageNo.pid;
-        mid.slotNo = userrid.slotNo;
+        mid.pageNo.pid = usermid.pageNo.pid;
+        mid.slotNo = usermid.slotNo;
 
         try {
             recptrtuple = datapage.getRecordFromMid(mid);
