@@ -418,7 +418,7 @@ public class bigt {
      * @param valueFilter  the value filter
      * @return the stream
      */
-    public Stream openStream(int orderType, String rowFilter, String columnFilter, String valueFilter) {
+    public Stream openStream(int orderType, String rowFilter, String columnFilter, String valueFilter) throws Exception {
         // return stream as-is because class variable orderType will implicitly sort the Stream
         return new Stream(this, orderType, rowFilter, columnFilter, valueFilter);
     }
