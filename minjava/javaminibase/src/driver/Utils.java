@@ -1,4 +1,4 @@
-package cmdline;
+package driver;
 
 import BigT.Map;
 import BigT.Stream;

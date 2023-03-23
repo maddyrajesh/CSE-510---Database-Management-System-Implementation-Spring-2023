@@ -1,7 +1,7 @@
 package iterator;
 
 import BigT.Map;
-import cmdline.BigTable;
+import driver.BigTable;
 import global.AttrType;
 import global.GlobalConst;
 import global.MapOrder;

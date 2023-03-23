@@ -1,4 +1,4 @@
-package cmdline;
+package driver;
 
 import bufmgr.*;
 import global.AttrType;
