@@ -123,7 +123,7 @@ public class Projection
 	  switch (perm_mat[i].relation.key)
 	    {
 	    case RelSpec.outer:      // Field of outer (m1)
-	      switch (type1[perm_mat[i].offset-1].attrType)
+	      switch (perm_mat[i].offset-1)
 		{
 			case 0:
 				Jmap.setRowLabel(m1.getRowLabel());

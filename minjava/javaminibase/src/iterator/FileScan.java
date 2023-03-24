@@ -128,8 +128,9 @@ public class FileScan extends MapIterator
 	  return null;
 	}
 	
-	map1.setHdr(s_sizes);
+	//map1.setHeader();dr(s_sizes);
 	if (PredEval.Eval(OutputFilter, map1, null) == true){
+        System.out.println("found eval: " + map1.getTimeStamp());
 	  Projection.Project(map1, _in1, Jmap, perm_mat, _nOutFlds);
 	  return Jmap;
 	}        
