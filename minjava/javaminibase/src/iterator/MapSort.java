@@ -133,14 +133,6 @@ public class MapSort extends MapIterator implements GlobalConst {
     }
 
 
-    public MapSort(AttrType[] bigtAttrTypes, short[] bIGT_STR_SIZES, FileScan fscan, int i, MapOrder mapOrder) {
-    }
-
-
-    public MapSort(AttrType[] bigtAttrTypes, short[] bIGT_STR_SIZES, FileScan fscan, int sort_fld, MapOrder sort_order,
-            int n_pages, int sortFieldLength, boolean mapInsertOrder) {
-    }
-
 
     /**
      * Returns the next tuple in sorted order.
