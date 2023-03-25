@@ -143,12 +143,11 @@ public class Stream implements GlobalConst{
         · 5, then results are ordered in time stamp
         * */
         switch (indexType) {
-            case 1:
             default:
                 // same as case 1
                 this.scanAll = true;
                 break;
-            case 2:
+            case 1:
                 if (rowFilter.equals(starFilter)) {
                     this.scanAll = true;
                 } else {
@@ -163,7 +162,7 @@ public class Stream implements GlobalConst{
                     }
                 }
                 break;
-            case 3:
+            case 2:
                 if (columnFilter.equals(starFilter)) {
                     this.scanAll = true;
                 } else {
@@ -178,7 +177,7 @@ public class Stream implements GlobalConst{
                     }
                 }
                 break;
-            case 4:
+            case 3:
                 if ((rowFilter.equals(starFilter)) && (columnFilter.equals(starFilter))) {
                     scanAll = true;
                 } else {
@@ -225,7 +224,7 @@ public class Stream implements GlobalConst{
                     }
                 }
                 break;
-            case 5:
+            case 4:
 
                 if ((valueFilter.equals(starFilter)) && (rowFilter.equals(starFilter))) {
                     scanAll = true;
@@ -273,6 +272,56 @@ public class Stream implements GlobalConst{
                             // both fixed
                             start = new StringKey(rowFilter + "$" + valueFilter);
                             end = new StringKey(rowFilter + "$" + valueFilter + this.lastChar);
+                        }
+                    }
+                }
+            case 5:
+                if ((valueFilter.equals(starFilter)) && (columnFilter.equals(starFilter))) {
+                    scanAll = true;
+                } else {
+
+                    // check if both range
+                    if ((valueFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
+
+                        String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        String[] columnRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        start = new StringKey(columnRange[0] + "$" + valueRange[0]);
+                        end = new StringKey(columnRange[1] + "$" + valueRange[1] + this.lastChar);
+
+                        //check row range and column fixed/*
+                    } else if ((valueFilter.matches(rangeRegex)) && (!columnFilter.matches(rangeRegex))) {
+                        String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        if (columnFilter.equals(starFilter)) {
+                            scanAll = true;
+                        } else {
+                            start = new StringKey(columnFilter + "$" + valueRange[0]);
+                            end = new StringKey(columnFilter + "$" + valueRange[1] + this.lastChar);
+                        }
+                        // check column range and row fixed/*
+                    } else if ((!valueFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
+                        String[] rowRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
+                        if (valueFilter.equals("*")) {
+                            start = new StringKey(rowRange[0]);
+                            end = new StringKey(rowRange[1] + this.lastChar);
+                        } else {
+
+                            start = new StringKey(rowRange[0] + "$" + valueFilter);
+                            end = new StringKey(rowRange[1] + "$" + valueFilter + this.lastChar);
+                        }
+
+                        //row and col are fixed val or *,fixed fixed,*
+                    } else {
+                        if (columnFilter.equals(starFilter)) {
+                            // *, fixed
+                            scanAll = true;
+                        } else if (valueFilter.equals(starFilter)) {
+                            // fixed, *
+                            start = new StringKey(columnFilter);
+                            end = new StringKey(columnFilter + lastChar);
+                        } else {
+                            // both fixed
+                            start = new StringKey(columnFilter + "$" + valueFilter);
+                            end = new StringKey(columnFilter + "$" + valueFilter + this.lastChar);
                         }
                     }
                 }
@@ -378,7 +427,7 @@ public class Stream implements GlobalConst{
         }
         try {
             System.out.println("sorting with " );
-            this.sort = new MapSort(attrTypes, new short[]{(short) (32 * 1024 - 1), (short) (32 * 1024 - 1), (short) (32 * 1024 - 1)}, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength);
+            this.sort = new MapSort(attrTypes, new short[]{(short) (32 * 1024 - 1), (short) (32 * 1024 - 1), (short) (32 * 1024 - 1)}, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength, orderType);
         } catch (Exception e) {
             e.printStackTrace();
         }

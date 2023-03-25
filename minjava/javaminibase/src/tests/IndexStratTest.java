@@ -110,21 +110,20 @@ public class IndexStratTest {
         assert(databaseTest.getMapCnt() == mapCount);
         test1Time = System.nanoTime();
         test1Time -= tmpTime;
-        Stream stream = databaseTest.openStream(1, "*", "Moose", "[00000,01000]");
+        Stream stream = databaseTest.openStream(2, "*", "Moose", "[00000,10000]");
         Map map = new Map();
         int numOfMatches = 0 ;
         do {
             map = stream.getNext();
             if(map != null) {
                 numOfMatches++;
-                System.out.println("found matching map! row is: " + map.getRowLabel() + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //System.out.println("found matching map! value is: " + map.getColumnLabel());
                 //System.out.println("found matching map! value is: " + map.getTimeStamp());
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
-
     }
 
 
@@ -138,7 +137,7 @@ public class IndexStratTest {
         assert(databaseTest.getMapCnt() == mapCount);
         test2Time = System.nanoTime();
         test2Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "00002");
+        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "[00000,01000]");
         MID mid = new MID();
         Map map = new Map();
         int numOfMatches = 0 ;
@@ -163,7 +162,7 @@ public class IndexStratTest {
         assert(databaseTest.getMapCnt() == mapCount);
         test3Time = System.nanoTime();
         test3Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "00002");
+        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "[00000,01000]");
         MID mid = new MID();
         Map map = new Map();
         int numOfMatches = 0 ;
@@ -188,7 +187,7 @@ public class IndexStratTest {
         assert(databaseTest.getMapCnt() == mapCount);
         test4Time = System.nanoTime();
         test4Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "00002");
+        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "[00000,01000]");
         MID mid = new MID();
         Map map = new Map();
         int numOfMatches = 0 ;
@@ -213,7 +212,7 @@ public class IndexStratTest {
         assert(databaseTest.getMapCnt() == mapCount);
         test5Time = System.nanoTime();
         test5Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "00002");
+        Stream stream = databaseTest.openStream(3, "*", "Moose", "[00000,01000]");
         MID mid = new MID();
         Map map = new Map();
         int numOfMatches = 0 ;

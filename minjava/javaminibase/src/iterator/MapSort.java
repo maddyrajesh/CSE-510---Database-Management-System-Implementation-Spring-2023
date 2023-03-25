@@ -33,6 +33,7 @@ public class MapSort extends MapIterator implements GlobalConst {
     private int sortFldLen;
     private pnodeSplayPQ queue;
     private Map op_map_buf, output_map;
+    private int orderType;
     AttrType[] mapAttributes = new AttrType[4];
     private SpoofIbuf[] i_buf;
     private PageId[] bufs_pids;
@@ -49,7 +50,7 @@ public class MapSort extends MapIterator implements GlobalConst {
      * @param n_pages     amount of memory (attrTypes pages) available for sorting
      * @throws SortException something went wrong attrTypes the lower layer.
      */
-    public MapSort(AttrType[] attrTypes, short[] field_sizes, MapIterator am, int sort_fld, MapOrder sort_order, int n_pages, int sortFieldLength) throws SortException {
+    public MapSort(AttrType[] attrTypes, short[] field_sizes, MapIterator am, int sort_fld, MapOrder sort_order, int n_pages, int sortFieldLength, int orderType) throws SortException {
         int str_att_count = 0; // number of string field in maps
         for (int i = 0; i < num_cols; i++) {
             mapAttributes[i] = new AttrType(attrTypes[i].attrType);
@@ -61,6 +62,7 @@ public class MapSort extends MapIterator implements GlobalConst {
 
 
         str_fld_lens = new short[str_att_count];
+        this.orderType = orderType;
 
         str_att_count = 0;
         for (int i = 0; i < num_cols; i++) {
@@ -122,7 +124,7 @@ public class MapSort extends MapIterator implements GlobalConst {
         max_elems_in_heap = 5000;
         sortFldLen = sortFieldLength;
 
-        queue = new pnodeSplayPQ(sort_fld, attrTypes[sort_fld - 1], sortOrder);
+        queue = new pnodeSplayPQ(orderType, attrTypes[sort_fld - 1], sortOrder);
 
         try {
             op_map_buf = new Map(tempMap);
@@ -190,8 +192,8 @@ public class MapSort extends MapIterator implements GlobalConst {
     private int generate_runs(int max_elems, AttrType sortFldType, int sortFldLen) throws Exception {
         Map map;
         pnode cur_node;
-        pnodeSplayPQ Q1 = new pnodeSplayPQ(_sort_fld, sortFldType, sortOrder);
-        pnodeSplayPQ Q2 = new pnodeSplayPQ(_sort_fld, sortFldType, sortOrder);
+        pnodeSplayPQ Q1 = new pnodeSplayPQ(orderType, sortFldType, sortOrder);
+        pnodeSplayPQ Q2 = new pnodeSplayPQ(orderType, sortFldType, sortOrder);
         pnodeSplayPQ pcurr_Q = Q1;
         pnodeSplayPQ pother_Q = Q2;
         //Tuple lastElem = new Tuple(mapSize);  // need tuple.java
@@ -261,7 +263,8 @@ public class MapSort extends MapIterator implements GlobalConst {
 
             // comp_res = TupleUtils.CompareTupleWithValue(sortFldType, cur_node.tuple, _sort_fld, lastElem);  // need tuple_utils.java
             // comp_res = MapUtils.CompareMapWithValue(cur_node.map, _sort_fld, lastElem);
-            comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem);
+            comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem, orderType);
+            //System.out.println("result is " + comp_res + "\n");
 
 
             if ((comp_res < 0 && sortOrder.mapOrder == MapOrder.Ascending) || (comp_res > 0 && sortOrder.mapOrder == MapOrder.Descending)) {
@@ -276,8 +279,8 @@ public class MapSort extends MapIterator implements GlobalConst {
                 // set lastElem to have the value of the current tuple,
                 // need tuple_utils.java
                 //TupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
-                System.out.println("Setting the field of the new map: " + cur_node.map.getRowLabel());
-                MapUtils.SetValue(lastElem, cur_node.map, _sort_fld);
+                //System.out.println("Setting the field of the new map: " + cur_node.map.getRowLabel());
+                lastElem = new Map(cur_node.map);
                 // write tuple to output file, need io_bufs.java, type cast???
                 //	System.out.println("Putting tuple into run " + (run_num + 1));
                 //	cur_node.tuple.print(_in);
@@ -549,6 +552,7 @@ public class MapSort extends MapIterator implements GlobalConst {
         cur_node = queue.deq();
         //old_tuple = cur_node.tuple;
         oldMap = cur_node.map;
+        //System.out.println("old map is: " + oldMap.getRowLabel() + " time: " + oldMap.getTimeStamp() + " from run: " + cur_node.run_num);
 
     /*
     System.out.print("Get ");

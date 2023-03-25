@@ -14,8 +14,8 @@ public abstract class pnodePQ
   /** number of elements in the tree */
   protected int                   count;
 
-  /** the field number of the sorting field */
-  protected int                   fld_no;
+  /** the field number of the ordering type */
+  protected int orderType;
 
   /** the attribute type of the sorting field */
   protected AttrType              fld_type;
@@ -75,7 +75,7 @@ public abstract class pnodePQ
    */
   public int pnodeCMP(pnode a, pnode b)
           throws IOException, UnknowAttrType, MapUtilsException, InvalidFieldNo {
-    int ans = MapUtils.CompareMapWithMap(a.map, b.map, fld_no);
+    int ans = MapUtils.CompareMapsOnOrderType(a.map, b.map, orderType);
     return ans;
   }
 

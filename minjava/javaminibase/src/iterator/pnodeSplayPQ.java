@@ -28,7 +28,7 @@ public class pnodeSplayPQ extends pnodePQ
   {
     root = null;
     count = 0;
-    fld_no = 0;
+    orderType = 0;
     fld_type = new AttrType(AttrType.attrInteger);
     sort_order = new MapOrder(MapOrder.Ascending);
   }
@@ -43,7 +43,7 @@ public class pnodeSplayPQ extends pnodePQ
   {
     root = null;
     count = 0;
-    fld_no   = fldNo;
+    orderType = fldNo;
     fld_type = fldType;
     sort_order = order;
   }

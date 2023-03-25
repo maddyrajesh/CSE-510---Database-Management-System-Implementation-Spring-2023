@@ -61,15 +61,15 @@ public class OBuf implements GlobalConst{
       
       byte[] copybuf;
       copybuf = buf.getMapByteArray();
-      System.arraycopy(copybuf,0,_bufs[curr_page],t_wr_to_pg*t_size,t_size); 
+      System.arraycopy(copybuf,0,_bufs[curr_page],t_wr_to_pg*t_size, t_size);
       Map map_ptr = new Map(_bufs[curr_page] , t_wr_to_pg * t_size);
-      
+      //System.out.println("putting map: " + map_ptr.getRowLabel() + " vs: " + maptest.getRowLabel() + " with page size: " + t_per_pg);
+      //System.out.println();
       t_written++; t_wr_to_pg++; t_wr_to_buf++; dirty = true;
       
       if (t_wr_to_buf == t_in_buf)                // Buffer full?
 	{
 	  flush();                                // Flush it
-	  
 	  t_wr_to_pg = 0; t_wr_to_buf = 0;        // Initialize page info
 	  curr_page  = 0;
 	}

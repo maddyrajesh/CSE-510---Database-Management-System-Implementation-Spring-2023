@@ -88,6 +88,9 @@ public class SpoofIbuf implements GlobalConst  {
 	}
  
       buf.mapSet(_bufs[curr_page],t_rd_from_pg*t_size);
+        //System.out.println("getting map: " + buf.getRowLabel() + "\n");//+ " vs: " + maptest.getRowLabel() + " with page size: " + t_per_pg);
+
+
       tot_t_proc++;
       
       // Setup for next read

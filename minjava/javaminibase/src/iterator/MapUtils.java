@@ -21,13 +21,13 @@ public class MapUtils
 
         switch (map_fld_no)
         {
-            case 0:
+            case 1:
                 m1_s = m1.getRowLabel();
                 m2_s = m2.getRowLabel();
                 return Integer.compare(m1_s.compareTo(m2_s), 0);
 
 
-            case 1:
+            case 2:
                 if (m1.getColumnLabel() == null) {
                     System.out.println("map1 column label NULL");
                     System.out.println("map1 = " + m1);
@@ -36,12 +36,12 @@ public class MapUtils
                 m2_s = m2.getColumnLabel();
                 return Integer.compare(m1_s.compareTo(m2_s), 0);
 
-            case 2:
+            case 3:
                 m1_i= m1.getTimeStamp();
                 m2_i = m2.getTimeStamp();
                 return Integer.compare(m1_i, m2_i);
 
-            case 3:
+            case 4:
                 m1_s= m1.getValue();
                 m2_s = m2.getValue();
                 return Integer.compare(m1_s.compareTo(m2_s), 0);
@@ -261,52 +261,54 @@ public class MapUtils
         return res_str_sizes;
     }
 
-    public static int CompareMapsOnOrderType(Map mapObj1, Map mapObj2) throws IOException {
+    public static int CompareMapsOnOrderType(Map mapObj1, Map mapObj2, int orderType) throws IOException {
         int mapRowCompare = mapObj1.getRowLabel().compareTo(mapObj2.getRowLabel());
-        int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
-        int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
-        boolean mapTsCompare = (mapObj1.getTimeStamp() >= mapObj2.getTimeStamp());
 
-        if (BigTable.orderType == 2) {
+        int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
+        //int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
+        boolean mapTsCompare = (mapObj1.getTimeStamp() >= mapObj2.getTimeStamp());
+        //System.out.println("comparing: " + mapObj1.getColumnLabel() + " and " + mapObj2.getColumnLabel() + " result: " + mapColumnCompare + " with order: " + orderType);
+        //System.out.println("comparing: " + mapObj1.getRowLabel() + " and " + mapObj2.getRowLabel() + " result: " + mapRowCompare);
+
+
+        if (orderType == 1) {
+            if (mapRowCompare > 0) return 1;
+            else if (mapRowCompare < 0) return -1;
+            else if (mapColumnCompare > 0) return 1;
+            else if (mapColumnCompare < 0) return -1;
+            else if (mapTsCompare) return 1;
+            else return -1;
+        }
+        if (orderType == 2) {
             if (mapColumnCompare > 0) return 1;
             else if (mapColumnCompare < 0) return -1;
             else if (mapRowCompare > 0) return 1;
             else if (mapRowCompare < 0) return -1;
             else if (mapTsCompare) return 1;
             else return -1;
-        } else if (BigTable.orderType == 3) {
+        } else if (orderType == 3) {
             if (mapRowCompare > 0) return 1;
             else if (mapRowCompare < 0) return -1;
             else {
                 if (mapTsCompare) return 1;
                 else return -1;
             }
-        } else if (BigTable.orderType == 4) {
+        } else if (orderType == 4) {
             if (mapColumnCompare > 0) return 1;
             else if (mapColumnCompare < 0) return -1;
             else {
                 if (mapTsCompare) return 1;
                 else return -1;
             }
-        } else if (BigTable.orderType == 5) {
-            if (mapTsCompare) return 1;
-            else return -1;
-        } else if (BigTable.orderType == 9) {
-            if (mapValueCompare > 0) {
-                return 1;
-            } else return -1;
-        }
-        if (mapRowCompare > 0) return 1;
-        else if (mapRowCompare < 0) return -1;
-        else if (mapColumnCompare > 0) return 1;
-        else if (mapColumnCompare < 0) return -1;
-        else {
+        } else if (orderType == 5) {
             if (mapTsCompare) return 1;
             else return -1;
         }
+        return 1;
     }
-    
 }
+    
+
 
 
 
