@@ -366,8 +366,8 @@ public class Stream implements GlobalConst{
                 short kaka = 0;
                 if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
                     this.tempHeapFile.insertMap(map.getMapByteArray());
-                    map.print();
-                    System.out.println("map is: " + map.getRowLabel());
+                    //map.print();
+                    //System.out.println("map is: " + map.getRowLabel());
                 }
                 map = scan.getNext(mid);
             }
@@ -426,7 +426,6 @@ public class Stream implements GlobalConst{
                 throw new IllegalStateException("Unexpected value: " + orderType);
         }
         try {
-            System.out.println("sorting with " );
             this.sort = new MapSort(attrTypes, new short[]{(short) (32 * 1024 - 1), (short) (32 * 1024 - 1), (short) (32 * 1024 - 1)}, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength, orderType);
         } catch (Exception e) {
             e.printStackTrace();
@@ -448,7 +447,7 @@ public class Stream implements GlobalConst{
 //            String[] range = ",".split(genericFilter.replaceAll("[\\[ \\]]", ""));
             // so now row is in range
 //            System.out.println("range = " + Arrays.toString(range));
-            System.out.println("in range regex check");
+            //System.out.println("in range regex check");
             switch (field)
             {
                 case "row":

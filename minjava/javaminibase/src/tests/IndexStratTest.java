@@ -23,11 +23,11 @@ public class IndexStratTest {
 
     // These are the private timer variables that are used in each test function.
 
-    private static long test1Time = 0;
-    private static long test2Time = 0;
-    private static long test3Time = 0;
-    private static long test4Time = 0;
-    private static long test5Time = 0;
+    private static long test1Time = 0, mapCount1 = 0;
+    private static long test2Time = 0, mapCount2 = 0;
+    private static long test3Time = 0, mapCount3 = 0;
+    private static long test4Time = 0, mapCount4 = 0;
+    private static long test5Time = 0, mapCount5 = 0;
 
 
     //   This creates the databases that are used in the tests. These databases use the data from the given csv file
@@ -42,7 +42,7 @@ public class IndexStratTest {
         try {
             File f = new File(datbaseName);
             new SystemDefs(datbaseName, numPages, NUMBUF, "Clock");
-            bigt database1 = new bigt(datatableName, type);
+            bigt database = new bigt(datatableName, type);
             fileStream = new FileInputStream("test_data1.csv");
             br = new BufferedReader(new InputStreamReader(fileStream, "UTF-8"));
             String inputStr;
@@ -60,20 +60,20 @@ public class IndexStratTest {
                 map.setTimeStamp(Integer.parseInt(input[2]));
                 map.setValue(input[3]);
 
-                MID mid = database1.insertMap(map.getMapByteArray());
+                MID mid = database.insertMap(map.getMapByteArray());
                 mapCount++;
             }
-            System.out.println("Index strategy: " + type);
+            /*System.out.println("Index strategy: " + type);
             System.out.println("=======================================\n");
-            System.out.println("map count: " + database1.getMapCnt());
-            System.out.println("Distinct Rows = " + database1.getRowCnt());
-            System.out.println("Distinct Coloumns = " + database1.getColumnCnt());
+            System.out.println("map count: " + database.getMapCnt());
+            System.out.println("Distinct Rows = " + database.getRowCnt());
+            System.out.println("Distinct Coloumns = " + database.getColumnCnt());
             System.out.println("\n=======================================\n");
             System.out.println("Reads : " + pcounter.rcounter);
             System.out.println("Writes: " + pcounter.wcounter);
             System.out.println("NumBUFS: " + NUMBUF);
-            System.out.println("\n=======================================\n");
-            database1.close();
+            System.out.println("\n=======================================\n");*/
+            database.close();
         } catch (InvalidMapSizeException e) {
             e.printStackTrace();
         } catch (ConstructPageException e) {
@@ -104,19 +104,28 @@ public class IndexStratTest {
 
     public static void test1() throws Exception {
         pcounter.initialize();
-        long tmpTime = System.nanoTime();
         createDatabase("strat1.db", "index1", 1);
         bigt databaseTest = new bigt("index1", 1);
         assert(databaseTest.getMapCnt() == mapCount);
-        test1Time = System.nanoTime();
-        test1Time -= tmpTime;
-        Stream stream = databaseTest.openStream(2, "*", "Moose", "[00000,10000]");
+        Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
         Map map = new Map();
-        int numOfMatches = 0 ;
         do {
             map = stream.getNext();
             if(map != null) {
-                numOfMatches++;
+                //mapCount1++;
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                //System.out.println("found matching map! value is: " + map.getColumnLabel());
+                //System.out.println("found matching map! value is: " + map.getTimeStamp());
+                //System.out.println("found matching map! value is: " + map.getValue());
+            }
+        } while(map != null);
+        long tmpTime = System.nanoTime();
+        stream = databaseTest.openStream(1, "*", "Moose", "*");
+        map = new Map();
+        do {
+            map = stream.getNext();
+            if(map != null) {
+                mapCount1++;
                 System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //System.out.println("found matching map! value is: " + map.getColumnLabel());
                 //System.out.println("found matching map! value is: " + map.getTimeStamp());
@@ -124,6 +133,9 @@ public class IndexStratTest {
             }
         }
         while(map != null);
+        test1Time = System.nanoTime();
+        test1Time -= tmpTime;
+        System.out.println("total map count of test1: " + mapCount1);
     }
 
 
@@ -131,24 +143,24 @@ public class IndexStratTest {
 
     public static void test2() throws Exception {
         pcounter.initialize();
-        long tmpTime = System.nanoTime();
         createDatabase("strat2.db", "index2", 2);
         bigt databaseTest = new bigt("index2", 2);
         assert(databaseTest.getMapCnt() == mapCount);
-        test2Time = System.nanoTime();
-        test2Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "[00000,01000]");
+        long tmpTime = System.nanoTime();
+        Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
         MID mid = new MID();
         Map map = new Map();
-        int numOfMatches = 0 ;
         do {
             map = stream.getNext();
             if(map != null) {
-                numOfMatches++;
+                mapCount2++;
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
+        test2Time = System.nanoTime();
+        test2Time -= tmpTime;
+        System.out.println("total map count of test2: " + mapCount2);
     }
 
 
@@ -156,24 +168,24 @@ public class IndexStratTest {
 
     public static void test3() throws Exception {
         pcounter.initialize();
-        long tmpTime = System.nanoTime();
         createDatabase("strat3.db", "index3", 3);
         bigt databaseTest = new bigt("index3", 3);
         assert(databaseTest.getMapCnt() == mapCount);
-        test3Time = System.nanoTime();
-        test3Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "[00000,01000]");
+        long tmpTime = System.nanoTime();
+        Stream stream = databaseTest.openStream(1, "*", "*", "[00000,00200]");
         MID mid = new MID();
         Map map = new Map();
-        int numOfMatches = 0 ;
         do {
             map = stream.getNext();
             if(map != null) {
-                numOfMatches++;
-                //System.out.println("found matching map! value is: " + map.getValue());
+                mapCount3++;
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
             }
         }
         while(map != null);
+        test3Time = System.nanoTime();
+        test3Time -= tmpTime;
+        System.out.println("total map count of test3: " + mapCount3);
     }
 
 
@@ -181,24 +193,24 @@ public class IndexStratTest {
 
     public static void test4() throws Exception {
         pcounter.initialize();
-        long tmpTime = System.nanoTime();
         createDatabase("strat4.db", "index4", 4);
         bigt databaseTest = new bigt("index4", 4);
         assert(databaseTest.getMapCnt() == mapCount);
-        test4Time = System.nanoTime();
-        test4Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "Sweden", "Moose", "[00000,01000]");
+        long tmpTime = System.nanoTime();
+        Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
-        int numOfMatches = 0 ;
         do {
             map = stream.getNext();
             if(map != null) {
-                numOfMatches++;
+                mapCount4++;
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
+        test4Time = System.nanoTime();
+        test4Time -= tmpTime;
+        System.out.println("total map count of test4: " + mapCount4);
     }
 
 
@@ -206,24 +218,24 @@ public class IndexStratTest {
 
     public static void test5() throws Exception {
         pcounter.initialize();
-        long tmpTime = System.nanoTime();
         createDatabase("strat5.db", "index5", 5);
         bigt databaseTest = new bigt("index5", 5);
         assert(databaseTest.getMapCnt() == mapCount);
-        test5Time = System.nanoTime();
-        test5Time -= tmpTime;
-        Stream stream = databaseTest.openStream(3, "*", "Moose", "[00000,01000]");
+        long tmpTime = System.nanoTime();
+        Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
         MID mid = new MID();
         Map map = new Map();
-        int numOfMatches = 0 ;
         do {
             map = stream.getNext();
             if(map != null) {
-                numOfMatches++;
+                mapCount5++;
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         }
         while(map != null);
+        test5Time = System.nanoTime();
+        test5Time -= tmpTime;
+        System.out.println("total map count of test5: " + mapCount5);
     }
 
 
@@ -271,10 +283,10 @@ public class IndexStratTest {
 
     public static void main(String [] args) throws Exception {
         test1();
-        //test2();
-        //test3();
-        //test4();
-        //test5();
+        test2();
+        test3();
+        test4();
+        test5();
         System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 1: " + test1Time/1_000_000);
         System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 2: " + test2Time/1_000_000);
         System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 3: " + test3Time/1_000_000);
