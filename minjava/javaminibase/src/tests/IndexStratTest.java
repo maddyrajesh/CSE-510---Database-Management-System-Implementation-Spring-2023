@@ -112,6 +112,7 @@ public class IndexStratTest {
         do {
             map = stream.getNext();
             if(map != null) {
+                System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //mapCount1++;
                 //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //System.out.println("found matching map! value is: " + map.getColumnLabel());
@@ -126,7 +127,6 @@ public class IndexStratTest {
             map = stream.getNext();
             if(map != null) {
                 mapCount1++;
-                System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //System.out.println("found matching map! value is: " + map.getColumnLabel());
                 //System.out.println("found matching map! value is: " + map.getTimeStamp());
                 //System.out.println("found matching map! value is: " + map.getValue());
@@ -287,10 +287,10 @@ public class IndexStratTest {
         test3();
         test4();
         test5();
-        System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 1: " + test1Time/1_000_000);
-        System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 2: " + test2Time/1_000_000);
-        System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 3: " + test3Time/1_000_000);
-        System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 4: " + test4Time/1_000_000);
-        System.out.println("Total time in milliseconds for database creation and batch insertion using strategy 5: " + test5Time/1_000_000);
+        System.out.println("Total time in milliseconds for query using strategy 1: " + test1Time/1_000_000);
+        System.out.println("Total time in milliseconds for query using strategy 2: " + test2Time/1_000_000);
+        System.out.println("Total time in milliseconds for query using strategy 3: " + test3Time/1_000_000);
+        System.out.println("Total time in milliseconds for query using strategy 4: " + test4Time/1_000_000);
+        System.out.println("Total time in milliseconds for query using strategy 5: " + test5Time/1_000_000);
     }
 }
