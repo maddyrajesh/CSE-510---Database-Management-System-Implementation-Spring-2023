@@ -103,38 +103,29 @@ public class IndexStratTest {
     //  Test index strategy 1.
 
     public static void test1() throws Exception {
-        pcounter.initialize();
         createDatabase("strat1.db", "index1", 1);
-        bigt databaseTest = new bigt("index1", 1);
+        pcounter.initialize();
+        new SystemDefs("index1", 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("index1");
         assert(databaseTest.getMapCnt() == mapCount);
-        Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
+        long tmpTime = System.nanoTime();
+        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
         Map map = new Map();
         do {
             map = stream.getNext();
             if(map != null) {
-                System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
-                //mapCount1++;
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                mapCount1++;
                 //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //System.out.println("found matching map! value is: " + map.getColumnLabel());
                 //System.out.println("found matching map! value is: " + map.getTimeStamp());
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         } while(map != null);
-        long tmpTime = System.nanoTime();
-        stream = databaseTest.openStream(1, "*", "Moose", "*");
-        map = new Map();
-        do {
-            map = stream.getNext();
-            if(map != null) {
-                mapCount1++;
-                //System.out.println("found matching map! value is: " + map.getColumnLabel());
-                //System.out.println("found matching map! value is: " + map.getTimeStamp());
-                //System.out.println("found matching map! value is: " + map.getValue());
-            }
-        }
-        while(map != null);
         test1Time = System.nanoTime();
         test1Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test1: " + mapCount1);
     }
 
@@ -142,24 +133,26 @@ public class IndexStratTest {
     //  Test index strategy 2.
 
     public static void test2() throws Exception {
-        pcounter.initialize();
         createDatabase("strat2.db", "index2", 2);
-        bigt databaseTest = new bigt("index2", 2);
+        pcounter.initialize();
+        bigt databaseTest = new bigt("index2");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
+        Stream stream = databaseTest.openStream(2, "Sweden", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
             map = stream.getNext();
             if(map != null) {
                 mapCount2++;
-                //System.out.println("found matching map! value is: " + map.getValue());
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
             }
         }
         while(map != null);
         test2Time = System.nanoTime();
         test2Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test2: " + mapCount2);
     }
 
@@ -167,12 +160,12 @@ public class IndexStratTest {
     //  Test index strategy 3.
 
     public static void test3() throws Exception {
-        pcounter.initialize();
         createDatabase("strat3.db", "index3", 3);
+        pcounter.initialize();
         bigt databaseTest = new bigt("index3", 3);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "*", "*", "[00000,00200]");
+        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -185,6 +178,8 @@ public class IndexStratTest {
         while(map != null);
         test3Time = System.nanoTime();
         test3Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test3: " + mapCount3);
     }
 
@@ -192,12 +187,12 @@ public class IndexStratTest {
     //  Test index strategy 4.
 
     public static void test4() throws Exception {
-        pcounter.initialize();
         createDatabase("strat4.db", "index4", 4);
-        bigt databaseTest = new bigt("index4", 4);
+        pcounter.initialize();
+        bigt databaseTest = new bigt("index4");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
+        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -210,6 +205,8 @@ public class IndexStratTest {
         while(map != null);
         test4Time = System.nanoTime();
         test4Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test4: " + mapCount4);
     }
 
@@ -217,12 +214,12 @@ public class IndexStratTest {
     //  Test index strategy 5.
 
     public static void test5() throws Exception {
-        pcounter.initialize();
         createDatabase("strat5.db", "index5", 5);
-        bigt databaseTest = new bigt("index5", 5);
+        pcounter.initialize();
+        bigt databaseTest = new bigt("index5");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
+        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -235,6 +232,8 @@ public class IndexStratTest {
         while(map != null);
         test5Time = System.nanoTime();
         test5Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test5: " + mapCount5);
     }
 
@@ -282,11 +281,12 @@ public class IndexStratTest {
 
 
     public static void main(String [] args) throws Exception {
-        test1();
+        ///test1();
         test2();
         test3();
         test4();
         test5();
+        //test2();
         System.out.println("Total time in milliseconds for query using strategy 1: " + test1Time/1_000_000);
         System.out.println("Total time in milliseconds for query using strategy 2: " + test2Time/1_000_000);
         System.out.println("Total time in milliseconds for query using strategy 3: " + test3Time/1_000_000);

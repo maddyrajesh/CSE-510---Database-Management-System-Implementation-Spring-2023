@@ -147,7 +147,7 @@ public class Stream implements GlobalConst{
                 // same as case 1
                 this.scanAll = true;
                 break;
-            case 1:
+            case 2:
                 if (rowFilter.equals(starFilter)) {
                     this.scanAll = true;
                 } else {
@@ -162,7 +162,7 @@ public class Stream implements GlobalConst{
                     }
                 }
                 break;
-            case 2:
+            case 3:
                 if (columnFilter.equals(starFilter)) {
                     this.scanAll = true;
                 } else {
@@ -177,7 +177,7 @@ public class Stream implements GlobalConst{
                     }
                 }
                 break;
-            case 3:
+            case 4:
                 if ((rowFilter.equals(starFilter)) && (columnFilter.equals(starFilter))) {
                     scanAll = true;
                 } else {
@@ -187,17 +187,18 @@ public class Stream implements GlobalConst{
 
                         String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
                         String[] columnRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        start = new StringKey(columnRange[0] + "$" + rowRange[0]);
-                        end = new StringKey(columnRange[1] + "$" + rowRange[1] + this.lastChar);
+                        start = new StringKey(rowRange[0] + "$" + columnRange[0]);
+                        end = new StringKey(rowRange[1] + "$" + columnRange[1] + this.lastChar);
 
                         //check row range and column fixed/*
                     } else if ((rowFilter.matches(rangeRegex)) && (!columnFilter.matches(rangeRegex))) {
                         String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
                         if (columnFilter.equals(starFilter)) {
+                            System.out.println("scanning all in index 4 row range");
                             scanAll = true;
                         } else {
-                            start = new StringKey(columnFilter + "$" + rowRange[0]);
-                            end = new StringKey(columnFilter + "$" + rowRange[1] + this.lastChar);
+                            start = new StringKey(rowRange[0] + "$" + columnFilter);
+                            end = new StringKey(rowRange[1] + "$" + columnFilter + this.lastChar);
                         }
                         // check column range and row fixed/*
                     } else if ((!rowFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
@@ -207,24 +208,25 @@ public class Stream implements GlobalConst{
                             end = new StringKey(columnRange[1] + this.lastChar);
                         } else {
 
-                            start = new StringKey(columnRange[0] + "$" + rowFilter);
-                            end = new StringKey(columnRange[1] + "$" + rowFilter + this.lastChar);
+                            start = new StringKey(rowFilter + "$" + columnRange[0]);
+                            end = new StringKey(rowFilter + "$" + columnRange[1] + this.lastChar);
                         }
 
                         //row and col are fixed val or *,fixed fixed,*
                     } else {
                         if (columnFilter.equals(starFilter)) {
+                            System.out.println("scanning all in index 4 col range");
                             scanAll = true;
                         } else if (rowFilter.equals(starFilter)) {
                             start = end = new StringKey(columnFilter);
                         } else {
-                            start = new StringKey(columnFilter + "$" + rowFilter);
-                            end = new StringKey(columnFilter + "$" + rowFilter + this.lastChar);
+                            start = new StringKey(rowFilter + "$" + columnFilter);
+                            end = new StringKey(rowFilter + "$" + columnFilter + this.lastChar);
                         }
                     }
                 }
                 break;
-            case 4:
+            case 5:
 
                 if ((valueFilter.equals(starFilter)) && (rowFilter.equals(starFilter))) {
                     scanAll = true;
@@ -275,61 +277,31 @@ public class Stream implements GlobalConst{
                         }
                     }
                 }
-            case 5:
-                if ((valueFilter.equals(starFilter)) && (columnFilter.equals(starFilter))) {
-                    scanAll = true;
-                } else {
-
-                    // check if both range
-                    if ((valueFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
-
-                        String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        String[] columnRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        start = new StringKey(columnRange[0] + "$" + valueRange[0]);
-                        end = new StringKey(columnRange[1] + "$" + valueRange[1] + this.lastChar);
-
-                        //check row range and column fixed/*
-                    } else if ((valueFilter.matches(rangeRegex)) && (!columnFilter.matches(rangeRegex))) {
-                        String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        if (columnFilter.equals(starFilter)) {
-                            scanAll = true;
-                        } else {
-                            start = new StringKey(columnFilter + "$" + valueRange[0]);
-                            end = new StringKey(columnFilter + "$" + valueRange[1] + this.lastChar);
-                        }
-                        // check column range and row fixed/*
-                    } else if ((!valueFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
-                        String[] rowRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        if (valueFilter.equals("*")) {
-                            start = new StringKey(rowRange[0]);
-                            end = new StringKey(rowRange[1] + this.lastChar);
-                        } else {
-
-                            start = new StringKey(rowRange[0] + "$" + valueFilter);
-                            end = new StringKey(rowRange[1] + "$" + valueFilter + this.lastChar);
-                        }
-
-                        //row and col are fixed val or *,fixed fixed,*
-                    } else {
-                        if (columnFilter.equals(starFilter)) {
-                            // *, fixed
-                            scanAll = true;
-                        } else if (valueFilter.equals(starFilter)) {
-                            // fixed, *
-                            start = new StringKey(columnFilter);
-                            end = new StringKey(columnFilter + lastChar);
-                        } else {
-                            // both fixed
-                            start = new StringKey(columnFilter + "$" + valueFilter);
-                            end = new StringKey(columnFilter + "$" + valueFilter + this.lastChar);
-                        }
-                    }
-                }
-                break;
         }
 
         if (!this.scanAll) {
-            this.btreeScanner = bigtable.indexFiles[indexType].new_scan(start, end);
+            switch(indexType) {
+                case 1:
+                    System.out.println("tree scanner 1");
+                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    break;
+                case 2:
+                    System.out.println("tree scanner 2");
+                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    break;
+                case 3:
+                    System.out.println("tree scanner 3");
+                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    break;
+                case 4:
+                    System.out.println("tree scanner 4");
+                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    break;
+                case 5:
+                    System.out.println("tree scanner 5");
+                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    break;
+            }
         }
 
 
@@ -349,6 +321,7 @@ public class Stream implements GlobalConst{
         MID mid = new MID();
         if (this.scanAll) {
             //scanning whole bigt file.
+            System.out.println("scanning whole file");
             scan = bigtable.getHeapFile().openScan();
 
             //mapObj.setHeader();

@@ -81,7 +81,7 @@ public class BigTable {
                 System.out.println("Invalid parameters. Try again.\n\n");
                 continue;
             }
-            SystemDefs.JavabaseBM.flushAllPages();
+            //SystemDefs.JavabaseBM.flushAllPages();
 
             final long endTime = System.currentTimeMillis();
             System.out.println("Total execution time: " + (endTime - startTime) / 1000.0 + " seconds");

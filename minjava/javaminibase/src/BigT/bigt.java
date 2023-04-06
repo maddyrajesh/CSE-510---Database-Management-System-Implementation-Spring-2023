@@ -32,7 +32,7 @@ public class bigt {
     private BTreeFile btree1;
     private BTreeFile btree2;
     private HashMap<ArrayList<String>, ArrayList<MID>> indexedMap;
-    BTreeFile[] indexFiles;
+    BTreeFile[] indexFiles = new BTreeFile[2];
 
     /**
      * Instantiates a new Bigt.
@@ -64,37 +64,33 @@ public class bigt {
 
         switch(type)
         {
-            // one btree to index row labels
+            default:
             case 1:
+                indexFiles[0] = null;
+                break;
+            // one btree to index row labels
+            case 2:
                 this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
+                indexFiles[0] = btree1;
                 break;
             // one btree to index column labels
-            case 2:
-                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
-                break;
-            /*
-            one btree to index column label and row label (combined key) and
-            one btree to index timestamps
-             */
             case 3:
-                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
-                this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
+                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
+                indexFiles[0] = btree1;
                 break;
             /*
-            one btree to index row label and value (combined key) and
-            one btree to index timestamps
+            one btree to index column label and row label (combined key)
              */
             case 4:
-                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
-                this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
+                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
+                indexFiles[0] = btree1;
                 break;
             /*
-            one btree to index column label and value (combined key) and
-            one btree to index timestamps
+            one btree to index row label and value (combined key)
              */
             case 5:
-                this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1] + BigTable.BIGT_STR_SIZES[2], 0);
-                this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
+                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
+                indexFiles[0] = btree1;
                 break;
         }
     }
@@ -118,37 +114,31 @@ public class bigt {
 
             // Set the Indexfile names from the type
             switch (type) {
-                // one btree to index row labels
                 case 1:
+                    break;
+                // one btree to index row labels
+                case 2:
                     this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
+                    indexFiles[0] = btree1;
                     break;
                 // one btree to index column labels
-                case 2:
+                case 3:
                     this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
+                    indexFiles[0] = btree1;
                     break;
             /*
             one btree to index column label and row label (combined key) and
-            one btree to index timestamps
-             */
-                case 3:
-                    this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
-                    this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
-                    break;
-            /*
-            one btree to index row label and value (combined key) and
-            one btree to index timestamps
              */
                 case 4:
-                    this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
-                    this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
+                    this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
+                    indexFiles[0] = btree1;
                     break;
             /*
-            one btree to index column label and value (combined key) and
-            one btree to index timestamps
+            one btree to index row label and value (combined key)
              */
                 case 5:
-                    this.btree1 = new BTreeFile("columnValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1] + BigTable.BIGT_STR_SIZES[2], 0);
-                    this.btree2 = new BTreeFile("timestampIndex", AttrType.attrInteger, Map.max_int_size, 0);
+                    this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
+                    indexFiles[0] = btree1;
                     break;
             }
                 // Open the Heap file which is used for storing the maps
@@ -357,23 +347,17 @@ public class bigt {
         Map map = heapFile.getMap(mid);
         switch(type)
         {
-            case 1:
+            case 2:
                 btree1.insert(new StringKey(map.getRowLabel()), mid);
                 break;
-            case 2:
+            case 3:
                 btree1.insert(new StringKey(map.getColumnLabel()), mid);
                 break;
-            case 3:
-                btree1.insert(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
-                btree2.insert(new IntegerKey(map.getTimeStamp()), mid);
-                break;
             case 4:
-                btree1.insert(new StringKey(map.getRowLabel() + map.getValue()), mid);
-                btree2.insert(new IntegerKey(map.getTimeStamp()), mid);
+                btree1.insert(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
                 break;
             case 5:
-                btree1.insert(new StringKey(map.getColumnLabel() + map.getValue()), mid);
-                btree2.insert(new IntegerKey(map.getTimeStamp()), mid);
+                btree1.insert(new StringKey(map.getRowLabel() + map.getValue()), mid);
                 break;
         }
     }
@@ -388,23 +372,17 @@ public class bigt {
         Map map = heapFile.getMap(mid);
         switch(type)
         {
-            case 1:
+            case 2:
                 btree1.Delete(new StringKey(map.getRowLabel()), mid);
                 break;
-            case 2:
+            case 3:
                 btree1.Delete(new StringKey(map.getColumnLabel()), mid);
                 break;
-            case 3:
-                btree1.Delete(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
-                btree2.Delete(new IntegerKey(map.getTimeStamp()), mid);
-                break;
             case 4:
-                btree1.Delete(new StringKey(map.getRowLabel() + map.getValue()), mid);
-                btree2.Delete(new IntegerKey(map.getTimeStamp()), mid);
+                btree1.Delete(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
                 break;
             case 5:
-                btree1.Delete(new StringKey(map.getColumnLabel() + map.getValue()), mid);
-                btree2.Delete(new IntegerKey(map.getTimeStamp()), mid);
+                btree1.Delete(new StringKey(map.getRowLabel() + map.getValue()), mid);
                 break;
         }
     }
