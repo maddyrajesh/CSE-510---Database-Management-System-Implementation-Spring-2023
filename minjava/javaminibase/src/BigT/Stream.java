@@ -187,8 +187,8 @@ public class Stream implements GlobalConst{
 
                         String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
                         String[] columnRange = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        start = new StringKey(rowRange[0] + "$" + columnRange[0]);
-                        end = new StringKey(rowRange[1] + "$" + columnRange[1] + this.lastChar);
+                        start = new StringKey(rowRange[0]  + columnRange[0]);
+                        end = new StringKey(rowRange[1]  + columnRange[1] + this.lastChar);
 
                         //check row range and column fixed/*
                     } else if ((rowFilter.matches(rangeRegex)) && (!columnFilter.matches(rangeRegex))) {
@@ -197,8 +197,8 @@ public class Stream implements GlobalConst{
                             System.out.println("scanning all in index 4 row range");
                             scanAll = true;
                         } else {
-                            start = new StringKey(rowRange[0] + "$" + columnFilter);
-                            end = new StringKey(rowRange[1] + "$" + columnFilter + this.lastChar);
+                            start = new StringKey(rowRange[0]  + columnFilter);
+                            end = new StringKey(rowRange[1]  + columnFilter + this.lastChar);
                         }
                         // check column range and row fixed/*
                     } else if ((!rowFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
@@ -207,9 +207,8 @@ public class Stream implements GlobalConst{
                             start = new StringKey(columnRange[0]);
                             end = new StringKey(columnRange[1] + this.lastChar);
                         } else {
-
-                            start = new StringKey(rowFilter + "$" + columnRange[0]);
-                            end = new StringKey(rowFilter + "$" + columnRange[1] + this.lastChar);
+                            start = new StringKey(rowFilter  + columnRange[0]);
+                            end = new StringKey(rowFilter  + columnRange[1] + this.lastChar);
                         }
 
                         //row and col are fixed val or *,fixed fixed,*
@@ -218,16 +217,16 @@ public class Stream implements GlobalConst{
                             System.out.println("scanning all in index 4 col range");
                             scanAll = true;
                         } else if (rowFilter.equals(starFilter)) {
-                            start = end = new StringKey(columnFilter);
+                            start = new StringKey(columnFilter);
+                            end = new StringKey(columnFilter + this.lastChar);
                         } else {
-                            start = new StringKey(rowFilter + "$" + columnFilter);
-                            end = new StringKey(rowFilter + "$" + columnFilter + this.lastChar);
+                            start = new StringKey(rowFilter  + columnFilter);
+                            end = new StringKey(rowFilter + columnFilter + this.lastChar);
                         }
                     }
                 }
                 break;
             case 5:
-
                 if ((valueFilter.equals(starFilter)) && (rowFilter.equals(starFilter))) {
                     scanAll = true;
                 } else {
@@ -237,8 +236,8 @@ public class Stream implements GlobalConst{
 
                         String[] valueRange = valueFilter.replaceAll("[\\[ \\]]", "").split(",");
                         String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
-                        start = new StringKey(rowRange[0] + "$" + valueRange[0]);
-                        end = new StringKey(rowRange[1] + "$" + valueRange[1] + this.lastChar);
+                        start = new StringKey(rowRange[0]  + valueRange[0]);
+                        end = new StringKey(rowRange[1]  + valueRange[1] + this.lastChar);
 
                         //check row range and column fixed/*
                     } else if ((valueFilter.matches(rangeRegex)) && (!rowFilter.matches(rangeRegex))) {
@@ -246,8 +245,8 @@ public class Stream implements GlobalConst{
                         if (rowFilter.equals(starFilter)) {
                             scanAll = true;
                         } else {
-                            start = new StringKey(rowFilter + "$" + valueRange[0]);
-                            end = new StringKey(rowFilter + "$" + valueRange[1] + this.lastChar);
+                            start = new StringKey(rowFilter  + valueRange[0]);
+                            end = new StringKey(rowFilter + valueRange[1] + this.lastChar);
                         }
                         // check column range and row fixed/*
                     } else if ((!valueFilter.matches(rangeRegex)) && (rowFilter.matches(rangeRegex))) {
@@ -257,8 +256,8 @@ public class Stream implements GlobalConst{
                             end = new StringKey(rowRange[1] + this.lastChar);
                         } else {
 
-                            start = new StringKey(rowRange[0] + "$" + valueFilter);
-                            end = new StringKey(rowRange[1] + "$" + valueFilter + this.lastChar);
+                            start = new StringKey(rowRange[0] + valueFilter);
+                            end = new StringKey(rowRange[1] + valueFilter + this.lastChar);
                         }
 
                         //row and col are fixed val or *,fixed fixed,*
@@ -272,8 +271,8 @@ public class Stream implements GlobalConst{
                             end = new StringKey(rowFilter + lastChar);
                         } else {
                             // both fixed
-                            start = new StringKey(rowFilter + "$" + valueFilter);
-                            end = new StringKey(rowFilter + "$" + valueFilter + this.lastChar);
+                            start = new StringKey(rowFilter + valueFilter);
+                            end = new StringKey(rowFilter + valueFilter + this.lastChar);
                         }
                     }
                 }

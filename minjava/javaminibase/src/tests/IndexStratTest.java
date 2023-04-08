@@ -105,11 +105,11 @@ public class IndexStratTest {
     public static void test1() throws Exception {
         createDatabase("strat1.db", "index1", 1);
         pcounter.initialize();
-        new SystemDefs("index1", 0, NUMBUF, "Clock");
+        //new SystemDefs("index1", 0, NUMBUF, "Clock");
         bigt databaseTest = new bigt("index1");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
+        Stream stream = databaseTest.openStream(1, "Switzerla", "*", "[00000,03000]");
         Map map = new Map();
         do {
             map = stream.getNext();
@@ -138,7 +138,7 @@ public class IndexStratTest {
         bigt databaseTest = new bigt("index2");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(2, "Sweden", "Moose", "*");
+        Stream stream = databaseTest.openStream(2, "Sweden", "*", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -165,7 +165,7 @@ public class IndexStratTest {
         bigt databaseTest = new bigt("index3", 3);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
+        Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -219,7 +219,7 @@ public class IndexStratTest {
         bigt databaseTest = new bigt("index5");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
+        Stream stream = databaseTest.openStream(1, "Switzerla", "*", "[00000,03000]");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -281,7 +281,7 @@ public class IndexStratTest {
 
 
     public static void main(String [] args) throws Exception {
-        ///test1();
+        test1();
         test2();
         test3();
         test4();
