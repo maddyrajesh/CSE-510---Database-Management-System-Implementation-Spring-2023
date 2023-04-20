@@ -57,7 +57,6 @@ public class bigt {
         this.columnSet = new HashSet<>();
         //SystemDefs.
         // metadata file
-        System.out.println(name + "_meta.heap");
         Heapfile metaHeapFile = new Heapfile(name + "_meta.heap");
         Tuple metaTuple = new Tuple();
         metaTuple.setHdr((short) 1, new AttrType[]{new AttrType(AttrType.attrInteger)}, null);
