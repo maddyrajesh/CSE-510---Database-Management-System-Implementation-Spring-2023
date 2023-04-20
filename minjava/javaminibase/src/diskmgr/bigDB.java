@@ -386,8 +386,8 @@ public class bigDB implements GlobalConst {
     
     // Does the file already exist?  
     
-    if( get_file_entry(fname) != null) 
-      throw new DuplicateEntryException(null, "DB fileentry already exists");
+    //if( get_file_entry(fname) != null)
+    //  throw new DuplicateEntryException(null, "DB fileentry already exists");
     
     Page apage = new Page();
     

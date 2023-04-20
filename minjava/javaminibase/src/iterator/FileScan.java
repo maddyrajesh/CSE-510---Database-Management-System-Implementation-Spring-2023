@@ -127,8 +127,10 @@ public class FileScan extends MapIterator
 	if((map1 =  scan.getNext(mid)) == null) {
 	  return null;
 	}
-	
-	//map1.setHeader();dr(s_sizes);
+    //System.out.println("found matching map! row is: " + map1.getRowLabel() + " column is: " + map1.getColumnLabel()  + " time is: " + map1.getTimeStamp() + " val is: " + map1.getValue());
+
+
+          //map1.setHeader();dr(s_sizes);
 	if (PredEval.Eval(OutputFilter, map1, null) == true){
         //System.out.println("found eval: " + map1.getTimeStamp());
 	  Projection.Project(map1, _in1, Jmap, perm_mat, _nOutFlds);

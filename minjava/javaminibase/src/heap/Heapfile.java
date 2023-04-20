@@ -47,7 +47,7 @@ public class Heapfile implements Filetype,  GlobalConst {
   public PageId      _firstDirPageId;   // page number of header page
   int         _ftype;
   private     boolean     _file_deleted;
-  private     String 	 _fileName;
+  public     String 	 _fileName;
   private static int tempfilecount = 0;
   
   
@@ -1094,6 +1094,7 @@ public class Heapfile implements Filetype,  GlobalConst {
         HFPage currentDataPage = new HFPage();
         PageId currentDataPageId = new PageId();
         RID currentDataPageRid = new RID();
+        MID currentDataPageMid = new MID();
 
         status = _findDataPageMap(mid,
                 currentDirPageId, currentDirPage,
@@ -1153,6 +1154,7 @@ public class Heapfile implements Filetype,  GlobalConst {
             // now check whether the directory page is empty:
 
             currentDataPageRid = currentDirPage.firstRecord();
+            currentDataPageMid = currentDataPage.firstMap();
 
             // st == OK: we still found a datapageinfo record on this directory page
             PageId pageId;
@@ -1380,12 +1382,7 @@ public class Heapfile implements Filetype,  GlobalConst {
    * @exception IOException I/O errors
    */
   public void deleteFile()
-          throws InvalidSlotNumberException,
-          FileAlreadyDeletedException,
-          InvalidMapSizeException,
-          HFBufMgrException,
-          HFDiskMgrException,
-          IOException, InvalidTupleSizeException {
+          throws Exception {
       if(_file_deleted ) 
    	throw new FileAlreadyDeletedException(null, "file alread deleted");
       
@@ -1400,25 +1397,40 @@ public class Heapfile implements Filetype,  GlobalConst {
       nextDirPageId.pid = 0;
       Page pageinbuffer = new Page();
       HFPage currentDirPage =  new HFPage();
+      Map amap;
       Tuple atuple;
       
       pinPage(currentDirPageId, currentDirPage, false);
       //currentDirPage.openHFpage(pageinbuffer);
       
+      MID mid = new MID();
       RID rid = new RID();
       while(currentDirPageId.pid != INVALID_PAGE)
-	{      
-	  for(rid = currentDirPage.firstRecord();
-		  rid != null;
-		  rid = currentDirPage.nextRecord(rid))
+	{
+	  for(mid = currentDirPage.firstMap();
+		  mid != null;
+		  mid = currentDirPage.nextMap(mid))
 	    {
-	      atuple = currentDirPage.getRecord(rid);
-	      DataPageInfo dpinfo = new DataPageInfo(atuple);
+	      amap = currentDirPage.getMap(mid);
+          deleteMap(mid);
+          //System.out.println("deleting map");
+	      //DataPageInfo dpinfo = new DataPageInfo(amap);
 	      //int dpinfoLen = arecord.length;
-	      
-	      freePage(dpinfo.pageId);
-	      
+
+	      //freePage(dpinfo.pageId);
+
 	    }
+            for(rid = currentDirPage.firstRecord();
+                rid != null;
+                rid = currentDirPage.nextRecord(rid))
+            {
+                atuple = currentDirPage.getRecord(rid);
+                DataPageInfo dpinfo = new DataPageInfo(atuple);
+                //int dpinfoLen = arecord.length;
+
+                freePage(dpinfo.pageId);
+
+            }
 	  // ASSERTIONS:
 	  // - we have freePage()'d all data pages referenced by
 	  // the current directory page.

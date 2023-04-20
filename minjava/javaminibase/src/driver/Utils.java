@@ -1,5 +1,6 @@
 package driver;
 
+import BigT.InvalidStringSizeArrayException;
 import BigT.Map;
 import BigT.Stream;
 import BigT.bigt;
@@ -9,6 +10,8 @@ import global.AttrOperator;
 import global.AttrType;
 import global.MID;
 import global.SystemDefs;
+import heap.InvalidMapSizeException;
+import heap.InvalidTypeException;
 import iterator.CondExpr;
 import iterator.FldSpec;
 import iterator.RelSpec;
@@ -17,7 +20,7 @@ import java.io.*;
 
 import static global.GlobalConst.NUMBUF;
 
-class Utils {
+public class Utils {
 
     private static final int NUM_PAGES = 100000;
 
@@ -113,6 +116,43 @@ class Utils {
         System.out.println("\n=======================================\n");
         
     }
+
+
+    public static void mapInsert(String rowLabel, String colLabel, String value, String timestamp, Integer type, String tableName, Integer NUMBUF) throws Exception {
+        String dbPath = getDBPath(tableName);
+        Map map = new Map();
+        map.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
+        map.setRowLabel(rowLabel);
+        map.setColumnLabel(colLabel);
+        map.setTimeStamp(Integer.parseInt(timestamp));
+        map.setValue(value);
+        File f = new File(dbPath);
+        if(f.exists()) {
+            //System.out.println("already exist.\n");
+            new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+            bigt bigTable = new bigt(tableName);
+            if (!type.equals(bigTable.getType())) {
+                System.out.println("Type Mismatch");
+                bigTable.close();
+                return;
+            }
+            MID mid = bigTable.insertMap(map.getMapByteArray());
+            bigTable.close();
+            SystemDefs.JavabaseBM.flushAllPages();
+            SystemDefs.JavabaseDB.closeDB();
+        } else {
+            //System.out.println("creating database");
+            //f.createNewFile();
+            new SystemDefs(dbPath, NUM_PAGES, NUMBUF, "Clock");
+            bigt bigTable = new bigt(tableName, type);
+            MID mid = bigTable.insertMap(map.getMapByteArray());
+            bigTable.close();
+            SystemDefs.JavabaseBM.flushAllPages();
+            SystemDefs.JavabaseDB.closeDB();
+        }
+
+    }
+
 
     public static String getDBPath(String tableName) {
         return tableName  + ".db";

@@ -1,12 +1,14 @@
 package BigT;
 
 import btree.*;
+import driver.BigTable;
 import global.*;
 import diskmgr.*;
 import heap.*;
 import iterator.*;
 import org.w3c.dom.Attr;
 
+import java.io.File;
 import java.io.IOException;
 
 
@@ -31,6 +33,7 @@ public class Stream implements GlobalConst{
     private int tableType;
     private MapSort sort;
     private Scan scan;
+    private boolean created = false;
 
     private Heapfile tempHeapFile;
 
@@ -66,10 +69,12 @@ public class Stream implements GlobalConst{
     /**
      * Closestream.
      */
-    public void closestream() {
+    public void closestream() throws SortException {
         scanAll = false;
         btreeScanner = null;
+        this.sort.close();
     }
+
 
     /** Retrieve the next record in the stream.
      *
@@ -115,6 +120,7 @@ public class Stream implements GlobalConst{
 
     public Map getNext() throws Exception {
         Map map = this.sort.get_next();
+        MID mid = new MID();
         if (map == null)
         {
             this.tempHeapFile.deleteFile();
@@ -194,7 +200,6 @@ public class Stream implements GlobalConst{
                     } else if ((rowFilter.matches(rangeRegex)) && (!columnFilter.matches(rangeRegex))) {
                         String[] rowRange = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
                         if (columnFilter.equals(starFilter)) {
-                            System.out.println("scanning all in index 4 row range");
                             scanAll = true;
                         } else {
                             start = new StringKey(rowRange[0]  + columnFilter);
@@ -214,7 +219,6 @@ public class Stream implements GlobalConst{
                         //row and col are fixed val or *,fixed fixed,*
                     } else {
                         if (columnFilter.equals(starFilter)) {
-                            System.out.println("scanning all in index 4 col range");
                             scanAll = true;
                         } else if (rowFilter.equals(starFilter)) {
                             start = new StringKey(columnFilter);
@@ -281,24 +285,19 @@ public class Stream implements GlobalConst{
         if (!this.scanAll) {
             switch(indexType) {
                 case 1:
-                    System.out.println("tree scanner 1");
-                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
                     break;
                 case 2:
-                    System.out.println("tree scanner 2");
-                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
                     break;
                 case 3:
-                    System.out.println("tree scanner 3");
-                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
                     break;
                 case 4:
-                    System.out.println("tree scanner 4");
-                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
                     break;
                 case 5:
-                    System.out.println("tree scanner 5");
-                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
+                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
                     break;
             }
         }
@@ -315,34 +314,57 @@ public class Stream implements GlobalConst{
         · 6, then results are ordered in time stamp
         * */
 
-        this.tempHeapFile = new Heapfile("tempSort");
-
+        String name = "tempSort " + bigtable.name + " " + bigtable.counter;
+        this.tempHeapFile = new Heapfile(name);
+        //scan = tempHeapFile.openScan();
         MID mid = new MID();
-        if (this.scanAll) {
-            //scanning whole bigt file.
-            System.out.println("scanning whole file");
-            scan = bigtable.getHeapFile().openScan();
-
-            //mapObj.setHeader();
-            Map map = null;
 
 //            if (rowFilter.equals(starFilter) && columnFilter.equals(starFilter) && valueFilter.equals(starFilter)) {
 //                System.out.println("rowFilter = " + rowFilter);
 //                tempHeapFile = this.bigtable.heapfile;
 //            } else {
 
-            int count = 0;
-            map = this.scan.getNext(mid);
+        int count = 0;
+        /*map = this.scan.getNext(mid);
+        while (map != null) {
+            count++;
+            short kaka = 0;
+            this.tempHeapFile.deleteMap(mid);
+            map = scan.getNext(mid);
+        }*/
+        System.out.println(tempHeapFile._fileName + " " + tempHeapFile.getRecCnt());
+        if(bigtable.counter >= Integer.MAX_VALUE)
+            bigtable.counter = 0;
+        else
+            bigtable.counter++;
+        //System.out.println("record before" + tempHeapFile.getRecCnt());
+
+
+        if (this.scanAll) {
+            //scanning whole bigt file.
+            //System.out.println("scanning whole file");
+            scan = bigtable.getHeapFile().openScan();
+
+            //mapObj.setHeader();
+
+//            if (rowFilter.equals(starFilter) && columnFilter.equals(starFilter) && valueFilter.equals(starFilter)) {
+//                System.out.println("rowFilter = " + rowFilter);
+//                tempHeapFile = this.bigtable.heapfile;
+//            } else {
+
+            //int count = 0;
+            Map map = this.scan.getNext(mid);
             while (map != null) {
                 count++;
                 short kaka = 0;
                 if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
                     this.tempHeapFile.insertMap(map.getMapByteArray());
                     //map.print();
-                    //System.out.println("map is: " + map.getRowLabel());
                 }
                 map = scan.getNext(mid);
             }
+            //System.out.println(tempHeapFile.getRecCnt());
+            this.scan.closescan();
 
         } else {
 
@@ -353,12 +375,14 @@ public class Stream implements GlobalConst{
                     MID tempMid = new MID(currMid.pageNo, currMid.slotNo);
                     Map map = bigtable.getHeapFile().getMap(tempMid);
                     if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
-                        tempHeapFile.insertMap(map.getMapByteArray());
+                        this.tempHeapFile.insertMap(map.getMapByteArray());
                     }
 
                 }
                 entry = btreeScanner.get_next();
             }
+            //System.out.println("record count is " + tempHeapFile.getRecCnt());
+            btreeScanner.DestroyBTreeFileScan();
         }
 
 
@@ -372,9 +396,10 @@ public class Stream implements GlobalConst{
         FileScan fscan = null;
         AttrType[] attrTypes = new AttrType[]{new AttrType(0), new AttrType(0), new AttrType(1), new AttrType(0)};
         //short strSizes[] = {}
+        //String name = bigtable.name + ".heap";
 
         try {
-            fscan = new FileScan("tempSort", attrTypes, new short[]{(short) (32 * 1024 - 1), (short) (32 * 1024 - 1), (short) (32 * 1024 - 1)}, (short) 4, 4, projection, null);
+            fscan = new FileScan(name, attrTypes, new short[]{(short) (32 * 1024 - 1), (short) (32 * 1024 - 1), (short) (32 * 1024 - 1)}, (short) 4, 4, projection, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -398,7 +423,7 @@ public class Stream implements GlobalConst{
                 throw new IllegalStateException("Unexpected value: " + orderType);
         }
         try {
-            this.sort = new MapSort(attrTypes, new short[]{(short) (32 * 1024 - 1), (short) (32 * 1024 - 1), (short) (32 * 1024 - 1)}, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength, orderType);
+            this.sort = new MapSort(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength, orderType);
         } catch (Exception e) {
             e.printStackTrace();
         }

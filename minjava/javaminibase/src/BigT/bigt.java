@@ -24,15 +24,16 @@ import java.util.*;
  */
 public class bigt {
 
-    private final String name;
+    public final String name;
+    public int counter = 0;
     private int type;
     private HashSet<String> rowSet;
     private HashSet<String> columnSet;
     private Heapfile heapFile;
-    private BTreeFile btree1;
+    public BTreeFile btree1;
     private BTreeFile btree2;
     private HashMap<ArrayList<String>, ArrayList<MID>> indexedMap;
-    BTreeFile[] indexFiles = new BTreeFile[2];
+    //BTreeFile[] indexFiles = new BTreeFile[2];
 
     /**
      * Instantiates a new Bigt.
@@ -54,8 +55,9 @@ public class bigt {
         this.indexedMap = new HashMap<>();
         this.rowSet = new HashSet<>();
         this.columnSet = new HashSet<>();
-
+        //SystemDefs.
         // metadata file
+        System.out.println(name + "_meta.heap");
         Heapfile metaHeapFile = new Heapfile(name + "_meta.heap");
         Tuple metaTuple = new Tuple();
         metaTuple.setHdr((short) 1, new AttrType[]{new AttrType(AttrType.attrInteger)}, null);
@@ -66,31 +68,26 @@ public class bigt {
         {
             default:
             case 1:
-                indexFiles[0] = null;
                 break;
             // one btree to index row labels
             case 2:
                 this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
-                indexFiles[0] = btree1;
                 break;
             // one btree to index column labels
             case 3:
                 this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
-                indexFiles[0] = btree1;
                 break;
             /*
             one btree to index column label and row label (combined key)
              */
             case 4:
                 this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
-                indexFiles[0] = btree1;
                 break;
             /*
             one btree to index row label and value (combined key)
              */
             case 5:
                 this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
-                indexFiles[0] = btree1;
                 break;
         }
     }
@@ -103,6 +100,10 @@ public class bigt {
             if (heapFileId == null) {
                 throw new Exception("BigT File with name: " + name + " doesn't exist");
             }
+            /*PageId btreeFileId = SystemDefs.JavabaseDB.get_file_entry("columnIndex");
+            if (btreeFileId == null) {
+                throw new Exception("BigT File with name: columnIndex doesn't exist");
+            }*/
 
             // Load the metadata from .meta heapfile
             Heapfile metaHeapFile = new Heapfile(name + "_meta.heap");
@@ -118,27 +119,23 @@ public class bigt {
                     break;
                 // one btree to index row labels
                 case 2:
-                    this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
-                    indexFiles[0] = btree1;
+                    this.btree1 = new BTreeFile("rowIndex");
                     break;
                 // one btree to index column labels
                 case 3:
-                    this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
-                    indexFiles[0] = btree1;
+                    this.btree1 = new BTreeFile("columnIndex");
                     break;
             /*
             one btree to index column label and row label (combined key) and
              */
                 case 4:
-                    this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
-                    indexFiles[0] = btree1;
+                    this.btree1 = new BTreeFile("rowColumnIndex");
                     break;
             /*
             one btree to index row label and value (combined key)
              */
                 case 5:
-                    this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
-                    indexFiles[0] = btree1;
+                    this.btree1 = new BTreeFile("rowValueIndex");
                     break;
             }
                 // Open the Heap file which is used for storing the maps
@@ -148,6 +145,10 @@ public class bigt {
                 try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(this.name + ".hashmap"))) {
                     this.type = objectInputStream.readByte();
                     this.indexedMap = (HashMap<ArrayList<String>, ArrayList<MID>>) objectInputStream.readObject();
+                    this.rowSet = (HashSet<String>) objectInputStream.readObject();
+                    this.columnSet = (HashSet<String>) objectInputStream.readObject();
+                    Integer tmpCounter = (Integer) objectInputStream.readObject();
+                    this.counter = tmpCounter;
                 } catch (IOException e) {
                     throw new IOException("File not writable: " + e.toString());
                 }
@@ -191,13 +192,19 @@ public class bigt {
         public void close() throws PageUnpinnedException, PagePinnedException, PageNotFoundException, HashOperationException, BufMgrException, IOException, HashEntryNotFoundException, InvalidFrameNumberException, ReplacerException {
         if(this.btree1 != null)
             this.btree1.close();
-        
-        if(this.btree2 != null)
-            this.btree2.close();    
 
+        if(this.btree2 != null)
+            this.btree2.close();
+
+        new File(this.name + ".hashmap").delete();
+        File file = new File(this.name + ".hashmap");
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(this.name + ".hashmap"));
         objectOutputStream.writeByte(type);
         objectOutputStream.writeObject(indexedMap);
+        objectOutputStream.writeObject(rowSet);
+        objectOutputStream.writeObject(columnSet);
+        Integer tmpCounter = counter;
+        objectOutputStream.writeObject(tmpCounter);
     }
     
     /**
@@ -216,7 +223,7 @@ public class bigt {
      * @throws FreePageException           the free page exception
      * @throws DeleteFileEntryException    the delete file entry exception
      */
-    public void deleteBigt() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, FileAlreadyDeletedException, IOException, IteratorException, ConstructPageException, PinPageException, UnpinPageException, FreePageException, DeleteFileEntryException, InvalidTupleSizeException {
+    public void deleteBigt() throws Exception {
         heapFile.deleteFile();
         btree1.destroyFile();
         btree2.destroyFile();
