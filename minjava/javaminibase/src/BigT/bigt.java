@@ -31,7 +31,8 @@ public class bigt {
     private HashSet<String> columnSet;
     private Heapfile heapFile;
     public BTreeFile btree1;
-    private BTreeFile btree2;
+    public BTreeFile btree2;
+    public BTreeFile[] indexFiles;
     private HashMap<ArrayList<String>, ArrayList<MID>> indexedMap;
     //BTreeFile[] indexFiles = new BTreeFile[2];
 
@@ -228,6 +229,59 @@ public class bigt {
         btree2.destroyFile();
     }
 
+
+    public void createIndex(Integer type) throws Exception {
+        switch (type) {
+            default:
+            case 1:
+                break;
+            // one btree to index row labels
+            case 2:
+                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
+                break;
+            // one btree to index column labels
+            case 3:
+                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
+                break;
+            /*
+            one btree to index column label and row label (combined key)
+             */
+            case 4:
+                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
+                break;
+            /*
+            one btree to index row label and value (combined key)
+             */
+            case 5:
+                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
+                break;
+        }
+
+
+        Scan scan = heapFile.openScan();
+        MID mid = new MID();
+
+        //mapObj.setHeader();
+
+//            if (rowFilter.equals(starFilter) && columnFilter.equals(starFilter) && valueFilter.equals(starFilter)) {
+//                System.out.println("rowFilter = " + rowFilter);
+//                tempHeapFile = this.bigtable.heapfile;
+//            } else {
+
+        int count = 0;
+        Map map = scan.getNext(mid);
+        while (map != null) {
+            System.out.print("Inserting index of map: ");
+            count++;
+            map.print();
+            System.out.println();
+            insertIndex(mid, type);
+            map = scan.getNext(mid);
+        }
+        System.out.println(count);
+        scan.closescan();
+    }
+
   
     /**
      * Gets map cnt.
@@ -301,7 +355,7 @@ public class bigt {
                     indexedMap.get(rowColumnKey).add(newMID);
 
                     // update indexes
-                    insertIndex(newMID);
+                    insertIndex(newMID, type);
                     deleteIndex(timestampMap.get(oldestTimestamp));
 
                     return newMID;
@@ -326,7 +380,7 @@ public class bigt {
                 {
                     indexedMap.put(rowColumnKey, new ArrayList<MID>(Arrays.asList(newMID)));
                 }
-                insertIndex(newMID);
+                insertIndex(newMID, type);
 
                 // update row and column sets
                 rowSet.add(map.getRowLabel());
@@ -349,7 +403,7 @@ public class bigt {
      * @param mid the mid
      * @throws Exception the exception
      */
-    public void insertIndex(MID mid) throws Exception {
+    public void insertIndex(MID mid, int type) throws Exception {
         Map map = heapFile.getMap(mid);
         switch(type)
         {

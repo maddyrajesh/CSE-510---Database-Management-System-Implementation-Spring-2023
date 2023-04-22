@@ -17,7 +17,7 @@ import java.io.*;
  * After the sorting is done, the user should call <code>close()</code>
  * to clean up.
  */
-public class Sort extends Iterator implements GlobalConst
+public class Sort extends MapIterator implements GlobalConst
 {
   private static final int ARBIT_RUNS = 10;
   private short map_size;
@@ -557,13 +557,13 @@ public class Sort extends Iterator implements GlobalConst
      * @throws SortException something went wrong in the lower layer.
      */
     public Sort(AttrType[] attrTypes,
-              short[] fld_sizes,
-              Iterator map_iter,
-              int sort_fld,
-              MapOrder map_order,
-              int n_pages,
-              int sortFldlen,
-              boolean mapInsertOrder)
+                short[] fld_sizes,
+                MapIterator map_iter,
+                int sort_fld,
+                MapOrder map_order,
+                int n_pages,
+                int sortFldlen,
+                boolean mapInsertOrder)
           throws SortException {
     int str_att_count = 0; // number of string field in maps
     for (int i = 0; i < num_cols; i++) {

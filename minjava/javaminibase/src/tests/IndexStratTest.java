@@ -7,6 +7,7 @@ import btree.AddFileEntryException;
 import btree.ConstructPageException;
 import btree.GetFileEntryException;
 import diskmgr.*;
+import driver.BigTable;
 import global.AttrType;
 import global.MID;
 import global.SystemDefs;
@@ -18,6 +19,7 @@ import static global.GlobalConst.NUMBUF;
 
 public class IndexStratTest {
 
+    private static boolean createFlag = true;
     private static final int NUM_PAGES = 100000;
     private static int mapCount = 0;
 
@@ -49,12 +51,7 @@ public class IndexStratTest {
             while ((inputStr = br.readLine()) != null) {
                 String[] input = inputStr.split(",");
                 Map map = new Map();
-                short strSizes[] = setBigTConstants("test_data1.csv");
-                AttrType attr[] = {new AttrType(AttrType.attrString),
-                        new AttrType(AttrType.attrString),
-                        new AttrType(AttrType.attrInteger),
-                        new AttrType(AttrType.attrString)};
-                map.setHeader(attr, strSizes);
+                map.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
                 map.setRowLabel(input[0]);
                 map.setColumnLabel(input[1]);
                 map.setTimeStamp(Integer.parseInt(input[2]));
@@ -63,6 +60,8 @@ public class IndexStratTest {
                 MID mid = database.insertMap(map.getMapByteArray());
                 mapCount++;
             }
+            br.close();
+            fileStream.close();
             /*System.out.println("Index strategy: " + type);
             System.out.println("=======================================\n");
             System.out.println("map count: " + database.getMapCnt());
@@ -74,6 +73,9 @@ public class IndexStratTest {
             System.out.println("NumBUFS: " + NUMBUF);
             System.out.println("\n=======================================\n");*/
             database.close();
+            SystemDefs.JavabaseBM.flushAllPages();
+            SystemDefs.JavabaseDB.closeDB();
+            //database.deleteBigt();
         } catch (InvalidMapSizeException e) {
             e.printStackTrace();
         } catch (ConstructPageException e) {
@@ -103,10 +105,11 @@ public class IndexStratTest {
     //  Test index strategy 1.
 
     public static void test1() throws Exception {
-        createDatabase("strat1.db", "index1", 1);
+        createDatabase("strat1.db", "strat1", 1);
         pcounter.initialize();
+        new SystemDefs("strat1.db", 0, NUMBUF, "Clock");
         //new SystemDefs("index1", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("index1");
+        bigt databaseTest = new bigt("strat1");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Switzerla", "*", "[00000,03000]");
@@ -122,20 +125,30 @@ public class IndexStratTest {
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         } while(map != null);
+        databaseTest.close();
+        SystemDefs.JavabaseDB.closeDB();
+        //databaseTest.deleteBigt();
         test1Time = System.nanoTime();
         test1Time -= tmpTime;
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test1: " + mapCount1);
+        System.out.println();
+        mapCount1 = 0;
     }
 
 
     //  Test index strategy 2.
 
     public static void test2() throws Exception {
-        createDatabase("strat2.db", "index2", 2);
+        if(createFlag) {
+            //System.out.println("creating database.\n");
+            createDatabase("strat2.db", "strat2", 2);
+        }
+
+        new SystemDefs("strat2.db", 0, NUMBUF, "Clock");
         pcounter.initialize();
-        bigt databaseTest = new bigt("index2");
+        bigt databaseTest = new bigt("strat2");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(2, "Sweden", "*", "*");
@@ -149,20 +162,61 @@ public class IndexStratTest {
             }
         }
         while(map != null);
+        databaseTest.close();
+        stream.closestream();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
         test2Time = System.nanoTime();
         test2Time -= tmpTime;
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test2: " + mapCount2);
+        System.out.println();
+        mapCount2 = 0;
+        createFlag = false;
+
+
+        /*new SystemDefs("strat2.db", 0, NUMBUF, "Clock");
+        bigt databaseTest2 = new bigt("strat2");
+        assert(databaseTest2.getMapCnt() == mapCount);
+        tmpTime = System.nanoTime();
+        Stream stream2 = databaseTest2.openStream(1, "Sweden", "*", "*");
+        map = new Map();
+        do {
+            map = stream2.getNext();
+            if(map != null) {
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                mapCount2++;
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                //System.out.println("found matching map! value is: " + map.getColumnLabel());
+                //System.out.println("found matching map! value is: " + map.getTimeStamp());
+                //System.out.println("found matching map! value is: " + map.getValue());
+            }
+        } while(map != null);
+        databaseTest2.close();
+        stream2.closestream();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
+        createFlag = false;
+        //databaseTest.deleteBigt();
+
+        test1Time = System.nanoTime();
+        test1Time -= tmpTime;
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
+        System.out.println("total map count of test2: " + mapCount2);
+        System.out.println();
+        mapCount2 = 0;*/
     }
 
 
     //  Test index strategy 3.
 
     public static void test3() throws Exception {
-        createDatabase("strat3.db", "index3", 3);
+        createDatabase("strat3.db", "strat3", 3);
         pcounter.initialize();
-        bigt databaseTest = new bigt("index3", 3);
+        new SystemDefs("strat3.db", 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("strat3");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
@@ -176,6 +230,9 @@ public class IndexStratTest {
             }
         }
         while(map != null);
+        databaseTest.close();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
         test3Time = System.nanoTime();
         test3Time -= tmpTime;
         System.out.println("Reads : " + pcounter.rcounter);
@@ -187,9 +244,10 @@ public class IndexStratTest {
     //  Test index strategy 4.
 
     public static void test4() throws Exception {
-        createDatabase("strat4.db", "index4", 4);
+        createDatabase("strat4.db", "strat4", 4);
         pcounter.initialize();
-        bigt databaseTest = new bigt("index4");
+        new SystemDefs("strat4.db", 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("strat4");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
@@ -205,6 +263,9 @@ public class IndexStratTest {
         while(map != null);
         test4Time = System.nanoTime();
         test4Time -= tmpTime;
+        databaseTest.close();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test4: " + mapCount4);
@@ -214,9 +275,10 @@ public class IndexStratTest {
     //  Test index strategy 5.
 
     public static void test5() throws Exception {
-        createDatabase("strat5.db", "index5", 5);
+        createDatabase("strat5.db", "strat5", 5);
         pcounter.initialize();
-        bigt databaseTest = new bigt("index5");
+        new SystemDefs("strat5.db", 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("strat5");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Switzerla", "*", "[00000,03000]");
@@ -232,6 +294,9 @@ public class IndexStratTest {
         while(map != null);
         test5Time = System.nanoTime();
         test5Time -= tmpTime;
+        databaseTest.close();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test5: " + mapCount5);
@@ -281,9 +346,15 @@ public class IndexStratTest {
 
 
     public static void main(String [] args) throws Exception {
-        test1();
+        //test1();
+        //test1();
+        /*test2();
         test2();
-        test3();
+        test2();
+        test2();
+        //test1();*/
+        //test2();
+        //test3();
         test4();
         test5();
         //test2();

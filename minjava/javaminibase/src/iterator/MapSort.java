@@ -11,7 +11,7 @@ import heap.Heapfile;
 
 import java.io.IOException;
 
-public class MapSort extends MapIterator implements GlobalConst {
+public class MapSort extends Iterator implements GlobalConst {
 
     private int[] n_Maps;
     private int n_runs;

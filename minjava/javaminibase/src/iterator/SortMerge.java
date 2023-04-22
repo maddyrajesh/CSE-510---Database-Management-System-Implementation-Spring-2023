@@ -12,14 +12,14 @@ import java.io.*;
  * We name the two relations being joined as R and S.
  * This file contains an implementation of the sort merge join
  * algorithm as described in the Shapiro paper. It makes use of the external
- * sorting utility to generate runs, and then uses the iterator interface to
+ * sorting utility to generate runs, and then uses the MapIterator interface to
  * get successive maps for the final merge.
  */
-public class SortMerge extends Iterator implements GlobalConst
+public class SortMerge extends MapIterator implements GlobalConst
 {
   private AttrType  _in1[], _in2[];
   private  int        in1_len, in2_len;
-  private  Iterator  p_i1,        // pointers to the two iterators. If the
+  private  MapIterator  p_i1,        // pointers to the two MapIterators. If the
     p_i2;               // inputs are sorted, then no sorting is done
   private  MapOrder  _order;                      // The sorting order.
   private  CondExpr  OutputFilter[];
@@ -82,8 +82,8 @@ public class SortMerge extends Iterator implements GlobalConst
 		   int      sortFld2Len,
 
 		   int     amt_of_mem,
-		   Iterator     am1,
-		   Iterator     am2,
+		   MapIterator     am1,
+		   MapIterator     am2,
 
 		   boolean     in1_sorted,
 		   boolean     in2_sorted,
@@ -214,7 +214,7 @@ public class SortMerge extends Iterator implements GlobalConst
 
   /**
    *  The map is returned
-   * All this function has to do is to get 1 map from one of the Iterators
+   * All this function has to do is to get 1 map from one of the MapIterators
    * (from both initially), use the sorting order to determine which one
    * gets sent up. Amit)
    * Hmmm it seems that some thing more has to be done in order to account
@@ -383,25 +383,25 @@ public class SortMerge extends Iterator implements GlobalConst
 	}
     }
 
-  /** 
-   *implement the abstract method close() from super class Iterator
+  /**
+   *implement the abstract method close() from super class MapIterator
    *to finish cleaning up
    *@exception IOException I/O error from lower layers
    *@exception JoinsException join error from lower layers
-   *@exception IndexException index access error 
+   *@exception IndexException index access error
    */
-  public void close() 
-    throws JoinsException, 
+  public void close()
+    throws JoinsException,
 	   IOException,
-	   IndexException 
+	   IndexException
     {
       if (!closeFlag) {
-	
+
 	try {
 	  p_i1.close();
 	  p_i2.close();
 	}catch (Exception e) {
-	  throw new JoinsException(e, "SortMerge.java: error in closing iterator.");
+	  throw new JoinsException(e, "SortMerge.java: error in closing MapIterator.");
 	}
 	if (temp_file_fd1 != null) {
 	  try {

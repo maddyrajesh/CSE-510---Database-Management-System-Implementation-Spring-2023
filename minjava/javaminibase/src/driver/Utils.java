@@ -4,14 +4,16 @@ import BigT.InvalidStringSizeArrayException;
 import BigT.Map;
 import BigT.Stream;
 import BigT.bigt;
+import btree.AddFileEntryException;
+import btree.ConstructPageException;
+import btree.GetFileEntryException;
 import bufmgr.*;
 import diskmgr.pcounter;
 import global.AttrOperator;
 import global.AttrType;
 import global.MID;
 import global.SystemDefs;
-import heap.InvalidMapSizeException;
-import heap.InvalidTypeException;
+import heap.*;
 import iterator.CondExpr;
 import iterator.FldSpec;
 import iterator.RelSpec;
@@ -24,18 +26,24 @@ public class Utils {
 
     private static final int NUM_PAGES = 100000;
 
-    static void batchInsert(String dataFile, String tableName, int type) throws IOException, PageUnpinnedException, PagePinnedException, PageNotFoundException, BufMgrException, HashOperationException {
+    static void batchInsert(String dataFile, String tableName, int type) throws IOException, PageUnpinnedException, PagePinnedException, PageNotFoundException, BufMgrException, HashOperationException, SpaceNotAvailableException, FieldNumberOutOfBoundException, ConstructPageException, AddFileEntryException, HFDiskMgrException, HFException, GetFileEntryException, HFBufMgrException, InvalidTupleSizeException, InvalidSlotNumberException, InvalidTypeException {
         String dbPath = getDBPath(tableName);
-        System.out.println(dbPath);
+        //System.out.println(dbPath);
         File f = new File(dbPath);
-        Integer numPages = NUM_PAGES;
-        new SystemDefs(dbPath, numPages, NUMBUF, "Clock");
+        bigt bigTable;
+        if (f.exists()) {
+            Integer numPages = NUM_PAGES;
+            new SystemDefs(dbPath, numPages, NUMBUF, "Clock");
+            bigTable = new bigt(tableName, type);
+        } else {
+            new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+            bigTable = new bigt(tableName);
+        }
         pcounter.initialize();
 
         FileInputStream fileStream = null;
         BufferedReader br = null;
         try {
-            bigt bigTable = new bigt(tableName, type);
             fileStream = new FileInputStream(dataFile);
             br = new BufferedReader(new InputStreamReader(fileStream));
             String inputStr;
@@ -150,6 +158,27 @@ public class Utils {
             SystemDefs.JavabaseBM.flushAllPages();
             SystemDefs.JavabaseDB.closeDB();
         }
+
+    }
+
+
+    public static void createIndex(String tableName, Integer type) throws Exception {
+        String dbPath = getDBPath(tableName);
+        new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+        bigt bigTable = new bigt(tableName);
+        bigTable.createIndex(type);
+        bigTable.close();
+        SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
+    }
+
+
+    public static void rowJoin(String tableName1, String tableName2, String outputTableName, String colFilter, String joinType, Integer NUMBUF) {
+
+    }
+
+
+    public static void rowSort(String inputTableName, String outputTableName, String columnName, Integer NUMBUF) {
 
     }
 

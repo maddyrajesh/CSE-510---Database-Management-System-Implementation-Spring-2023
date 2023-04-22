@@ -12,13 +12,13 @@ import java.io.*;
 /**
  *Eleminate the duplicate maps from the input relation
  */
-public class DuplElim extends Iterator
+public class DuplElim extends MapIterator
 {
   private AttrType[] _in;     // memory for array allocated by constructor
   private short       in_len;
   private short[]    str_lens;
   
-  private Iterator _am;
+  private MapIterator _am;
   private boolean      done;
 
   private Map Jmap;
@@ -38,7 +38,7 @@ public class DuplElim extends Iterator
   public DuplElim(
           AttrType[] in,
           short[] s_sizes,
-          Iterator am,
+          MapIterator am,
           int amt_of_mem,
           boolean inp_sorted,
           int fieldNo)throws IOException ,DuplElimException

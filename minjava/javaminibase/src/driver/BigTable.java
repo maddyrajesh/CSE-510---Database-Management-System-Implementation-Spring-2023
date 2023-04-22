@@ -33,25 +33,34 @@ public class BigTable {
                 else if (inputStr[0].equalsIgnoreCase("batchinsert")) {
                     //batchinsert DATAFILENAME TYPE BIGTABLENAME
                     String dataFile = inputStr[1];
-                    BIGT_STR_SIZES = setBigTConstants(dataFile);
+                    //BIGT_STR_SIZES = setBigTConstants(dataFile);
                     Integer type = Integer.parseInt(inputStr[2]);
                     String tableName = inputStr[3];
-                    checkDBExists(tableName);
+                    String dbPath = Utils.getDBPath(tableName);
+                    File f = new File(dbPath);
+                    if (!f.exists()) {
+                        File file = new File(tableName + "_metadata.txt");
+                        FileWriter fileWriter = new FileWriter(file);
+                        BufferedWriter bufferedWriter =
+                                 new BufferedWriter(fileWriter);
+                        bufferedWriter.write(dataFile);
+                        bufferedWriter.close();
+                    }
+                    //checkDBExists(tableName);
                     // Set the metadata name for the given DB. This is used to set the headers for the Maps
-                    File file = new File(tableName + "_metadata.txt");
-                    FileWriter fileWriter = new FileWriter(file);
-                    BufferedWriter bufferedWriter =
-                            new BufferedWriter(fileWriter);
-                    bufferedWriter.write(dataFile);
-                    bufferedWriter.close();
+                    //File file = new File(tableName + "_metadata.txt");
+                    //FileWriter fileWriter = new FileWriter(file);
+                    //BufferedWriter bufferedWriter =
+                   //         new BufferedWriter(fileWriter);
+                   // bufferedWriter.write(dataFile);
+                   // bufferedWriter.close();
                     Utils.batchInsert(dataFile, tableName, type);
                 } else if (inputStr[0].equalsIgnoreCase("query")) {
 
                     //query BIGTABLENAME TYPE ORDERTYPE ROWFILTER COLUMNFILTER VALUEFILTER NUMBUF
                     String tableName = inputStr[1].trim();
-                    String filename = tableName + "_metadata.txt";
 
-                    FileReader fileReader;
+                    /*FileReader fileReader;
                     BufferedReader bufferedReader = null;
                     try {
                         fileReader = new FileReader(filename);
@@ -61,10 +70,10 @@ public class BigTable {
                         System.out.println("Given tableName does not exist\n\n");
                         continue;
                     }
-                    String metadataFile = bufferedReader.readLine();
+                    //String metadataFile = bufferedReader.readLine();
                     // Always close files.
-                    bufferedReader.close();
-                    BIGT_STR_SIZES = setBigTConstants(metadataFile);
+                    bufferedReader.close();*/
+                    //BIGT_STR_SIZES = setBigTConstants(metadataFile);
                     Integer type = Integer.parseInt(inputStr[2]);
                     orderType = Integer.parseInt(inputStr[3]);
                     String rowFilter = inputStr[4].trim();
@@ -73,6 +82,47 @@ public class BigTable {
                     Integer NUMBUF = Integer.parseInt(inputStr[7]);
                     checkDBMissing(tableName);
                     Utils.query(tableName, type, orderType, rowFilter, colFilter, valFilter, NUMBUF);
+                } else if (inputStr[0].equalsIgnoreCase("mapinsert")) {
+
+                    //mapinsert RL CL VAL TS TYPE BIGTABLENAME NUMBUF
+                    String tableName = inputStr[6].trim();
+                    Integer type = Integer.parseInt(inputStr[5]);
+                    String rowValue = inputStr[1].trim();
+                    String colValue = inputStr[2].trim();
+                    String val = inputStr[3].trim();
+                    String timestamp = inputStr[4];
+                    Integer NUMBUF = Integer.parseInt(inputStr[7]);
+                    Utils.mapInsert(rowValue, colValue, val, timestamp, type, tableName, NUMBUF);
+                } else if (inputStr[0].equalsIgnoreCase("createindex")) {
+
+                    //createindex BIGTABLENAME TYPE
+                    String tableName = inputStr[1].trim();
+                    Integer type = Integer.parseInt(inputStr[2]);
+                    checkDBMissing(tableName);
+                    Utils.createIndex(tableName, type);
+                } else if(inputStr[0].equalsIgnoreCase("rowjoin")) {
+
+                    // rowjoin BTNAME1 BTNAME2 OUTBTNAME COLUMNFILTER JOINTYPE NUMBUF
+
+                    String tableName1 = inputStr[1];
+                    String tableName2 = inputStr[2];
+                    String outputTableName = inputStr[3];
+                    String colFilter = inputStr[4];
+                    String joinType = inputStr[5];
+                    Integer NUMBUF = Integer.parseInt(inputStr[6]);
+                    checkDBExists(tableName1);
+                    checkDBExists(tableName2);
+                    Utils.rowJoin(tableName1, tableName2, outputTableName, colFilter, joinType, NUMBUF);
+
+                }else if (inputStr[0].equalsIgnoreCase("rowsort")) {
+
+                    // rowsort INBTNAME OUTBTNAME COLUMNNAME NUMBUF
+                    String inputTableName = inputStr[1];
+                    String outputTabelName = inputStr[2];
+                    String colName = inputStr[3];
+                    Integer NUMBUF = Integer.parseInt(inputStr[4]);
+                    checkDBMissing(inputTableName);
+                    Utils.rowSort(inputTableName, outputTabelName, colName, NUMBUF);
                 } else {
                     System.out.println("Invalid input. Type exit to quit.\n\n");
                     continue;
