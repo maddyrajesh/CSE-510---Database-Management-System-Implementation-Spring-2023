@@ -126,6 +126,7 @@ public class IndexStratTest {
             }
         } while(map != null);
         databaseTest.close();
+        stream.closestream();
         SystemDefs.JavabaseDB.closeDB();
         //databaseTest.deleteBigt();
         test1Time = System.nanoTime();
@@ -151,7 +152,7 @@ public class IndexStratTest {
         bigt databaseTest = new bigt("strat2");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(2, "Sweden", "*", "*");
+        Stream stream = databaseTest.openStream(2, "*", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -231,6 +232,7 @@ public class IndexStratTest {
         }
         while(map != null);
         databaseTest.close();
+        stream.closestream();
         //SystemDefs.JavabaseBM.flushAllPages();
         SystemDefs.JavabaseDB.closeDB();
         test3Time = System.nanoTime();
@@ -244,10 +246,10 @@ public class IndexStratTest {
     //  Test index strategy 4.
 
     public static void test4() throws Exception {
-        createDatabase("strat4.db", "strat4", 4);
+        createDatabase("strat4.db", "index4", 4);
         pcounter.initialize();
         new SystemDefs("strat4.db", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("strat4");
+        bigt databaseTest = new bigt("index4");
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
@@ -264,6 +266,7 @@ public class IndexStratTest {
         test4Time = System.nanoTime();
         test4Time -= tmpTime;
         databaseTest.close();
+        stream.closestream();
         //SystemDefs.JavabaseBM.flushAllPages();
         SystemDefs.JavabaseDB.closeDB();
         System.out.println("Reads : " + pcounter.rcounter);
@@ -295,6 +298,7 @@ public class IndexStratTest {
         test5Time = System.nanoTime();
         test5Time -= tmpTime;
         databaseTest.close();
+        stream.closestream();
         //SystemDefs.JavabaseBM.flushAllPages();
         SystemDefs.JavabaseDB.closeDB();
         System.out.println("Reads : " + pcounter.rcounter);
@@ -353,10 +357,10 @@ public class IndexStratTest {
         test2();
         test2();
         //test1();*/
-        //test2();
+        test2();
         //test3();
-        test4();
-        test5();
+        //test4();
+        //test5();
         //test2();
         System.out.println("Total time in milliseconds for query using strategy 1: " + test1Time/1_000_000);
         System.out.println("Total time in milliseconds for query using strategy 2: " + test2Time/1_000_000);

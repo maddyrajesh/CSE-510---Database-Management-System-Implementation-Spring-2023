@@ -15,7 +15,8 @@ public class rowSort {
     private final Stream inStream;
     private String column;
     private Stream mapStream;
-    private bigt bigTable;
+    public bigt bigTable;
+    public String name;
     private Heapfile heapfile;
     private MapSort sortObj;
     private int numBuffers;
@@ -24,25 +25,24 @@ public class rowSort {
         this.column = column;
         this.numBuffers = numBuffers;
         this.inStream = inStream;
-        /*this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/ /*???*/
-        this.heapfile = new Heapfile("temp_sort_file");
+        //this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/ /*???*/
+        this.heapfile = new Heapfile("tmp_row_sort");
         insertTempHeapFile();
         createMapStream();
-
     }
 
 
     private void insertTempHeapFile() throws Exception {
 
-        BigTable.orderType = 1;
-        Stream tempStream = this.inStream;
-        Map map = tempStream.getNext();
+        //BigTable.orderType = 1;
+        //Stream tempStream = this.inStream;
+        Map map = inStream.getNext();
         String value = "";
         String row = map.getRowLabel(); //previous row
 
         while(map != null)
         {
-            if(!map.getRowLabel().equals(row)){
+            /*if(!map.getRowLabel().equals(row)){
                 if (value.equals("")) {
                     value = "0";
                 }
@@ -55,17 +55,20 @@ public class rowSort {
                 this.heapfile.insertMap(tempMap.getMapByteArray());
                 row = map.getRowLabel();
                 value = "";
-            }
+            }*/
             if(map.getColumnLabel().equals(this.column)){
-                value = map.getValue();
+                //value = map.getValue();
+                this.heapfile.insertMap(map.getMapByteArray());
+                //map.print();
+                //System.out.println();
             }
-            map = tempStream.getNext();
+            map = inStream.getNext();
 
         }
 
-        tempStream.closestream();
+        //tempStream.closestream();
 
-        Map tempMap = new Map();
+        /*Map tempMap = new Map();
         tempMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         tempMap.setRowLabel(row);
         tempMap.setColumnLabel("temp_column");
@@ -74,10 +77,10 @@ public class rowSort {
         }
         tempMap.setValue(value);
         tempMap.setTimeStamp(1);
-        this.heapfile.insertMap(tempMap.getMapByteArray());
+        this.heapfile.insertMap(tempMap.getMapByteArray());*/
     }
 
-    private void createMapStream() throws Exception {
+    public void createMapStream() throws Exception {
         FldSpec[] projection = new FldSpec[4];
         RelSpec rel = new RelSpec(RelSpec.outer);
         projection[0] = new FldSpec(rel, 1);
@@ -87,7 +90,7 @@ public class rowSort {
 
         FileScan fscan = null;
         try {
-            fscan = new FileScan("temp_sort_file", BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
+            fscan = new FileScan("tmp_row_sort", BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,17 +101,23 @@ public class rowSort {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        /*Map map = this.sortObj.get_next();
+        while(map != null){
+            this.bigTable.insertMap(map.getMapByteArray());
+            map = sortObj.get_next();
+        } */
+        //this.mapStream = new Stream(5, "*", "*", "*");
 
-        Map map = sortObj.get_next();
-        this.mapStream = new Stream(1, map.getRowLabel(), "*", "*");
+        //Map map = sortObj.get_next();
+        //this.mapStream = new Stream(1, map.getRowLabel(), "*", "*");
 
 
     }
 
     public Map getNext() throws Exception {
-        Map map = this.mapStream.getNext();
+        Map map = sortObj.get_next();
         if(map == null){
-            this.mapStream.closestream();
+            /*this.mapStream.closestream();
             BigTable.orderType = 1;
             Map nextVal = this.sortObj.get_next();
             if (nextVal == null) {
@@ -118,6 +127,7 @@ public class rowSort {
             map = this.mapStream.getNext();
             if(map == null)
                 this.mapStream.closestream();
+             */
         }
 
         return map;

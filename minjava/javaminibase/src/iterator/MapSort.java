@@ -707,6 +707,8 @@ public class MapSort extends Iterator implements GlobalConst {
         for (int i = 0; i < temp_files.length; i++) {
             if (temp_files[i] != null) {
                 try {
+                    System.out.println(i);
+                    System.out.println(temp_files[i]._fileName);
                     temp_files[i].deleteFile();
                 } catch (Exception e) {
                     e.printStackTrace();

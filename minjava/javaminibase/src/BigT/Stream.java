@@ -134,7 +134,7 @@ public class Stream implements GlobalConst{
         if (map == null)
         {
             this.tempHeapFile.deleteFile();
-            closestream();
+            //closestream();
             return null;
         }
         else
