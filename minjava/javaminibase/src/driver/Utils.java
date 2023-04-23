@@ -4,6 +4,8 @@ import BigT.InvalidStringSizeArrayException;
 import BigT.Map;
 import BigT.Stream;
 import BigT.bigt;
+import BigT.rowSort;
+import BigT.rowJoin;
 import btree.AddFileEntryException;
 import btree.ConstructPageException;
 import btree.GetFileEntryException;
@@ -173,13 +175,65 @@ public class Utils {
     }
 
 
-    public static void rowJoin(String tableName1, String tableName2, String outputTableName, String colFilter, String joinType, Integer NUMBUF) {
+    public static void rowJoin(String tableName1, String tableName2, String outputTableName, String colFilter, String joinType, Integer NUMBUF) throws Exception {
+        rowJoin rj;
+        new SystemDefs(Utils.getDBPath(tableName1), Utils.NUM_PAGES, NUMBUF, "Clock");
+        pcounter.initialize();
 
+        Stream leftstream = new bigt(tableName1, 1).openStream(1, "*", colFilter, "*");
+        rj = new rowJoin(20, leftstream, tableName2, colFilter, joinType);
+
+        System.out.println("Query results => ");
+        Utils.query(outputTableName, 1, 1,"*", "*", "*", NUMBUF);
+
+        System.out.println("\n=======================================\n");
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
+        System.out.println("\n=======================================\n");
+
+        SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
     }
 
 
-    public static void rowSort(String inputTableName, String outputTableName, String columnName, Integer NUMBUF) {
+    public static void rowSort(String inputTableName, String outputTableName, String columnName, Integer NUMBUF) throws Exception {
+        String dbPath = getDBPath(inputTableName);
+        new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+        pcounter.initialize();
 
+        bigt bigtable = new bigt(inputTableName, 1);
+        Stream tempStream = bigtable.openStream(1, "*", "*", "*");
+        rowSort rowSort = new rowSort(tempStream, columnName, NUMBUF);
+        bigt bigTable = new bigt( outputTableName, 1);
+        Map map = rowSort.getNext();
+        while (map != null) {
+//            map.print();
+            bigTable.insertMap(map.getMapByteArray());
+            map = rowSort.getNext();
+        }
+
+        System.out.println("\n=======================================\n");
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
+        System.out.println("\n=======================================\n");
+
+        bigTable.close();
+        rowSort.closeStream();
+
+        // Print Final results
+//        new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+        System.out.println("Row Sort results=>");
+        bigt result = new bigt( outputTableName, 1);
+        Scan mapScan = result.getHeapFile().openScan();
+        MID mid = new MID();
+        Map map1 = mapScan.getNext(mid);
+        while (map1 != null) {
+            map1.print();
+            map1 = mapScan.getNext(mid);
+
+        }
+        SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
     }
 
 
