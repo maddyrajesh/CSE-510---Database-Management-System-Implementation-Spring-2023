@@ -12,6 +12,7 @@ import iterator.RelSpec;
 
 public class rowSort {
 
+    private final Stream inStream;
     private String column;
     private Stream mapStream;
     private bigt bigTable;
@@ -19,10 +20,11 @@ public class rowSort {
     private MapSort sortObj;
     private int numBuffers;
 
-    public rowSort(String bigTable, String column, int numBuffers) throws Exception {
+    public rowSort(Stream inStream, String column, int numBuffers) throws Exception {
         this.column = column;
         this.numBuffers = numBuffers;
-        this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/
+        this.inStream = inStream;
+        /*this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/ /*???*/
         this.heapfile = new Heapfile("temp_sort_file");
         insertTempHeapFile();
         createMapStream();
@@ -33,7 +35,7 @@ public class rowSort {
     private void insertTempHeapFile() throws Exception {
 
         BigTable.orderType = 1;
-        Stream tempStream = this.bigTable.openStream(1, "*", "*", "*");
+        Stream tempStream = this.inStream;
         Map map = tempStream.getNext();
         String value = "";
         String row = map.getRowLabel(); //previous row
@@ -98,7 +100,7 @@ public class rowSort {
         }
 
         Map map = sortObj.get_next();
-        this.mapStream = this.bigTable.openStream(1, map.getRowLabel(), "*", "*");
+        this.mapStream = new Stream(1, map.getRowLabel(), "*", "*");
 
 
     }
@@ -112,7 +114,7 @@ public class rowSort {
             if (nextVal == null) {
                 return null;
             }
-            this.mapStream = this.bigTable.openStream(1, nextVal.getRowLabel(), "*", "*");
+            this.mapStream = new Stream(BigTable.orderType, nextVal.getRowLabel(), "*", "*");
             map = this.mapStream.getNext();
             if(map == null)
                 this.mapStream.closestream();

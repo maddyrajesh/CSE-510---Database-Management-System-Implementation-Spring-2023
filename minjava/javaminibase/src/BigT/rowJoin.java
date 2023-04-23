@@ -28,18 +28,17 @@ public class rowJoin {
     private String rightBigTName;
     private String leftName;
 
-    public rowJoin(int amt_of_mem, Stream leftStream, String RightBigTName, String ColumnName, String outBigTName, String leftName)  throws Exception {
+    public rowJoin(int amt_of_mem, Stream leftStream, String RightBigTName, String ColumnName,  String joinType)  throws Exception {
         this.columnName = ColumnName;
         this.amtOfMem = amt_of_mem;
         this.rightBigTName = RightBigTName;
         this.rightBigT = new bigt(RightBigTName, 1);
         this.leftStream = leftStream;
+        this.joinType = joinType;
         // Left stream should be filtered on column
         this.rightStream = this.rightBigT.openStream(1, "*", columnName, "*");
         this.leftHeapFile = new Heapfile(LEFT_HEAP);
         this.rightHeapFile = new Heapfile(RIGHT_HEAP);
-        this.outBigTName = outBigTName;
-        this.leftName = leftName;
 
         storeLeftColMatch();
         storeRightColMatch();

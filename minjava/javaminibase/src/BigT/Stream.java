@@ -66,6 +66,16 @@ public class Stream implements GlobalConst{
         filterAndSortData(orderType);
     }
 
+    public Stream(int orderType, String rowFilter, String columnFilter, String valueFilter) throws Exception {
+        this.orderType = orderType;
+        this.rowFilter = rowFilter;
+        this.columnFilter = columnFilter;
+        this.valueFilter = valueFilter;
+        tableType = 1;
+        queryConditions(tableType);
+        filterAndSortData(orderType);
+    }
+
     /**
      * Closestream.
      */
