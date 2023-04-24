@@ -1259,7 +1259,7 @@ public class Heapfile implements Filetype,  GlobalConst {
 	//}
 
       // new copy of this record fits in old space;
-      amap.mapCopy(newMap);
+      amap.copyMap(newMap);
       unpinPage(currentDataPageId, true /* = DIRTY */);
       
       unpinPage(currentDirPageId, false /*undirty*/);
@@ -1357,20 +1357,20 @@ public class Heapfile implements Filetype,  GlobalConst {
 
     }
   
-  /** Initiate a sequential scan.
-   * @exception InvalidMapSizeException Invalid map size
+
+
+    /** Initiate a sequential map scan.
+   * @exception InvalidTupleSizeException Invalid tuple size
    * @exception IOException I/O errors
    *
    */
-  public Scan openScan() 
-    throws InvalidMapSizeException,
-	   IOException
-    {
-      Scan newscan = new Scan(this);
+  public MapScan openMapScan()
+          throws InvalidMapSizeException,
+          IOException, InvalidTupleSizeException {
+      MapScan newscan = new MapScan(this);
       return newscan;
-    }
+  }
 
-  
   
   /** Delete the file from the database.
    *

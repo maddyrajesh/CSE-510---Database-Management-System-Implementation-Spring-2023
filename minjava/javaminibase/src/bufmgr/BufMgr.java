@@ -229,6 +229,11 @@ class BufHashTbl implements GlobalConst{
     
   }
   
+  public void clearHashTable() {
+    for (int i = 0; i < HTSIZE; i++)
+        ht[i] = null;
+  }
+  
 }
 
 // *****************************************************
@@ -798,7 +803,23 @@ public class BufMgr implements GlobalConst{
    * @return total number of buffer frames.
    */
   public int getNumBuffers() { return numBuffers; }
-  
+
+  public void setNumBuffers(int numBuf) throws Exception {
+    for (int i = 0; i < numBuffers; ++i) {
+        frmeTable[i].pin_cnt = 0;
+    }
+    flushAllPages();
+    hashTable.clearHashTable();
+    this.numBuffers = numBuf;
+    frmeTable = new FrameDesc[numBuffers];
+    for (int i = 0; i < numBuffers; i++)  // initialize frameTable
+        frmeTable[i] = new FrameDesc();
+    bufPool = new byte[numBuffers][MAX_SPACE];
+    replacer = new Clock(this);
+    replacer.setBufferManager(this);
+}
+
+
   
   /** Gets the total number of unpinned buffer frames.
    * 

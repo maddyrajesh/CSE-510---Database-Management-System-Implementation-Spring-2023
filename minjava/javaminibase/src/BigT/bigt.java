@@ -1,477 +1,367 @@
 package BigT;
 
-import btree.*;
-import bufmgr.BufMgrException;
-import bufmgr.HashEntryNotFoundException;
-import bufmgr.HashOperationException;
-import bufmgr.InvalidFrameNumberException;
-import bufmgr.PageNotFoundException;
-import bufmgr.PagePinnedException;
-import bufmgr.PageUnpinnedException;
-import bufmgr.ReplacerException;
+import btree.BTreeFile;
+import btree.DeleteFashion;
+import btree.StringKey;
+import bufmgr.*;
 import driver.BigTable;
-import diskmgr.DiskMgrException;
-import diskmgr.FileIOException;
-import diskmgr.InvalidPageNumberException;
+import driver.Utils;
 import global.*;
 import heap.*;
+import iterator.*;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * The type Bigt.
- */
+import static global.GlobalConst.MINIBASE_PAGESIZE;
+
+
 public class bigt {
-
-    public final String name;
-    public int counter = 0;
-    private int type;
-    private HashSet<String> rowSet;
-    private HashSet<String> columnSet;
-    private Heapfile heapFile;
-    public BTreeFile btree1;
-    public BTreeFile btree2;
-    public BTreeFile[] indexFiles;
-    private HashMap<ArrayList<String>, ArrayList<MID>> indexedMap;
-    //BTreeFile[] indexFiles = new BTreeFile[2];
-
-    /**
-     * Instantiates a new Bigt.
-     *
-     * @param name the name
-     * @param type the type
-     * @throws HFDiskMgrException     the hf disk mgr exception
-     * @throws HFException            the hf exception
-     * @throws HFBufMgrException      the hf buf mgr exception
-     * @throws IOException            the io exception
-     * @throws ConstructPageException the construct page exception
-     * @throws AddFileEntryException  the add file entry exception
-     * @throws GetFileEntryException  the get file entry exception
-     */
-    public bigt(String name, int type) throws HFDiskMgrException, HFException, HFBufMgrException, IOException, ConstructPageException, AddFileEntryException, GetFileEntryException, InvalidTupleSizeException, InvalidTypeException, FieldNumberOutOfBoundException, SpaceNotAvailableException, InvalidSlotNumberException {
-        this.name = name;
-        this.type = type;
-        this.heapFile = new Heapfile(name + ".heap");
-        this.indexedMap = new HashMap<>();
-        this.rowSet = new HashSet<>();
-        this.columnSet = new HashSet<>();
-        //SystemDefs.
-        // metadata file
-        Heapfile metaHeapFile = new Heapfile(name + "_meta.heap");
-        Tuple metaTuple = new Tuple();
-        metaTuple.setHdr((short) 1, new AttrType[]{new AttrType(AttrType.attrInteger)}, null);
-        metaTuple.setIntFld(1, this.type);
-        metaHeapFile.insertRecord(metaTuple.getTupleByteArray());
-
-        switch(type)
-        {
-            default:
-            case 1:
-                break;
-            // one btree to index row labels
-            case 2:
-                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
-                break;
-            // one btree to index column labels
-            case 3:
-                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
-                break;
-            /*
-            one btree to index column label and row label (combined key)
-             */
-            case 4:
-                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
-                break;
-            /*
-            one btree to index row label and value (combined key)
-             */
-            case 5:
-                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
-                break;
-        }
-    }
-
-    public bigt(String name) {
-
+    public static final int MAX_SIZE = MINIBASE_PAGESIZE;
+    public Heapfile[] heapfiles;
+    String[] heapfileNames;
+    String[] indexfileNames;
+    // Name of the BigT file
+    String name;
+    BTreeFile[] indexFiles;
+    
+    public bigt(String name, boolean createNew) {
+        
         this.name = name;
         try {
-            PageId heapFileId = SystemDefs.JavabaseDB.get_file_entry(name + "_meta.heap");
-            if (heapFileId == null) {
-                throw new Exception("BigT File with name: " + name + " doesn't exist");
+            Boolean tableExists;
+            this.heapfileNames = new String[]{name + ".no.heap", name + ".row.heap", name + ".col.heap", name + ".col_row.heap", name + ".row_val.heap"};
+            this.indexfileNames = new String[]{null, name + ".row.idx", name + ".col.idx", name + ".col_row.idx", name + ".row_val.idx"};
+            PageId heapFilePageId = SystemDefs.JavabaseDB.get_file_entry(this.heapfileNames[0]);
+    
+            tableExists = heapFilePageId != null;
+    
+    
+            if (!tableExists) {
+                Utils.addTableToInventory(name);
+                this.indexFiles = new BTreeFile[]{null, new BTreeFile(name + ".row.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], DeleteFashion.NAIVE_DELETE),
+                        new BTreeFile(name + ".col.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], DeleteFashion.NAIVE_DELETE),
+                        new BTreeFile(name + ".col_row.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1] + "$".getBytes().length, DeleteFashion.NAIVE_DELETE),
+                        new BTreeFile(name + ".row_val.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2] + "$".getBytes().length, DeleteFashion.NAIVE_DELETE)};
+            } else {
+                this.indexFiles = new BTreeFile[]{null, new BTreeFile(name + ".row.idx"), new BTreeFile(name + ".col.idx"), new BTreeFile(name + ".col_row.idx"), new BTreeFile(name + ".row_val.idx")};
             }
-            /*PageId btreeFileId = SystemDefs.JavabaseDB.get_file_entry("columnIndex");
-            if (btreeFileId == null) {
-                throw new Exception("BigT File with name: columnIndex doesn't exist");
-            }*/
-
-            // Load the metadata from .meta heapfile
-            Heapfile metaHeapFile = new Heapfile(name + "_meta.heap");
-            Scan metaScan = metaHeapFile.openScan();
-            Tuple metaTuple = metaScan.getNextTuple(new MID());
-            metaTuple.setHdr((short) 1, new AttrType[]{new AttrType(AttrType.attrInteger)}, null);
-            metaScan.closescan();
-            this.type = metaTuple.getIntFld(1);
-
-            // Set the Indexfile names from the type
-            switch (type) {
-                case 1:
-                    break;
-                // one btree to index row labels
-                case 2:
-                    this.btree1 = new BTreeFile("rowIndex");
-                    break;
-                // one btree to index column labels
-                case 3:
-                    this.btree1 = new BTreeFile("columnIndex");
-                    break;
-            /*
-            one btree to index column label and row label (combined key) and
-             */
-                case 4:
-                    this.btree1 = new BTreeFile("rowColumnIndex");
-                    break;
-            /*
-            one btree to index row label and value (combined key)
-             */
-                case 5:
-                    this.btree1 = new BTreeFile("rowValueIndex");
-                    break;
-            }
-                // Open the Heap file which is used for storing the maps
-                this.heapFile = new Heapfile(name + ".heap");
-
-                // Load the mapVersion HashMap from the disk
-                try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(this.name + ".hashmap"))) {
-                    this.type = objectInputStream.readByte();
-                    this.indexedMap = (HashMap<ArrayList<String>, ArrayList<MID>>) objectInputStream.readObject();
-                    this.rowSet = (HashSet<String>) objectInputStream.readObject();
-                    this.columnSet = (HashSet<String>) objectInputStream.readObject();
-                    Integer tmpCounter = (Integer) objectInputStream.readObject();
-                    this.counter = tmpCounter;
-                } catch (IOException e) {
-                    throw new IOException("File not writable: " + e.toString());
-                }
-
-
-            } catch (ConstructPageException e) {
-            throw new RuntimeException(e);
-        } catch (GetFileEntryException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidMapSizeException e) {
-            throw new RuntimeException(e);
-        } catch (FieldNumberOutOfBoundException e) {
-            throw new RuntimeException(e);
-        } catch (AddFileEntryException e) {
-            throw new RuntimeException(e);
-        } catch (HFDiskMgrException e) {
-            throw new RuntimeException(e);
-        } catch (HFException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidPageNumberException e) {
-            throw new RuntimeException(e);
-        } catch (HFBufMgrException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidTupleSizeException e) {
-            throw new RuntimeException(e);
-        } catch (FileIOException e) {
-            throw new RuntimeException(e);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (DiskMgrException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidTypeException e) {
-            throw new RuntimeException(e);
+    
+            this.heapfiles = new Heapfile[]{new Heapfile(name + ".no.heap"), new Heapfile(name + ".row.heap"), new Heapfile(name + ".col.heap"), new Heapfile(name + ".col_row.heap"), new Heapfile(name + ".row_val.heap")};
+    
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
-    }
-
-        public void close() throws PageUnpinnedException, PagePinnedException, PageNotFoundException, HashOperationException, BufMgrException, IOException, HashEntryNotFoundException, InvalidFrameNumberException, ReplacerException {
-        if(this.btree1 != null)
-            this.btree1.close();
-
-        if(this.btree2 != null)
-            this.btree2.close();
-
-        new File(this.name + ".hashmap").delete();
-        File file = new File(this.name + ".hashmap");
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream(this.name + ".hashmap"));
-        objectOutputStream.writeByte(type);
-        objectOutputStream.writeObject(indexedMap);
-        objectOutputStream.writeObject(rowSet);
-        objectOutputStream.writeObject(columnSet);
-        Integer tmpCounter = counter;
-        objectOutputStream.writeObject(tmpCounter);
     }
     
-    /**
-     * Delete bigt.
-     *
-     * @throws InvalidMapSizeException     the invalid map size exception
-     * @throws HFDiskMgrException          the hf disk mgr exception
-     * @throws InvalidSlotNumberException  the invalid slot number exception
-     * @throws HFBufMgrException           the hf buf mgr exception
-     * @throws FileAlreadyDeletedException the file already deleted exception
-     * @throws IOException                 the io exception
-     * @throws IteratorException           the iterator exception
-     * @throws ConstructPageException      the construct page exception
-     * @throws PinPageException            the pin page exception
-     * @throws UnpinPageException          the unpin page exception
-     * @throws FreePageException           the free page exception
-     * @throws DeleteFileEntryException    the delete file entry exception
-     */
-    public void deleteBigt() throws Exception {
-        heapFile.deleteFile();
-        btree1.destroyFile();
-        btree2.destroyFile();
-    }
-
-
-    public void createIndex(Integer type) throws Exception {
-        switch (type) {
-            default:
-            case 1:
-                break;
-            // one btree to index row labels
-            case 2:
-                this.btree1 = new BTreeFile("rowIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], 0);
-                break;
-            // one btree to index column labels
-            case 3:
-                this.btree1 = new BTreeFile("columnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], 0);
-                break;
-            /*
-            one btree to index column label and row label (combined key)
-             */
-            case 4:
-                this.btree1 = new BTreeFile("rowColumnIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1], 0);
-                break;
-            /*
-            one btree to index row label and value (combined key)
-             */
-            case 5:
-                this.btree1 = new BTreeFile("rowValueIndex", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2], 0);
-                break;
+    
+    public void close() throws PageUnpinnedException, PagePinnedException, PageNotFoundException, HashOperationException, BufMgrException, IOException, HashEntryNotFoundException, InvalidFrameNumberException, ReplacerException {
+        for (int i = 0; i < 5; i++) {
+            if (this.indexFiles[i] != null) {
+                this.indexFiles[i].close();
+            }
         }
-
-
-        Scan scan = heapFile.openScan();
+    }
+    
+    public void batchInsert(Heapfile heapfile, int type) throws Exception {
+        Set<Integer> deletedTypes = new HashSet<>();
+        type -= 1;
+        MID oldestMID = null;
+        
+        
+        MapScan mapScan = heapfile.openMapScan();
         MID mid = new MID();
-
-        //mapObj.setHeader();
-
-//            if (rowFilter.equals(starFilter) && columnFilter.equals(starFilter) && valueFilter.equals(starFilter)) {
-//                System.out.println("rowFilter = " + rowFilter);
-//                tempHeapFile = this.bigtable.heapfile;
-//            } else {
-
-        int count = 0;
-        Map map = scan.getNext(mid);
+        Map map = mapScan.getNext(mid);
+        int count = 1;
         while (map != null) {
-            System.out.print("Inserting index of map: ");
-            count++;
-            map.print();
-            System.out.println();
-            insertIndex(mid, type);
-            map = scan.getNext(mid);
+            int oldestTimestamp = Integer.MAX_VALUE;
+            int oldestType = -1;
+            int updateType = -1;
+            MID updateMID = null;
+            System.out.print("\r" + count);
+            count += 1;
+            java.util.Map<Integer, ArrayList<MID>> searchResults = searchForRecords(map);
+            ArrayList<MID> arrayList = new ArrayList<>();
+            searchResults.values().forEach(arrayList::addAll);
+    
+            if (arrayList.size() > 3) {
+                throw new Exception("This list size cannot be greater than 3");
+            }
+            for (Integer key : searchResults.keySet()) {
+                for (MID mid1 : searchResults.get(key)) {
+                    Map map1 = this.heapfiles[key].getMap(mid1);
+                    if (arrayList.size() == 3) {
+                        if (map1.getTimeStamp() < oldestTimestamp) {
+                            oldestMID = mid1;
+                            oldestTimestamp = map1.getTimeStamp();
+                            oldestType = key;
+                        }
+                    }
+                    if (map1.getTimeStamp() == map.getTimeStamp()) {
+                        updateMID = mid1;
+                        updateType = key;
+                    }
+                }
+            }
+            if (oldestType != -1) {
+                if (map.getTimeStamp() < oldestTimestamp) {
+                    map = mapScan.getNext(mid);
+                    continue;
+                }
+            }
+            if (updateMID != null) {
+                this.heapfiles[updateType].deleteMap(updateMID);
+            } else {
+                if (oldestType != -1) {
+                    this.heapfiles[oldestType].deleteMap(oldestMID);
+                    deletedTypes.add(oldestType);
+                }
+            }
+            this.heapfiles[type].insertMap(map.getMapByteArray());
+            map = mapScan.getNext(mid);
         }
-        System.out.println(count);
-        scan.closescan();
-    }
-
-  
-    /**
-     * Gets map cnt.
-     *
-     * @return the map cnt
-     * @throws InvalidMapSizeException    the invalid map size exception
-     * @throws HFDiskMgrException         the hf disk mgr exception
-     * @throws InvalidSlotNumberException the invalid slot number exception
-     * @throws HFBufMgrException          the hf buf mgr exception
-     * @throws IOException                the io exception
-     */
-    public int getMapCnt() throws InvalidMapSizeException, HFDiskMgrException, InvalidSlotNumberException, HFBufMgrException, IOException, InvalidTupleSizeException {
-        return heapFile.getRecCnt();
-    }
-
-    /**
-     * Gets row cnt.
-     *
-     * @return the row cnt
-     */
-    public int getRowCnt() {
-        return rowSet.size();
-    }
-
-    /**
-     * Gets column cnt.
-     *
-     * @return the column cnt
-     */
-    public int getColumnCnt() {
-        return columnSet.size();
-    }
-
-    /**
-     * Insert map mid.
-     *
-     * @param mapPtr the map ptr
-     * @return the mid
-     * @throws Exception the exception
-     */
-    public MID insertMap (byte[] mapPtr) throws Exception {
-        try
-        {
-            Map map = new Map(mapPtr, 0);
-            HashMap<Integer, MID> timestampMap = new HashMap<Integer, MID>();
-            ArrayList<String> rowColumnKey = new ArrayList<String>();
-            rowColumnKey.add(map.getRowLabel());
-            rowColumnKey.add(map.getColumnLabel());
-
-            // get all maps with same row and column label as map to be inserted
-            if (indexedMap.containsKey(rowColumnKey))
-            {
-                for (MID mid : indexedMap.get(rowColumnKey))
-                {
-                    timestampMap.put(heapFile.getMap(mid).getTimeStamp(), mid);
-                }
-            }
-
-            // if there are three timestamps already, remove oldest
-            if (timestampMap.size() == 3)
-            {
-                int oldestTimestamp = Collections.min(timestampMap.keySet());
-                if (map.getTimeStamp() > oldestTimestamp)
-                {
-                    // delete record
-                    heapFile.deleteMap(timestampMap.get(oldestTimestamp));
-                    MID newMID = heapFile.insertMap(mapPtr);
-
-                    // update indexedMap
-                    indexedMap.get(rowColumnKey).remove(timestampMap.get(oldestTimestamp));
-                    indexedMap.get(rowColumnKey).add(newMID);
-
-                    // update indexes
-                    insertIndex(newMID, type);
-                    deleteIndex(timestampMap.get(oldestTimestamp));
-
-                    return newMID;
-                }
-                // the new map contains the oldest timestamp, so we don't change anything
-                else
-                {
-                    return null;
-                }
-            }
-            // timestamp limit has not been reached so just insert
-            else
-            {
-                MID newMID = heapFile.insertMap(mapPtr);
-                // MID with same row column key already exists
-                if (indexedMap.containsKey(rowColumnKey))
-                {
-                    indexedMap.get(rowColumnKey).add(newMID);
-                }
-                // MID with same row column key doesn't exist, needs to be put
-                else
-                {
-                    indexedMap.put(rowColumnKey, new ArrayList<MID>(Arrays.asList(newMID)));
-                }
-                insertIndex(newMID, type);
-
-                // update row and column sets
-                rowSet.add(map.getRowLabel());
-                columnSet.add(map.getColumnLabel());
-
-                return newMID;
+        deletedTypes.add(type);
+        for (int i : deletedTypes) {
+            if (i != 0) {
+                insertMapFile(i);
             }
         }
-        catch(Exception e)
-        {
+        mapScan.closescan();
+    }
+    
+    // Return number of maps in the bigtable.
+    public int getMapCnt() throws HFBufMgrException, IOException, HFDiskMgrException, InvalidSlotNumberException, InvalidTupleSizeException, InvalidMapSizeException {
+        int count = 0;
+        for (int i = 0; i < 5; i++) {
+            count += this.heapfiles[i].getRecCnt();
+        }
+        return count;
+    }
+
+
+    public static String getDBPath(String tableName) {
+        return tableName  + ".db";
+    }
+
+    // Return number of distinct row labels in the bigtable.
+    public int getRowCnt() throws Exception {
+        BigTable.orderType = 1;
+        Stream stream = this.openStream(1, "*", "*", "*");
+        Map map = stream.getNext();
+        String oldRowKey = map.getRowLabel();
+        int distinctRows = 0;
+        while (map != null) {
+            if (!map.getRowLabel().equals(oldRowKey)) distinctRows += 1;
+            oldRowKey = map.getRowLabel();
+            map = stream.getNext();
+        }
+        distinctRows += 1;
+        stream.closestream();
+        return distinctRows;
+    }
+    
+    // Return number of distinct column labels in the bigtable.
+    public int getColumnCnt() throws Exception {
+        BigTable.orderType = 2;
+        Stream stream = this.openStream(2, "*", "*", "*");
+        Map map = stream.getNext();
+        String oldColKey = map.getColumnLabel();
+        int distinctCols = 0;
+        while (map != null) {
+            if (!map.getColumnLabel().equals(oldColKey)) distinctCols += 1;
+            oldColKey = map.getColumnLabel();
+            map = stream.getNext();
+        }
+        distinctCols += 1;
+        stream.closestream();
+        return distinctCols;
+    }
+    
+    public void insertMap(byte[] mapPtr, int type) throws Exception {
+        type -= 1;
+        MID oldestMID = null;
+        MID updateMID = null;
+        int oldestType = -1;
+        int updateType = -1;
+        int oldestTimestamp = Integer.MAX_VALUE;
+        Map map = new Map();
+        map.setData(mapPtr);
+        java.util.Map<Integer, ArrayList<MID>> searchResults = searchForRecords(map);
+        ArrayList<MID> arrayList = new ArrayList<>();
+        searchResults.values().forEach(arrayList::addAll);
+        if (arrayList.size() > 3) {
+            throw new Exception("This list size cannot be greater than 3");
+        }
+        for (Integer key : searchResults.keySet()) {
+            for (MID mid1 : searchResults.get(key)) {
+                Map map1 = this.heapfiles[key].getMap(mid1);
+                if (arrayList.size() == 3) {
+                    if (map1.getTimeStamp() < oldestTimestamp) {
+                        oldestMID = mid1;
+                        oldestTimestamp = map1.getTimeStamp();
+                        oldestType = key;
+                    }
+                }
+                if (map1.getTimeStamp() == map.getTimeStamp()) {
+                    updateMID = mid1;
+                    updateType = key;
+                }
+            }
+        }
+        if (oldestType != -1) {
+            if (map.getTimeStamp() < oldestTimestamp) {
+                return;
+            }
+        }
+        if (updateType != -1) {
+            this.heapfiles[updateType].deleteMap(updateMID);
+        } else {
+            if (oldestType != -1) {
+                this.heapfiles[oldestType].deleteMap(oldestMID);
+            }
+        }
+    
+        if (oldestType != -1 && oldestType != 0) {
+            insertMapFile(oldestType);
+        }
+        this.heapfiles[type].insertMap(mapPtr);
+        if (type != 0) {
+            insertMapFile(type);
+        }
+    
+    }
+    
+    private void insertMapFile(int type) throws HFDiskMgrException, InvalidTupleSizeException, InvalidMapSizeException, IOException, InvalidSlotNumberException, SpaceNotAvailableException, HFException, HFBufMgrException {
+        BigTable.insertType = type;
+        MID mid = new MID();
+        MapScan mapScan = this.heapfiles[type].openMapScan();
+        Heapfile tempHeapFile = new Heapfile(String.format("%s.%d.tmp.heap", this.name, type));
+        Map map1 = mapScan.getNext(mid);
+        while (map1 != null) {
+            tempHeapFile.insertMap(map1.getMapByteArray());
+            map1 = mapScan.getNext(mid);
+        }
+        mapScan.closescan();
+        FileScan fscan = null;
+        FldSpec[] projection = new FldSpec[4];
+        RelSpec rel = new RelSpec(RelSpec.outer);
+        projection[0] = new FldSpec(rel, 1);
+        projection[1] = new FldSpec(rel, 2);
+        projection[2] = new FldSpec(rel, 3);
+        projection[3] = new FldSpec(rel, 4);
+        
+        try {
+            fscan = new FileScan(String.format("%s.%d.tmp.heap", this.name, type), BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
+        } catch (Exception e) {
             e.printStackTrace();
-            System.exit(1);
-            return null;
         }
-    }
-
-    /**
-     * Insert index.
-     *
-     * @param mid the mid
-     * @throws Exception the exception
-     */
-    public void insertIndex(MID mid, int type) throws Exception {
-        Map map = heapFile.getMap(mid);
-        switch(type)
-        {
-            case 2:
-                btree1.insert(new StringKey(map.getRowLabel()), mid);
-                break;
-            case 3:
-                btree1.insert(new StringKey(map.getColumnLabel()), mid);
-                break;
+        int sortField, num_pages = 10, sortFieldLength;
+        MapSort sortObj;
+        switch (type) {
+            case 1:
             case 4:
-                btree1.insert(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
+                sortField = 1;
+                sortFieldLength = BigTable.BIGT_STR_SIZES[0];
                 break;
-            case 5:
-                btree1.insert(new StringKey(map.getRowLabel() + map.getValue()), mid);
-                break;
-        }
-    }
-
-    /**
-     * Delete index.
-     *
-     * @param mid the mid
-     * @throws Exception the exception
-     */
-    public void deleteIndex(MID mid) throws Exception {
-        Map map = heapFile.getMap(mid);
-        switch(type)
-        {
             case 2:
-                btree1.Delete(new StringKey(map.getRowLabel()), mid);
-                break;
             case 3:
-                btree1.Delete(new StringKey(map.getColumnLabel()), mid);
+                sortField = 2;
+                sortFieldLength = BigTable.BIGT_STR_SIZES[1];
                 break;
-            case 4:
-                btree1.Delete(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
-                break;
-            case 5:
-                btree1.Delete(new StringKey(map.getRowLabel() + map.getValue()), mid);
-                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + type);
+        }
+        try {
+            this.heapfiles[type].deleteFile();
+            this.indexFiles[type].destroyFile();
+            switch (type) {
+                case 1:
+                    this.indexFiles[type] = new BTreeFile(name + ".row.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[0], DeleteFashion.NAIVE_DELETE);
+                    break;
+                case 2:
+                    this.indexFiles[type] = new BTreeFile(name + ".col.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[1], DeleteFashion.NAIVE_DELETE);
+                    break;
+                case 3:
+                    this.indexFiles[type] = new BTreeFile(name + ".col_row.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[1] + "$".getBytes().length, DeleteFashion.NAIVE_DELETE);
+                    break;
+                case 4:
+                    this.indexFiles[type] = new BTreeFile(name + ".row_val.idx", AttrType.attrString, BigTable.BIGT_STR_SIZES[0] + BigTable.BIGT_STR_SIZES[2] + "$".getBytes().length, DeleteFashion.NAIVE_DELETE);
+                    break;
+                default:
+                    throw new Exception("Undefined value");
+            }
+            this.heapfiles[type] = new Heapfile(this.heapfileNames[type]);
+            sortObj = new MapSort(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, fscan, sortField, new MapOrder(MapOrder.Ascending), num_pages, sortFieldLength, true);
+            Map map2 = sortObj.get_next();
+            while (map2 != null) {
+                MID mid1 = this.heapfiles[type].insertMap(map2.getMapByteArray());
+                StringKey stringKey;
+                switch (type) {
+                    case 1:
+                        stringKey = new StringKey(map2.getRowLabel());
+                        break;
+                    case 2:
+                        stringKey = new StringKey(map2.getColumnLabel());
+                        break;
+                    case 3:
+                        stringKey = new StringKey(map2.getColumnLabel() + "$" + map2.getRowLabel());
+                        break;
+                    case 4:
+                        stringKey = new StringKey(map2.getRowLabel() + "$" + map2.getValue());
+                        break;
+                    default:
+                        throw new Exception("undefined value");
+                }
+                this.indexFiles[type].insert(stringKey, mid1);
+                map2 = sortObj.get_next();
+            }
+            assert fscan != null;
+            fscan.close();
+            sortObj.close();
+            tempHeapFile.deleteFile();
+    
+    
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
+    
+    private void addToArrayList(Map newMap, Map oldMap, java.util.Map<Integer, ArrayList<MID>> searchResults, MID mid, int key) throws IOException {
+        if (MapUtils.checkSameMap(newMap, oldMap)) {
+            MID tempMid = new MID();
+            tempMid.setSlotNo(mid.getSlotNo());
+            tempMid.setPageNo(mid.getPageNo());
+            ArrayList<MID> arrayList = searchResults.get(key) == null ? new ArrayList<>() : searchResults.get(key);
+            arrayList.add(tempMid);
+            searchResults.put(key, arrayList);
+        }
+    }
+    
+    private java.util.Map<Integer, ArrayList<MID>> searchForRecords(Map newMap) throws Exception {
+        java.util.Map<Integer, ArrayList<MID>> searchResults = new HashMap<>();
+        
+        for (int i = 0; i < 5; i++) {
+            MapScan mapScan = this.heapfiles[i].openMapScan();
+            MID mid = new MID();
+            Map map = mapScan.getNext(mid);
+            
+            while (map != null) {
+                addToArrayList(newMap, map, searchResults, mid, i);
+                map = mapScan.getNext(mid);
+            }
+            mapScan.closescan();
+        }
 
-    /**
-     * Open stream stream.
-     *
-     * @param orderType    the order type
-     * @param rowFilter    the row filter
-     * @param columnFilter the column filter
-     * @param valueFilter  the value filter
-     * @return the stream
-     */
-    public Stream openStream(int orderType, String rowFilter, String columnFilter, String valueFilter) throws Exception {
-        // return stream as-is because class variable orderType will implicitly sort the Stream
+        return searchResults;
+    }
+    
+    public Stream openStream(int orderType, java.lang.String rowFilter, java.lang.String columnFilter, java.
+            lang.String valueFilter) throws Exception {
         return new Stream(this, orderType, rowFilter, columnFilter, valueFilter);
     }
-
-
-    /**
-     * Gets type.
-     *
-     * @return the type
-     */
-    public int getType() {
-        return type;
-    }
-
-    public Heapfile getHeapFile() {
-        return heapFile;
-    }
+    
 }

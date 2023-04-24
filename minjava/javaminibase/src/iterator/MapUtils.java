@@ -52,6 +52,10 @@ public class MapUtils
     }
 
 
+    public static boolean checkSameMap(Map map1, Map map2) throws IOException {
+        return map1.getRowLabel().equals(map2.getRowLabel()) && map1.getColumnLabel().equals(map2.getColumnLabel());
+    }
+
 
     /**
      * This function  compares  tuple1 with another tuple2 whose
@@ -261,51 +265,51 @@ public class MapUtils
         return res_str_sizes;
     }
 
-    public static int CompareMapsOnOrderType(Map mapObj1, Map mapObj2, int orderType) throws IOException {
+    public static int CompareMapsOnOrderType(Map mapObj1, Map mapObj2) throws IOException {
         int mapRowCompare = mapObj1.getRowLabel().compareTo(mapObj2.getRowLabel());
-
         int mapColumnCompare = mapObj1.getColumnLabel().compareTo(mapObj2.getColumnLabel());
-        //int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
+        int mapValueCompare = mapObj1.getValue().compareTo(mapObj2.getValue());
         boolean mapTsCompare = (mapObj1.getTimeStamp() >= mapObj2.getTimeStamp());
-        //System.out.println("comparing: " + mapObj1.getColumnLabel() + " and " + mapObj2.getColumnLabel() + " result: " + mapColumnCompare + " with order: " + orderType);
-        //System.out.println("comparing: " + mapObj1.getRowLabel() + " and " + mapObj2.getRowLabel() + " result: " + mapRowCompare);
 
-
-        if (orderType == 1) {
-            if (mapRowCompare > 0) return 1;
-            else if (mapRowCompare < 0) return -1;
-            else if (mapColumnCompare > 0) return 1;
-            else if (mapColumnCompare < 0) return -1;
-            else if (mapTsCompare) return 1;
-            else return -1;
-        }
-        if (orderType == 2) {
+        if (BigTable.orderType == 2) {
             if (mapColumnCompare > 0) return 1;
             else if (mapColumnCompare < 0) return -1;
             else if (mapRowCompare > 0) return 1;
             else if (mapRowCompare < 0) return -1;
             else if (mapTsCompare) return 1;
             else return -1;
-        } else if (orderType == 3) {
+        } else if (BigTable.orderType == 3) {
             if (mapRowCompare > 0) return 1;
             else if (mapRowCompare < 0) return -1;
             else {
                 if (mapTsCompare) return 1;
                 else return -1;
             }
-        } else if (orderType == 4) {
+        } else if (BigTable.orderType == 4) {
             if (mapColumnCompare > 0) return 1;
             else if (mapColumnCompare < 0) return -1;
             else {
                 if (mapTsCompare) return 1;
                 else return -1;
             }
-        } else if (orderType == 5) {
+        } else if (BigTable.orderType == 5) {
+            if (mapTsCompare) return 1;
+            else return -1;
+        } else if (BigTable.orderType == 9) {
+            if (mapValueCompare > 0) {
+                return 1;
+            } else return -1;
+        }
+        if (mapRowCompare > 0) return 1;
+        else if (mapRowCompare < 0) return -1;
+        else if (mapColumnCompare > 0) return 1;
+        else if (mapColumnCompare < 0) return -1;
+        else {
             if (mapTsCompare) return 1;
             else return -1;
         }
-        return 1;
     }
+
 }
     
 
