@@ -23,10 +23,12 @@ public class rowJoin {
     private String RIGHT_HEAP = "rightTempHeap";
     private MapOrder sortOrder = new MapOrder(MapOrder.Ascending);
     private SortMerge sm = null;
+    private NestedLoopsJoins nl = null;
     private FileScan leftIterator, rightIterator;
     private String outBigTName;
     private String rightBigTName;
     private String leftName;
+    private String joinType;
 
     public rowJoin(int amt_of_mem, Stream leftStream, String RightBigTName, String ColumnName,  String joinType)  throws Exception {
         this.columnName = ColumnName;
@@ -39,12 +41,20 @@ public class rowJoin {
         this.rightStream = this.rightBigT.openStream(1, "*", columnName, "*");
         this.leftHeapFile = new Heapfile(LEFT_HEAP);
         this.rightHeapFile = new Heapfile(RIGHT_HEAP);
-
-        storeLeftColMatch();
-        storeRightColMatch();
-        SortMergeJoin();
-        StoreJoinResult();
-        cleanUp();
+        if (this.joinType.equalsIgnoreCase("SortMergeJoin")) {
+            storeLeftColMatch();
+            storeRightColMatch();
+            SortMergeJoin();
+            SMStoreJoinResult();
+            cleanUp();
+        }
+        if (this.joinType.equalsIgnoreCase("NestedLoopJoin")){
+            storeLeftColMatch();
+            storeRightColMatch();
+            NestedLoopJoin();
+            NLStoreJoinResult();
+            cleanUp();
+        }
         //return new Stream(new bigT(this.outBigTName), 1, "*", "*", "*");
     }
 
@@ -120,7 +130,7 @@ public class rowJoin {
         return map1;
     }
 
-    public void StoreJoinResult() throws Exception {
+    public void SMStoreJoinResult() throws Exception {
         Map tempMap = sm.get_next();
         while (tempMap != null) {
             storeToBigT(tempMap.getRowLabel(), tempMap.getColumnLabel());
@@ -129,6 +139,14 @@ public class rowJoin {
         sm.close();
     }
 
+    public void NLStoreJoinResult() throws Exception {
+        Map tempMap = nl.get_next();
+        while (tempMap != null) {
+            storeToBigT(tempMap.getRowLabel(), tempMap.getColumnLabel());
+            tempMap = nl.get_next();
+        }
+        nl.close();
+    }
     public void SortMergeJoin() throws Exception {
         MapIterator leftIterator, rightIterator;
 
@@ -142,7 +160,7 @@ public class rowJoin {
         outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
         outFilter[0].operand2.symbol = new FldSpec(new RelSpec(RelSpec.innerRel), 3);
         outFilter[1] = null;
-
+        
         FldSpec[] projection = new FldSpec[4];
         RelSpec rel = new RelSpec(RelSpec.outer);
         projection[0] = new FldSpec(rel, 1);
@@ -162,6 +180,48 @@ public class rowJoin {
         }
     }
 
+    public void NestedLoopJoin() throws Exception {
+        MapIterator leftIterator, rightIterator;
+
+        CondExpr[] outFilter = new CondExpr[2];
+        outFilter[0] = new CondExpr();
+        outFilter[1] = new CondExpr();
+        outFilter[0].next = null;
+        outFilter[0].op = new AttrOperator(AttrOperator.aopEQ);
+        outFilter[0].type1 = new AttrType(AttrType.attrSymbol);
+        outFilter[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 3);
+        outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
+        outFilter[0].operand2.symbol = new FldSpec(new RelSpec(RelSpec.innerRel), 3);
+        outFilter[1] = null;
+
+        CondExpr[] rightFilter = new CondExpr[2];
+        rightFilter[0] = new CondExpr();
+        rightFilter[1] = new CondExpr();
+        rightFilter[0].next = null;
+        rightFilter[0].op = new AttrOperator(AttrOperator.aopEQ);
+        rightFilter[0].type1 = new AttrType(AttrType.attrSymbol);
+        rightFilter[0].operand1.symbol = new FldSpec(new RelSpec(RelSpec.outer), 3);
+        rightFilter[0].type2 = new AttrType(AttrType.attrSymbol);
+        rightFilter[0].operand2.symbol = new FldSpec(new RelSpec(RelSpec.innerRel), 3);
+        rightFilter[1] = null;
+
+        FldSpec[] projection = new FldSpec[4];
+        RelSpec rel = new RelSpec(RelSpec.outer);
+        projection[0] = new FldSpec(rel, 1);
+        projection[1] = new FldSpec(rel, 2);
+        projection[2] = new FldSpec(rel, 3);
+        projection[3] = new FldSpec(rel, 4);
+
+        try {
+            this.leftIterator = new FileScan(LEFT_HEAP, BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
+            this.rightIterator = new FileScan(RIGHT_HEAP, BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
+            this.nl = new NestedLoopsJoins(BigTable.BIGT_ATTR_TYPES, 4, BigTable.BIGT_STR_SIZES, BigTable.BIGT_ATTR_TYPES,
+                    4, BigTable.BIGT_STR_SIZES, amtOfMem, this.leftIterator, null, outFilter, rightFilter,
+                    projection, 1);
+        } catch (Exception e) {
+            System.err.println(e);
+        }
+    }
 
     public void storeToBigT(String leftRowLabel, String rightRowLabel) throws Exception {
         // TODO: set self bigTName
