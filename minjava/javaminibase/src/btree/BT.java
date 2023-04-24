@@ -50,6 +50,7 @@ public class BT  implements GlobalConst{
   public final static int keyCompare(KeyClass key1, KeyClass key2)
     throws KeyNotMatchException
     {
+      
       if ( (key1 instanceof IntegerKey) && (key2 instanceof IntegerKey) ) {
 	
 	return  (((IntegerKey)key1).getKey()).intValue() 
