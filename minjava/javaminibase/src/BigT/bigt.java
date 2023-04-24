@@ -225,8 +225,10 @@ public class bigt {
      */
     public void deleteBigt() throws Exception {
         heapFile.deleteFile();
-        btree1.destroyFile();
-        btree2.destroyFile();
+        if(btree1 != null)
+            btree1.destroyFile();
+        if(btree2 != null)
+            btree2.destroyFile();
     }
 
 

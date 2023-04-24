@@ -19,11 +19,11 @@ import java.io.*;
  *              if (ri == sj) then add (r, s) to the result.
  */
 
-public class NestedLoopsJoins  extends Iterator 
+public class NestedLoopsJoins  extends MapIterator
 {
   private AttrType      _in1[],  _in2[];
   private   int        in1_len, in2_len;
-  private   Iterator  outer;
+  private   MapIterator  outer;
   private   short t2_str_sizescopy[];
   private   CondExpr OutputFilter[];
   private   CondExpr RightFilter[];
@@ -64,8 +64,8 @@ public class NestedLoopsJoins  extends Iterator
 			   AttrType    in2[],         
 			   int     len_in2,           
 			   short   t2_str_sizes[],   
-			   int     amt_of_mem,        
-			   Iterator     am1,          
+			   int     amt_of_mem,
+			   MapIterator     am1,
 			   String relationName,      
 			   CondExpr outFilter[],      
 			   CondExpr rightFilter[],    

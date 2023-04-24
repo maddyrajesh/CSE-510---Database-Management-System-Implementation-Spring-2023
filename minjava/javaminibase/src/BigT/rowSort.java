@@ -3,20 +3,29 @@ package BigT;
 /*import cmdline.MiniTable;*/
 import driver.BigTable;
 /*import global.TupleOrder;*/
+import global.MID;
 import global.MapOrder;
+
+import java.io.*;
+
 import heap.Heapfile;
 import iterator.FileScan;
 import iterator.FldSpec;
 import iterator.MapSort;
 import iterator.RelSpec;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 public class rowSort {
 
     private final Stream inStream;
     private String column;
+    private int counter = 0;
     private Stream mapStream;
     public bigt bigTable;
-    public String name;
+    public String name = "_tmp_sort";
     private Heapfile heapfile;
     private MapSort sortObj;
     private int numBuffers;
@@ -26,14 +35,26 @@ public class rowSort {
         this.numBuffers = numBuffers;
         this.inStream = inStream;
         //this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/ /*???*/
-        this.heapfile = new Heapfile("tmp_row_sort");
+        //this.heapfile = new Heapfile(bigTable.name + "_row_sort");
         insertTempHeapFile();
         createMapStream();
+        // Load the mapVersion HashMap from the disk
     }
 
 
-    private void insertTempHeapFile() throws Exception {
-
+    public void insertTempHeapFile() throws Exception {
+        File file = new File("_tmp_sort.hashmap");
+        if(file.exists()) {
+            try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("_tmp_sort.hashmap"))) {
+                Integer tmpCounter = (Integer) objectInputStream.readObject();
+                this.counter = tmpCounter;
+                name = this.name + counter + ".heap";
+                counter++;
+            } catch (IOException e) {
+                throw new IOException("File not writable: " + e.toString());
+            }
+        }
+        this.heapfile  = new Heapfile(name + ".heap");
         //BigTable.orderType = 1;
         //Stream tempStream = this.inStream;
         Map map = inStream.getNext();
@@ -59,7 +80,6 @@ public class rowSort {
             if(map.getColumnLabel().equals(this.column)){
                 //value = map.getValue();
                 this.heapfile.insertMap(map.getMapByteArray());
-                //map.print();
                 //System.out.println();
             }
             map = inStream.getNext();
@@ -90,7 +110,7 @@ public class rowSort {
 
         FileScan fscan = null;
         try {
-            fscan = new FileScan("tmp_row_sort", BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
+            fscan = new FileScan(name + ".heap", BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -133,9 +153,13 @@ public class rowSort {
         return map;
     }
 
-    public void closeStream() throws Exception{
-        this.sortObj.close();
-        heapfile.deleteFile();
+    public void closeSort() throws Exception{
+        new File( "_tmp_sort.hashmap").delete();
+        this.heapfile.deleteFile();
+        //File file = new File(this.name + "_tmp_sort.hashmap");
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("_tmp_sort.hashmap"));
+        Integer tmpCounter = counter;
+        objectOutputStream.writeObject(tmpCounter);
     }
 
 

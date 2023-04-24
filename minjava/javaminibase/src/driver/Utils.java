@@ -203,36 +203,42 @@ public class Utils {
 
         bigt bigtable = new bigt(inputTableName, 1);
         Stream tempStream = bigtable.openStream(1, "*", "*", "*");
-        rowSort rowSort = new rowSort(tempStream, columnName, NUMBUF);
         bigt bigTable = new bigt( outputTableName, 1);
+        rowSort rowSort = new rowSort(tempStream, columnName, NUMBUF);
         Map map = rowSort.getNext();
+        int counter = 0;
         while (map != null) {
 //            map.print();
             bigTable.insertMap(map.getMapByteArray());
             map = rowSort.getNext();
+            counter++;
         }
 
         System.out.println("\n=======================================\n");
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
+        System.out.println("Map count: " + counter);
         System.out.println("\n=======================================\n");
 
         bigTable.close();
-        rowSort.closeStream();
+        rowSort.closeSort();
+        //rowSort.closeStream();
 
         // Print Final results
 //        new SystemDefs(dbPath, 0, NUMBUF, "Clock");
         System.out.println("Row Sort results=>");
-        bigt result = new bigt( outputTableName, 1);
+        bigt result = new bigt(outputTableName);
         Scan mapScan = result.getHeapFile().openScan();
         MID mid = new MID();
         Map map1 = mapScan.getNext(mid);
         while (map1 != null) {
             map1.print();
+            System.out.println();
             map1 = mapScan.getNext(mid);
 
         }
-        SystemDefs.JavabaseBM.flushAllPages();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        result.deleteBigt();
         SystemDefs.JavabaseDB.closeDB();
     }
 

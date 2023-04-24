@@ -96,14 +96,14 @@ public class RowSortTest {
         }
     }
     public static void test1() throws Exception {
-        //createDatabase("rowSortTest.db", "rowSortTest", 1);
+        createDatabase("rowSortTest.db", "rowSortTest", 1);
         pcounter.initialize();
         new SystemDefs("rowSortTest.db", 0, NUMBUF, "Clock");
         bigt databaseTest = new bigt("rowSortTest");
         //assert (databaseTest.getMapCnt() == 2);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "*", "*", "*");
-        bigt rsbigT = new bigt("rowSort2", 1);
+        bigt rsbigT = new bigt("rowSort1", 1);
         rowSort rS = new rowSort(stream, "Moose", NUMBUF);
         Map map = new Map();
         int mapCount = 0;
@@ -122,15 +122,18 @@ public class RowSortTest {
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         } while (map != null);
-        rS.closeStream();
+        rS.closeSort();
+        rsbigT.close();
+        bigt check = new bigt("rowSort1");
 
-        Scan mapScan = rsbigT.getHeapFile().openScan();
+        Scan mapScan = check.getHeapFile().openScan();
         MID mid = new MID();
         Map map1 = mapScan.getNext(mid);
         while (map1 != null) {
-            map1.print();
-            System.out.println();
+           // map1.print();
+           // System.out.println();
             map1 = mapScan.getNext(mid);
+
 
         }
         mapScan.closescan();
@@ -140,24 +143,101 @@ public class RowSortTest {
         test1Time -= tmpTime;
         databaseTest.close();
         rsbigT.close();
+        //rsbigT.deleteBigt();
         //SystemDefs.JavabaseBM.flushAllPages();
         SystemDefs.JavabaseDB.closeDB();
-        //stream.closestream();
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test1: " + mapCount);
-        System.out.println("time is: " + test1Time);
+        System.out.println("time is: " + test1Time/1000000);
     }
 
     public static void test2() throws Exception {
         //createDatabase("rowSortTest.db", "rowSortTest", 1);
         pcounter.initialize();
         new SystemDefs("rowSortTest.db", 0, NUMBUF, "Clock");
+        //bigt databaseTest = new bigt("rowSortTest");
+        //assert (databaseTest.getMapCnt() == 2);
+        long tmpTime = System.nanoTime();
+        //Stream stream = databaseTest.openStream(1, "*", "*", "*");
+        bigt rsbigT = new bigt("rowSort1");
+        Stream str   = rsbigT.openStream(1, "*", "*", "*");
+       /* rowSort rS = new rowSort(stream, "Moose", NUMBUF);
+        Map map = new Map();
+        int mapCount = 0;
+        do {
+            map = rS.getNext();
+            if (map != null) {
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                mapCount++;
+                rsbigT.insertMap(map.getMapByteArray());
+                //assert(Objects.equals(map.getRowLabel(), "Sweden"));
+                //map.print();
+                //System.out.println();
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                //System.out.println("found matching map! value is: " + map.getColumnLabel());
+                //System.out.println("found matching map! value is: " + map.getTimeStamp());
+                //System.out.println("found matching map! value is: " + map.getValue());
+            }
+        } while (map != null);
+        rS.closeSort();
+*/
+        int mapCount = 0;
+        Scan mapScan = rsbigT.getHeapFile().openScan();
+        MID mid = new MID();
+        Map map1 = mapScan.getNext(mid);
+        while (map1 != null) {
+            map1.print();
+            mapCount++;
+            System.out.println();
+            map1 = mapScan.getNext(mid);
+
+        }
+        mapScan.closescan();
+
+        /*
+        Map map = new Map();
+        do {
+            map = str.getNext();
+            if (map != null) {
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                mapCount++;
+                //rsbigT.insertMap(map.getMapByteArray());
+                //assert(Objects.equals(map.getRowLabel(), "Sweden"));
+                //map.print();
+                //System.out.println();
+                //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
+                //System.out.println("found matching map! value is: " + map.getColumnLabel());
+                //System.out.println("found matching map! value is: " + map.getTimeStamp());
+                //System.out.println("found matching map! value is: " + map.getValue());
+            }
+        } while (map != null);
+        */
+
+
+
+        long test1Time = System.nanoTime();
+        test1Time -= tmpTime;
+        //databaseTest.close();
+        rsbigT.close();
+        rsbigT.deleteBigt();
+        //SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
+        //stream.closestream();
+        System.out.println("Reads : " + pcounter.rcounter);
+        System.out.println("Writes: " + pcounter.wcounter);
+        System.out.println("total map count of test1: " + mapCount);
+        System.out.println("time is: " + test1Time);
+    }
+
+    public static void test3() throws Exception {
+        pcounter.initialize();
+        new SystemDefs("rowSortTest.db", 0, NUMBUF, "Clock");
         bigt databaseTest = new bigt("rowSortTest");
         //assert (databaseTest.getMapCnt() == 2);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "*", "*", "*");
-        bigt rsbigT = new bigt("rowSort2", 1);
+        bigt rsbigT = new bigt("rowSort1", 1);
         rowSort rS = new rowSort(stream, "Moose", NUMBUF);
         Map map = new Map();
         int mapCount = 0;
@@ -176,15 +256,18 @@ public class RowSortTest {
                 //System.out.println("found matching map! value is: " + map.getValue());
             }
         } while (map != null);
-        rS.closeStream();
+        rS.closeSort();
+        rsbigT.close();
+        bigt check = new bigt("rowSort1");
 
-        Scan mapScan = rsbigT.getHeapFile().openScan();
+        Scan mapScan = check.getHeapFile().openScan();
         MID mid = new MID();
         Map map1 = mapScan.getNext(mid);
         while (map1 != null) {
-            map1.print();
-            System.out.println();
+            // map1.print();
+            // System.out.println();
             map1 = mapScan.getNext(mid);
+
 
         }
         mapScan.closescan();
@@ -194,17 +277,18 @@ public class RowSortTest {
         test1Time -= tmpTime;
         databaseTest.close();
         rsbigT.close();
+        //rsbigT.deleteBigt();
         //SystemDefs.JavabaseBM.flushAllPages();
         SystemDefs.JavabaseDB.closeDB();
-        //stream.closestream();
         System.out.println("Reads : " + pcounter.rcounter);
         System.out.println("Writes: " + pcounter.wcounter);
         System.out.println("total map count of test1: " + mapCount);
-        System.out.println("time is: " + test1Time);
+        System.out.println("time is: " + test1Time/1000000);
     }
 
     public static void main(String [] args) throws Exception {
         test1();
         test2();
+        test3();
     }
 }
