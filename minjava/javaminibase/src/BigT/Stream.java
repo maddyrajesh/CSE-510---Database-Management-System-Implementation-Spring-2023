@@ -8,8 +8,10 @@ import heap.*;
 import iterator.*;
 import org.w3c.dom.Attr;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 
 /**
@@ -34,6 +36,8 @@ public class Stream implements GlobalConst{
     private MapSort sort;
     private Scan scan;
     private boolean created = false;
+    private int counter = 0;
+    private String name;
 
     private Heapfile tempHeapFile;
 
@@ -61,10 +65,38 @@ public class Stream implements GlobalConst{
         this.rowFilter = rowFilter;
         this.columnFilter = columnFilter;
         this.valueFilter = valueFilter;
-        tableType = bigtable.getType();
-        queryConditions(this.bigtable.getType());
+        //tableType = bigtable.getType();
+        //queryConditions();
+        int counter = 0;
+        File file = new File("stream.hashmap");
+        if(file.exists()) {
+            try (ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("stream.hashmap"))) {
+                Integer tmpCounter = (Integer) objectInputStream.readObject();
+                counter = tmpCounter;
+            } catch (IOException e) {
+                throw new IOException("File not writable: " + e.toString());
+            }
+        }
+        name = "tempSort " + bigtable.name + " " + counter;
+        counter++;
+        this.tempHeapFile = new Heapfile(name);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("stream.hashmap"));
+        Integer tmpCounter = counter;
+        objectOutputStream.writeObject(tmpCounter);
         filterAndSortData(orderType);
     }
+
+
+    public Stream(int orderType, String rowFilter, String columnFilter, String valueFilter) throws Exception {
+        this.orderType = orderType;
+        this.rowFilter = rowFilter;
+        this.columnFilter = columnFilter;
+        this.valueFilter = valueFilter;
+        tableType = 1;
+        queryConditions(tableType);
+        filterAndSortData(orderType);
+    }
+
 
     /**
      * Closestream.
@@ -72,7 +104,7 @@ public class Stream implements GlobalConst{
     public void closestream() throws SortException {
         scanAll = false;
         btreeScanner = null;
-        this.sort.close();
+        //this.sort.close();
     }
 
 
@@ -148,6 +180,7 @@ public class Stream implements GlobalConst{
         · 4, then results are first ordered in column label, then time stamp
         · 5, then results are ordered in time stamp
         * */
+
         switch (indexType) {
             default:
                 // same as case 1
@@ -285,19 +318,19 @@ public class Stream implements GlobalConst{
         if (!this.scanAll) {
             switch(indexType) {
                 case 1:
-                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
+                    this.btreeScanner = bigtable.indexFiles[0].new_scan(start, end);
                     break;
                 case 2:
-                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
+                    this.btreeScanner = bigtable.indexFiles[1].new_scan(start, end);
                     break;
                 case 3:
-                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
+                    this.btreeScanner = bigtable.indexFiles[2].new_scan(start, end);
                     break;
                 case 4:
-                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
+                    this.btreeScanner = bigtable.indexFiles[3].new_scan(start, end);
                     break;
                 case 5:
-                    this.btreeScanner = bigtable.btree1.new_scan(start, end);
+                    this.btreeScanner = bigtable.indexFiles[4].new_scan(start, end);
                     break;
             }
         }
@@ -314,8 +347,6 @@ public class Stream implements GlobalConst{
         · 6, then results are ordered in time stamp
         * */
 
-        String name = "tempSort " + bigtable.name + " " + bigtable.counter;
-        this.tempHeapFile = new Heapfile(name);
         //scan = tempHeapFile.openScan();
         MID mid = new MID();
 
@@ -333,56 +364,58 @@ public class Stream implements GlobalConst{
             map = scan.getNext(mid);
         }*/
         System.out.println(tempHeapFile._fileName + " " + tempHeapFile.getRecCnt());
-        if(bigtable.counter >= Integer.MAX_VALUE)
+        /*if(bigtable.counter >= Integer.MAX_VALUE)
             bigtable.counter = 0;
         else
-            bigtable.counter++;
+            bigtable.counter++;*/
         //System.out.println("record before" + tempHeapFile.getRecCnt());
 
+        for(int i = 0; i < 5; i++) {
+            queryConditions(i + 1);
+            if (this.scanAll) {
+                //scanning whole bigt file.
+                //System.out.println("scanning whole file");
+                scan = bigtable.heapfiles[i].openScan();
 
-        if (this.scanAll) {
-            //scanning whole bigt file.
-            //System.out.println("scanning whole file");
-            scan = bigtable.getHeapFile().openScan();
-
-            //mapObj.setHeader();
+                //mapObj.setHeader();
 
 //            if (rowFilter.equals(starFilter) && columnFilter.equals(starFilter) && valueFilter.equals(starFilter)) {
 //                System.out.println("rowFilter = " + rowFilter);
 //                tempHeapFile = this.bigtable.heapfile;
 //            } else {
 
-            //int count = 0;
-            Map map = this.scan.getNext(mid);
-            while (map != null) {
-                count++;
-                short kaka = 0;
-                if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
-                    this.tempHeapFile.insertMap(map.getMapByteArray());
-                    //map.print();
-                }
-                map = scan.getNext(mid);
-            }
-            //System.out.println(tempHeapFile.getRecCnt());
-            this.scan.closescan();
-
-        } else {
-
-            KeyDataEntry entry = btreeScanner.get_next();
-            while (entry != null) {
-                MID currMid = ((LeafData) entry.data).getData();
-                if (currMid != null) {
-                    MID tempMid = new MID(currMid.pageNo, currMid.slotNo);
-                    Map map = bigtable.getHeapFile().getMap(tempMid);
+                //int count = 0;
+                Map map = this.scan.getNext(mid);
+                while (map != null) {
+                    count++;
+                    short kaka = 0;
                     if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
                         this.tempHeapFile.insertMap(map.getMapByteArray());
+                        //map.print();
                     }
-
+                    map = scan.getNext(mid);
                 }
-                entry = btreeScanner.get_next();
+                //System.out.println(tempHeapFile.getRecCnt());
+                this.scan.closescan();
+
+            } else {
+
+                KeyDataEntry entry = btreeScanner.get_next();
+                while (entry != null) {
+                    MID currMid = ((LeafData) entry.data).getData();
+                    if (currMid != null) {
+                        MID tempMid = new MID(currMid.pageNo, currMid.slotNo);
+                        Map map = bigtable.heapfiles[i].getMap(tempMid);
+                        if (genericMatcher(map, "row", rowFilter) && genericMatcher(map, "column", columnFilter) && genericMatcher(map, "value", valueFilter)) {
+                            this.tempHeapFile.insertMap(map.getMapByteArray());
+                        }
+
+                    }
+                    entry = btreeScanner.get_next();
+                }
+                //System.out.println("record count is " + tempHeapFile.getRecCnt());
+                btreeScanner.DestroyBTreeFileScan();
             }
-            //System.out.println("record count is " + tempHeapFile.getRecCnt());
-            btreeScanner.DestroyBTreeFileScan();
         }
 
 

@@ -41,10 +41,11 @@ public class IndexStratTest {
 
         FileInputStream fileStream = null;
         BufferedReader br = null;
+        int i = 1;
         try {
             File f = new File(datbaseName);
             new SystemDefs(datbaseName, numPages, NUMBUF, "Clock");
-            bigt database = new bigt(datatableName, type);
+            bigt database = new bigt(datatableName, true);
             fileStream = new FileInputStream("test_data1.csv");
             br = new BufferedReader(new InputStreamReader(fileStream, "UTF-8"));
             String inputStr;
@@ -57,7 +58,11 @@ public class IndexStratTest {
                 map.setTimeStamp(Integer.parseInt(input[2]));
                 map.setValue(input[3]);
 
-                MID mid = database.insertMap(map.getMapByteArray());
+                database.insertMap(map.getMapByteArray(), i);
+                i++;
+                i %= 6;
+                if(i == 0)
+                    i = 1;
                 mapCount++;
             }
             br.close();
@@ -109,7 +114,7 @@ public class IndexStratTest {
         pcounter.initialize();
         new SystemDefs("strat1.db", 0, NUMBUF, "Clock");
         //new SystemDefs("index1", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("strat1");
+        bigt databaseTest = new bigt("strat1", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Switzerla", "*", "[00000,03000]");
@@ -148,7 +153,7 @@ public class IndexStratTest {
 
         new SystemDefs("strat2.db", 0, NUMBUF, "Clock");
         pcounter.initialize();
-        bigt databaseTest = new bigt("strat2");
+        bigt databaseTest = new bigt("strat2", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(2, "Sweden", "*", "*");
@@ -216,7 +221,7 @@ public class IndexStratTest {
         createDatabase("strat3.db", "strat3", 3);
         pcounter.initialize();
         new SystemDefs("strat3.db", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("strat3");
+        bigt databaseTest = new bigt("strat3", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "*", "Moose", "*");
@@ -244,10 +249,10 @@ public class IndexStratTest {
     //  Test index strategy 4.
 
     public static void test4() throws Exception {
-        createDatabase("strat4.db", "strat4", 4);
+        //createDatabase("strat4.db", "strat4", 4);
         pcounter.initialize();
-        new SystemDefs("strat4.db", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("strat4");
+        new SystemDefs("dhowa.db", 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("strat4", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
@@ -275,13 +280,13 @@ public class IndexStratTest {
     //  Test index strategy 5.
 
     public static void test5() throws Exception {
-        createDatabase("strat5.db", "strat5", 5);
+        //createDatabase("strat5.db", "strat5", 5);
         pcounter.initialize();
-        new SystemDefs("strat5.db", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("strat5");
+        new SystemDefs("dhowa.db", 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("strat5", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Switzerla", "*", "[00000,03000]");
+        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
@@ -348,7 +353,7 @@ public class IndexStratTest {
     public static void main(String [] args) throws Exception {
         //test1();
         //test1();
-        /*test2();
+        test2();
         test2();
         test2();
         test2();

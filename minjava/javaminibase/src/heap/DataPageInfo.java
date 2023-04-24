@@ -81,7 +81,7 @@ public class DataPageInfo implements GlobalConst{
       throw new InvalidMapSizeException(null, "HEAPFILE: MAP SIZE ERROR");
     }*/
       data = _amap.getMapByteArray();
-      offset = _amap.getOffset();
+      offset = _amap.getMapOffset();
       
       availspace = Convert.getIntValue(offset, data);
       recct = Convert.getIntValue(offset+4, data);

@@ -1,70 +1,37 @@
 package BigT;
 
-import global.*;
+import global.AttrType;
+import global.Convert;
+import global.GlobalConst;
+import heap.FieldNumberOutOfBoundException;
 import heap.InvalidMapSizeException;
 import heap.InvalidTypeException;
 
-import java.io.*;
+import java.io.IOException;
 
-/**
- * The type Map.
- */
 public class Map implements GlobalConst {
-    public static final int max_string_size = 64 * 1024;
-    public static final int max_int_size = 4;
+
+    public static final short NUM_FIELDS = 4;
     public static final int MAX_SIZE = MINIBASE_PAGESIZE;
-    // 3 strings with max size 64kb and an int with size 4b
-    public static short fldCnt = 4;
-    private byte [] data;
-    private int map_offset;
-    private short [] fldOffset;
-    private int map_length;
+    private static final short ROW_NUMBER = 1;
+    private static final short COLUMN_NUMBER = 2;
+    private static final short TIMESTAMP_NUMBER = 3;
+    private static final short VALUE_NUMBER = 4;
+    private byte[] data;
+    private int mapOffset;
+    private int mapLength;
+    private short fieldCount;
+    private short[] fieldOffset;
 
     /**
-     * Instantiates a new Map.
+     * Default Map constructor to initialise a new map.
      */
     public Map() {
-        data = new byte[MAX_SIZE];
-        map_offset = 0;
-        map_length = MAX_SIZE;
+        this.data = new byte[MAX_SIZE];
+        this.mapOffset = 0;
+        this.mapLength = MAX_SIZE;
     }
 
-    /**
-     * Instantiates a new Map.
-     *
-     * @param amap   the amap
-     * @param offset the offset
-     */
-    public Map(byte[] amap, int offset) throws IOException {
-        data = amap;
-        map_offset = offset;
-
-        fldOffset = new short[5];
-        int pos = map_offset + 2;
-        for (int i = 0; i < 5; i++)
-        {
-            fldOffset[i] = Convert.getShortValue(pos, data);
-            pos += 2;
-        }
-    }
-
-    /**
-     * Instantiates a new Map.
-     *
-     * @param fromMap the from map
-     */
-    public Map(Map fromMap) {
-        data = fromMap.getMapByteArray();
-        map_offset = 0;
-        fldOffset = fromMap.copyFldOffset();
-        map_length = fromMap.map_length;
-    }
-
-    private short[] copyFldOffset() {
-        short[] newFldOffset = new short[fldCnt + 1];
-        System.arraycopy(fldOffset, 0, newFldOffset, 0, fldOffset.length);
-        return newFldOffset;
-    }
 
     /**
      * Sets the fixed map header
@@ -73,61 +40,253 @@ public class Map implements GlobalConst {
      * @exception   IOException I/O errors
      */
     public void setHdr(short[] strSizes) throws IOException {
-        fldOffset = new short[5];
-        int pos = map_offset + 2;
+        fieldOffset = new short[5];
+        int pos = mapOffset + 2;
 
-        fldOffset[0] = (short) ((fldCnt + 2) * 2 + map_offset);
+        fieldOffset[0] = (short) ((fieldCount + 2) * 2 + mapOffset);
 
-        Convert.setShortValue(fldOffset[0], pos, data);
+        Convert.setShortValue(fieldOffset[0], pos, data);
 
-        for (int i = 1; i <= fldCnt; i++) {
+        for (int i = 1; i <= fieldCount; i++) {
             pos += 2;
             // timestamp increments by 4, otherwise increment by string size
             if (i == 4) {
-                fldOffset[i] = (short) (fldOffset[i - 1] + 4);
+                fieldOffset[i] = (short) (fieldOffset[i - 1] + 4);
             } else {
-                fldOffset[i] = (short) (fldOffset[i - 1] + (short) strSizes[i - 1] + 2); // strlen in bytes = strlen + 2
+                fieldOffset[i] = (short) (fieldOffset[i - 1] + (short) strSizes[i - 1] + 2); // strlen in bytes = strlen + 2
             }
-            Convert.setShortValue(fldOffset[i], pos, data);
+            Convert.setShortValue(fieldOffset[i], pos, data);
         }
     }
 
     /**
-     * Gets row label.
-     *
-     * @return the row label
-     * @exception   IOException I/O errors
+     * @param amap Initialise map based on bytearray from given map.
+     * @param offset map offset.
+     * @throws IOException throws IO exception
      */
-    public String getRowLabel() throws IOException {
-        return Convert.getStrValue(fldOffset[0], data, fldOffset[1] - fldOffset[0]).replace("\uFEFF", "");
+    public Map(byte[] amap, int offset) throws IOException {
+        this.data = amap;
+        this.mapOffset = offset;
+        setFieldOffsetFromData();
+        setFieldCount(Convert.getShortValue(offset, this.data));
     }
 
     /**
-     * Gets column label.
-     *
-     * @return the column label
-     * @exception   IOException I/O errors
+     * @param amap Initialise map based on bytearray from given map.
+     * @param offset map offset.
+     * @param mapLength Set length of the map.
+     * @throws IOException throws IO Exception.
      */
+    public Map(byte[] amap, int offset, int mapLength) throws IOException {
+        this.data = amap;
+        this.mapOffset = offset;
+        this.mapLength = mapLength;
+        setFieldOffsetFromData();
+        setFieldCount(Convert.getShortValue(offset, this.data));
+    }
+
+    /**
+     * @param fromMap Initialse maps given map object.
+     */
+    public Map(Map fromMap) {
+        this.data = fromMap.getMapByteArray();
+        this.mapLength = fromMap.getMapLength();
+        this.mapOffset = 0;
+        this.fieldCount = fromMap.getFieldCount();
+        this.fieldOffset = fromMap.copyFieldOffset();
+
+    }
+
+    /**
+     * @param size Initialze map based on given size.
+     */
+    public Map(int size) {
+        this.data = new byte[size];
+        this.mapOffset = 0;
+        this.mapLength = size;
+        this.fieldCount = 4;
+    }
+
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) throws IOException {
+        this.data = data;
+        setFieldOffsetFromData();
+        setFieldCount(Convert.getShortValue(0, data));
+    }
+
+    public int getMapOffset() {
+        return mapOffset;
+    }
+
+    public void setMapOffset(int mapOffset) {
+        this.mapOffset = mapOffset;
+    }
+
+    public int getMapLength() {
+        return mapLength;
+    }
+
+    public void setMap_length(short length)
+    {
+        this.mapLength = length;
+    }
+
+    public short getFieldCount() {
+        return fieldCount;
+    }
+
+    public void setFieldCount(short fieldCount) {
+        this.fieldCount = fieldCount;
+    }
+
+    public short[] getFieldOffset() {
+        return fieldOffset;
+    }
+
+    public void setFieldOffset(short[] fieldOffset) {
+        this.fieldOffset = fieldOffset;
+    }
+
+    /**
+     * Copy a map to the current map position
+     *
+     * @param fromMap the map to be copied
+     */
+    public void mapCopy(Map fromMap) {
+        byte [] temparray = fromMap.getMapByteArray();
+        System.arraycopy(temparray, 0, data, mapOffset, fromMap.size());
+    }
+
+    public String getStringField(short fieldNumber) throws IOException, FieldNumberOutOfBoundException {
+        if (fieldNumber == 3) {
+            throw new FieldNumberOutOfBoundException(null, "MAP: INVALID_FIELD PASSED");
+        } else {
+            return Convert.getStrValue(this.fieldOffset[fieldNumber - 1], this.data, this.fieldOffset[fieldNumber] - this.fieldOffset[fieldNumber - 1]);
+        }
+    }
+
+    public short[] copyFieldOffset() {
+        short[] newFieldOffset = new short[this.fieldCount + 1];
+        System.arraycopy(this.fieldOffset, 0, newFieldOffset, 0, this.fieldCount + 1);
+        return newFieldOffset;
+    }
+
+    /**
+     * @param fromMap Copy the map object to this map object.
+     */
+    public void copyMap(Map fromMap) {
+        byte[] tempArray = fromMap.getMapByteArray();
+        System.arraycopy(tempArray, 0, data, mapOffset, mapLength);
+    }
+
+    public String getRowLabel() throws IOException {
+        return Convert.getStrValue(this.fieldOffset[ROW_NUMBER - 1], this.data, this.fieldOffset[ROW_NUMBER] - this.fieldOffset[ROW_NUMBER - 1]);
+    }
+
+    public void setRowLabel(String rowLabel) throws IOException {
+        Convert.setStrValue(rowLabel, this.fieldOffset[ROW_NUMBER - 1], this.data);
+    }
+
     public String getColumnLabel() throws IOException {
-        return Convert.getStrValue(fldOffset[1], data, fldOffset[2] - fldOffset[1]).replace("\uFEFF", "");
+        return Convert.getStrValue(this.fieldOffset[COLUMN_NUMBER - 1], this.data, this.fieldOffset[COLUMN_NUMBER] - this.fieldOffset[COLUMN_NUMBER - 1]);
+    }
+
+    public void setColumnLabel(String columnLabel) throws IOException {
+        Convert.setStrValue(columnLabel, this.fieldOffset[COLUMN_NUMBER - 1], this.data);
+    }
+
+    public int getTimeStamp() throws IOException {
+        return Convert.getIntValue(this.fieldOffset[TIMESTAMP_NUMBER - 1], this.data);
+    }
+
+    public void setTimeStamp(int timeStamp) throws IOException {
+        Convert.setIntValue(timeStamp, this.fieldOffset[TIMESTAMP_NUMBER - 1], this.data);
+    }
+
+    public String getValue() throws IOException {
+        return Convert.getStrValue(this.fieldOffset[VALUE_NUMBER - 1], this.data, this.fieldOffset[VALUE_NUMBER] - this.fieldOffset[VALUE_NUMBER - 1]);
+    }
+
+    public void setValue(String value) throws IOException {
+        Convert.setStrValue(value, this.fieldOffset[VALUE_NUMBER - 1], this.data);
+    }
+
+    public byte[] getMapByteArray() {
+        byte[] mapCopy = new byte[this.mapLength];
+        System.arraycopy(this.data, this.mapOffset, mapCopy, 0, this.mapLength);
+        return mapCopy;
+    }
+
+    public void print() throws IOException {
+        String rowLabel = getRowLabel();
+        String columnLabel = getColumnLabel();
+        int timestamp = getTimeStamp();
+        String value = getValue();
+        System.out.println("{RowLabel:" + rowLabel + ", ColumnLabel:" + columnLabel + ", TimeStamp:" + timestamp + ", Value:" + value + "}");
+    }
+
+    public short size() {
+        return ((short) (this.fieldOffset[fieldCount] - this.mapOffset));
+    }
+
+    public void mapInit(byte[] amap, int offset) {
+        this.data = amap;
+        this.mapOffset = offset;
+    }
+
+    public void mapSet(byte[] fromMap, int offset) {
+        System.arraycopy(fromMap, offset, this.data, 0, this.mapLength);
+        this.mapOffset = 0;
+    }
+
+    private void setFieldOffsetFromData() throws IOException {
+        int position = this.mapOffset + 2;
+        this.fieldOffset = new short[NUM_FIELDS + 1];
+
+        for (int i = 0; i <= NUM_FIELDS; i++) {
+            this.fieldOffset[i] = Convert.getShortValue(position, this.data);
+            position += 2;
+        }
+    }
+
+    @Override
+    public String toString() {
+        String rowLabel = null;
+        String columnLabel = null;
+        String value = null;
+        int timestamp = 0;
+        try {
+            rowLabel = getRowLabel();
+            columnLabel = getColumnLabel();
+            timestamp = getTimeStamp();
+            value = getValue();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        String s = new String("{RowLabel:" + rowLabel + ", ColumnLabel:" + columnLabel + ", TimeStamp:" + timestamp + ", Value:" + value + "}");
+        return s;
     }
 
     public void setHeader(AttrType[] types, short[] stringSizes) throws InvalidMapSizeException, IOException, InvalidTypeException, InvalidStringSizeArrayException {
-        
+
         if (stringSizes.length != 3) {
             throw new InvalidStringSizeArrayException(null, "String sizes array must exactly be 3");
         }
-
-        Convert.setShortValue(max_int_size, this.map_offset, this.data);
-        this.fldOffset = new short[max_int_size + 1];
-        int position = this.map_offset + 2;
-        this.fldOffset[0] = (short) ((max_int_size + 2) * 2 + this.map_offset);
-        Convert.setShortValue(this.fldOffset[0], position, data);
+        this.fieldCount = NUM_FIELDS;
+        Convert.setShortValue(NUM_FIELDS, this.mapOffset, this.data);
+        this.fieldOffset = new short[NUM_FIELDS + 1];
+        int position = this.mapOffset + 2;
+        this.fieldOffset[0] = (short) ((NUM_FIELDS + 2) * 2 + this.mapOffset);
+        Convert.setShortValue(this.fieldOffset[0], position, data);
         position += 2;
 
         short increment;
         short stringCount = 0;
-        for (short i = 0; i < max_int_size; i++) {
+        for (short i = 0; i < NUM_FIELDS; i++) {
             switch (types[i].attrType) {
                 case AttrType.attrInteger:
                     increment = 4;
@@ -138,170 +297,86 @@ public class Map implements GlobalConst {
                 default:
                     throw new InvalidTypeException(null, "MAP: MAP_TYPE_ERROR");
             }
-            this.fldOffset[i + 1] = (short) (this.fldOffset[i] + increment);
-            Convert.setShortValue(this.fldOffset[i + 1], position, data);
+            this.fieldOffset[i + 1] = (short) (this.fieldOffset[i] + increment);
+            Convert.setShortValue(this.fieldOffset[i + 1], position, data);
             position += 2;
         }
 
-        this.map_length = this.fldOffset[max_int_size] - this.map_offset;
+        this.mapLength = this.fieldOffset[NUM_FIELDS] - this.mapOffset;
 
-        if (this.map_length > MAX_SIZE) {
+        if (this.mapLength > MAX_SIZE) {
             throw new InvalidMapSizeException(null, "MAP: MAP_TOOBIG_ERROR");
         }
 
     }
-    
-    /**
-     * Gets time stamp.
-     *
-     * @return the time stamp
-     * @exception   IOException I/O errors
-     */
-    public int getTimeStamp() throws IOException {
-        return Convert.getIntValue(fldOffset[2], data);
+
+    public String getGenericValue(String field) throws Exception {
+        if (field.matches(".*row.*")) {
+            return this.getRowLabel();
+        } else if (field.matches(".*column.*")) {
+            return this.getColumnLabel();
+        } else if (field.matches(".*value.*")) {
+            return this.getValue();
+        } else {
+            throw new Exception("Invalid field type.");
+        }
     }
 
-    /**
-     * Gets value.
-     *
-     * @return the value
-     * @exception   IOException I/O errors
-     */
-    public String getValue() throws IOException {
-        return Convert.getStrValue(fldOffset[3], data, fldOffset[4] - fldOffset[3]).replace("\uFEFF", "");
+    public Map setStrFld(int fldNo, String val)
+            throws IOException, FieldNumberOutOfBoundException {
+        if ((fldNo > 0) && (fldNo <= fieldCount)) {
+            Convert.setStrValue(val, fieldOffset[fldNo - 1], data);
+            return this;
+        } else
+            throw new FieldNumberOutOfBoundException(null, "Map:Map_FLDNO_OUT_OF_BOUND");
     }
 
-    /** get the offset of a tuple
-     *  @return offset of the tuple in byte array
-     */
-    public int getOffset()
-    {
-        return map_offset;
+    public Map setIntFld(int fldNo, int val)
+            throws IOException, FieldNumberOutOfBoundException {
+        if ((fldNo > 0) && (fldNo <= fieldCount)) {
+            Convert.setIntValue(val, fieldOffset[fldNo - 1], data);
+            return this;
+        } else
+            throw new FieldNumberOutOfBoundException(null, "Map:Map_FLDNO_OUT_OF_BOUND");
     }
 
-    public short[] getFieldOffset() {
-        return fldOffset;
+    public Map setFloFld(int fldNo, float val)
+            throws IOException, FieldNumberOutOfBoundException {
+        if ((fldNo > 0) && (fldNo <= fieldCount)) {
+            Convert.setFloValue(val, fieldOffset[fldNo - 1], data);
+            return this;
+        } else
+            throw new FieldNumberOutOfBoundException(null, "Map:Map_FLDNO_OUT_OF_BOUND");
+
     }
 
-    /**
-     * Sets row label.
-     *
-     * @param val the string value
-     * @return the map with updated row label
-     * @exception   IOException I/O errors
-     */
-    public Map setRowLabel(String val) throws IOException {
-        Convert.setStrValue(val, fldOffset[0], data);
-        return this;
+    public int getIntFld(int fldNo) throws IOException, FieldNumberOutOfBoundException {
+        int val;
+        if ((fldNo > 0) && (fldNo <= fieldCount)) {
+            val = Convert.getIntValue(fieldOffset[fldNo - 1], data);
+            return val;
+        } else
+            throw new FieldNumberOutOfBoundException(null, "Map:Map_FLDNO_OUT_OF_BOUND");
     }
 
-    /**
-     * Sets column label.
-     *
-     * @param val the string value
-     * @return the map with updated column label
-     * @exception   IOException I/O errors
-     */
-    public Map setColumnLabel(String val) throws IOException {
-        Convert.setStrValue(val, fldOffset[1], data);
-        return this;
+    public float getFloFld(int fldNo)
+            throws IOException, FieldNumberOutOfBoundException {
+        float val;
+        if ((fldNo > 0) && (fldNo <= fieldCount)) {
+            val = Convert.getFloValue(fieldOffset[fldNo - 1], data);
+            return val;
+        } else
+            throw new FieldNumberOutOfBoundException(null, "Map:Map_FLDNO_OUT_OF_BOUND");
     }
 
-    /**
-     * Sets time stamp.
-     *
-     * @param val the string value
-     * @return the map with updated time stamp
-     * @exception   IOException I/O errors
-     */
-    public Map setTimeStamp(int val) throws IOException {
-        Convert.setIntValue(val, fldOffset[2], data);
-        return this;
-    }
-
-    /**
-     * Sets value.
-     *
-     * @param val the val
-     * @return the map with updated value
-     * @exception   IOException I/O errors
-     */
-    public Map setValue(String val) throws IOException {
-        Convert.setStrValue(val, fldOffset[3], data);
-        return this;
-    }
-
-    public void setMap_length(short length)
-    {
-        this.map_length = length;
-    }
-
-        /**
-     * @param fromMap Copy the map object to this map object.
-     */
-    public void copyMap(Map fromMap) {
-        byte[] tempArray = fromMap.getMapByteArray();
-        System.arraycopy(tempArray, 0, data, map_offset, map_length);
-    }
-
-    /**
-     * Returns the current map byte array
-     *
-     * @return a byte array containing the map
-     */
-    public byte[] getMapByteArray() {
-        byte [] mapcopy = new byte [map_length];
-        System.arraycopy(data, map_offset, mapcopy, 0, map_length);
-        return mapcopy;
-    }
-
-    /**
-     * Print out the map
-     *
-     * @exception   IOException I/O errors
-     */
-    public void print() throws IOException {
-        System.out.print("[row: " + getRowLabel() + ", column: " + getColumnLabel() + ", time: " + getTimeStamp() + ", value: " + getValue() + "]");
-    }
-
-    /**
-     * Get the length of a map, call this method if you
-     *  called setHdr() before
-     * @return size of this map in bytes
-     */
-    public short size() {
-        return ((short) (fldOffset[fldCnt] - map_offset));
-    }
-
-    /**
-     * Copy a map to the current map position
-     *
-     * @param fromMap the map to be copied
-     */
-    public void mapCopy(Map fromMap) {
-        byte [] temparray = fromMap.getMapByteArray();
-        System.arraycopy(temparray, 0, data, map_offset, fromMap.size());
-    }
-
-    /**
-     * This is used when you don't want to use the constructor
-     *
-     * @param amap   a byte array which contains the map
-     * @param offset the offset of amap
-     */
-    public void mapInit(byte[] amap, int offset) {
-        data = amap;
-        map_offset = offset;
-    }
-
-    /**
-     * Set a map with the given map and offset
-     *
-     * @param frommap a byte array containing the map
-     * @param offset  the offset of the map
-     */
-    public void mapSet(byte[] frommap, int offset) {
-        System.arraycopy(frommap, offset, data, 0, frommap.length - offset);
+    public String getStrFld(int fldNo)
+            throws IOException, FieldNumberOutOfBoundException {
+        String val;
+        if ((fldNo > 0) && (fldNo <= fieldCount)) {
+            val = Convert.getStrValue(fieldOffset[fldNo - 1], data,
+                    fieldOffset[fldNo] - fieldOffset[fldNo - 1]); //strlen+2
+            return val;
+        } else
+            throw new FieldNumberOutOfBoundException(null, "Map:Map_FLDNO_OUT_OF_BOUND");
     }
 }
-

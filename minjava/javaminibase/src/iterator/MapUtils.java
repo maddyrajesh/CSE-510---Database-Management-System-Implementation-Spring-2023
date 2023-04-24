@@ -52,12 +52,15 @@ public class MapUtils
     }
 
 
+    public static boolean checkSameMap(Map map1, Map map2) throws IOException {
+        return map1.getRowLabel().equals(map2.getRowLabel()) && map1.getColumnLabel().equals(map2.getColumnLabel());
+    }
+
 
     /**
      * This function  compares  tuple1 with another tuple2 whose
      * field number is same as the tuple1
      *
-
      *@param    m1        one map
      *@param    value     one string.
      *@param    m1_fld_no the field numbers in the maps to be compared.
@@ -69,7 +72,7 @@ public class MapUtils
      *@exception MapUtilsException exception from this class
      */
     public static int CompareMapWithValue(Map m1, int m1_fld_no,
-                                            Map  value)
+                                          Map  value)
             throws IOException,
             UnknowAttrType,
             MapUtilsException
@@ -148,10 +151,10 @@ public class MapUtils
      *@exception MapUtilsException exception from this class
      */
     public static short[] setup_op_map(Map Jmap, AttrType[] res_attrs,
-                                         AttrType in1[], int len_in1, AttrType in2[],
-                                         int len_in2, short t1_str_sizes[],
-                                         short t2_str_sizes[],
-                                         FldSpec proj_list[], int nOutFlds)
+                                       AttrType in1[], int len_in1, AttrType in2[],
+                                       int len_in2, short t1_str_sizes[],
+                                       short t2_str_sizes[],
+                                       FldSpec proj_list[], int nOutFlds)
             throws IOException,
             MapUtilsException
     {
@@ -306,9 +309,5 @@ public class MapUtils
         }
         return 1;
     }
+
 }
-    
-
-
-
-

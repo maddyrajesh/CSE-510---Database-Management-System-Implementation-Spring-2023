@@ -36,7 +36,7 @@ public class BigTable {
                     //BIGT_STR_SIZES = setBigTConstants(dataFile);
                     Integer type = Integer.parseInt(inputStr[2]);
                     String tableName = inputStr[3];
-                    String dbPath = Utils.getDBPath(tableName);
+                    String dbPath = Utils.getDBPath();
                     File f = new File(dbPath);
                     if (!f.exists()) {
                         File file = new File(tableName + "_metadata.txt");
@@ -54,7 +54,7 @@ public class BigTable {
                    //         new BufferedWriter(fileWriter);
                    // bufferedWriter.write(dataFile);
                    // bufferedWriter.close();
-                    Utils.batchInsert(dataFile, tableName, type);
+                    Utils.batchInsert(dataFile, tableName, type, 50);
                 } else if (inputStr[0].equalsIgnoreCase("query")) {
 
                     //query BIGTABLENAME TYPE ORDERTYPE ROWFILTER COLUMNFILTER VALUEFILTER NUMBUF
@@ -81,18 +81,18 @@ public class BigTable {
                     String valFilter = inputStr[6].trim();
                     Integer NUMBUF = Integer.parseInt(inputStr[7]);
                     checkDBMissing(tableName);
-                    Utils.query(tableName, type, orderType, rowFilter, colFilter, valFilter, NUMBUF);
+                    Utils.query(tableName, orderType, rowFilter, colFilter, valFilter, NUMBUF);
                 } else if (inputStr[0].equalsIgnoreCase("mapinsert")) {
 
                     //mapinsert RL CL VAL TS TYPE BIGTABLENAME NUMBUF
                     String tableName = inputStr[6].trim();
                     Integer type = Integer.parseInt(inputStr[5]);
                     String rowValue = inputStr[1].trim();
-                    String colValue = inputStr[2].trim();
+                    String colValue = inputStr[2].trim();//mapinsert Moose Sweden 300 2119 2 inserttest 50
                     String val = inputStr[3].trim();
                     String timestamp = inputStr[4];
                     Integer NUMBUF = Integer.parseInt(inputStr[7]);
-                    Utils.mapInsert(rowValue, colValue, val, timestamp, type, tableName, NUMBUF);
+                    Utils.insertMap(tableName, type, rowValue, colValue, val, Integer.parseInt(timestamp), NUMBUF);
                 } else if (inputStr[0].equalsIgnoreCase("createindex")) {
 
                     //createindex BIGTABLENAME TYPE
@@ -182,7 +182,7 @@ public class BigTable {
     }
 
     private static void checkDBExists(String dbName) {
-        String dbPath = Utils.getDBPath(dbName);
+        String dbPath = Utils.getDBPath();
         File f = new File(dbPath);
         if (f.exists()) {
             System.out.println("DB already exists. Exiting.");
@@ -191,7 +191,7 @@ public class BigTable {
     }
 
     private static void checkDBMissing(String dbName) {
-        String dbPath = Utils.getDBPath(dbName);
+        String dbPath = Utils.getDBPath();
         File f = new File(dbPath);
         if (!f.exists()) {
             System.out.println("DB does not exist. Exiting.");

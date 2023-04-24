@@ -25,11 +25,12 @@ public class insertionTest {
 
     public static void test1() throws Exception {
         for(int i = 0; i < 10; i++)
-            Utils.mapInsert("Sweden", "Moose" + String.valueOf(i), "testVal" + String.valueOf(i), String.valueOf(i), 2, "mapInsertTest", NUMBUF);
-        Utils.mapInsert("Sweden", "Shark", "testVal2", "61341", 2, "mapInsertTest", NUMBUF);
+            Utils.insertMap("mapInsertTest", 1, "Sweden", "Moose" + String.valueOf(i), "testVal" + String.valueOf(i), i,  NUMBUF);
+        Utils.insertMap("mapInsertTest", 2, "Sweden", "Shark", "testVal2", 61341, NUMBUF);
         pcounter.initialize();
-        new SystemDefs("mapInsertTest.db", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("mapInsertTest");
+        String dbPath = Utils.getDBPath();
+        new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("mapInsertTest", false);
         //assert (databaseTest.getMapCnt() == 2);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
@@ -41,6 +42,8 @@ public class insertionTest {
                 //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 mapCount++;
                 assert(Objects.equals(map.getRowLabel(), "Sweden"));
+                map.print();
+                System.out.println();
                 //System.out.println("found matching map! row is: " + map.getRowLabel() + " column is: " + map.getColumnLabel()  + " time is: " + map.getTimeStamp() + " val is: " + map.getValue());
                 //System.out.println("found matching map! value is: " + map.getColumnLabel());
                 //System.out.println("found matching map! value is: " + map.getTimeStamp());
@@ -58,8 +61,9 @@ public class insertionTest {
 
     public static void test2() throws Exception {
         pcounter.initialize();
-        new SystemDefs("mapInsertTest.db", 0, NUMBUF, "Clock");
-        bigt databaseTest = new bigt("mapInsertTest");
+        String dbPath = Utils.getDBPath();
+        new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+        bigt databaseTest = new bigt("mapInsertTest", false);
         //assert (databaseTest.getMapCnt() == 2);
         long tmpTime = System.nanoTime();
         Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
