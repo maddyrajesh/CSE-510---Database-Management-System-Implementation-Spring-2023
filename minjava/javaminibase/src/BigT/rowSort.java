@@ -22,7 +22,7 @@ public class rowSort {
     public rowSort(String bigTable, String column, int numBuffers) throws Exception {
         this.column = column;
         this.numBuffers = numBuffers;
-        this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/
+        this.bigTable = new bigt(bigTable, false); /*type 1 BigTable*/
         this.heapfile = new Heapfile("temp_sort_file");
         insertTempHeapFile();
         createMapStream();
@@ -92,7 +92,7 @@ public class rowSort {
 
         try {
             BigTable.orderType = 1;
-            this.sortObj = new MapSort(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, fscan, 4, new MapOrder(MapOrder.Ascending), 20, BigTable.BIGT_STR_SIZES[1], BigTable.orderType);
+            this.sortObj = new MapSort(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, fscan, 4, new MapOrder(MapOrder.Ascending), 20, BigTable.BIGT_STR_SIZES[1], false);
         } catch (Exception e) {
             e.printStackTrace();
         }

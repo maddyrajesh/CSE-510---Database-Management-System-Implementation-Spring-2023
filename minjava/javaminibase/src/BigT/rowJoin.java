@@ -1,10 +1,8 @@
 package BigT;
 
-/*import cmdline.MiniTable;*/
 import driver.BigTable;
 import global.AttrOperator;
 import global.AttrType;
-/*import global.TupleOrder;*/
 import global.MapOrder;
 import heap.Heapfile;
 import iterator.*;
@@ -32,7 +30,7 @@ public class rowJoin {
         this.columnName = ColumnName;
         this.amtOfMem = amt_of_mem;
         this.rightBigTName = RightBigTName;
-        this.rightBigT = new bigt(RightBigTName, 1);
+        this.rightBigT = new bigt(RightBigTName, false);
         this.leftStream = leftStream;
         // Left stream should be filtered on column
         this.rightStream = this.rightBigT.openStream(1, "*", columnName, "*");
@@ -98,9 +96,9 @@ public class rowJoin {
     public static Map getJoinMap(String rowKey, String columnKey, String value, Integer timestamp) {
 
 //        short[] attrSizes = new short[3];
-//        attrSizes[0] = (short) (MiniTable.BIGT_STR_SIZES[0]*2 + 1);
-//        attrSizes[1] = (short) (MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[1] + 1);
-//        attrSizes[2] = MiniTable.BIGT_STR_SIZES[2];
+//        attrSizes[0] = (short) (cmdline.BigTable.BIGT_STR_SIZES[0]*2 + 1);
+//        attrSizes[1] = (short) (cmdline.BigTable.BIGT_STR_SIZES[0] + cmdline.BigTable.BIGT_STR_SIZES[1] + 1);
+//        attrSizes[2] = cmdline.BigTable.BIGT_STR_SIZES[2];
 
         Map map = new Map();
         try {
@@ -169,8 +167,8 @@ public class rowJoin {
         List<Map> joinedMaps = new ArrayList<>();
         String bigTName = this.leftName;
         String JOIN_BT_NAME = leftRowLabel + rightRowLabel;
-        resultantBigT = new bigt(this.outBigTName, 1);
-        Stream tempStream = new bigt(bigTName, 1).openStream(1, leftRowLabel, "*", "*");
+        resultantBigT = new bigt(this.outBigTName, true);
+        Stream tempStream = new bigt(bigTName, false).openStream(1, leftRowLabel, "*", "*");
         Map tempMap = tempStream.getNext();
         while (tempMap != null) {
             if (tempMap.getColumnLabel().equals(this.columnName) == true) {
@@ -187,7 +185,7 @@ public class rowJoin {
                 Map tempMap2 = getJoinMap(rowLabel, columnLabel, ValueLabel, timeStampVal);
                 if(tempMap2!=null) {
                     try {
-                        resultantBigT.insertMap(tempMap2.getMapByteArray());
+                        resultantBigT.insertMap(tempMap2.getMapByteArray(), 1);
                     } catch (Exception e) {
                         System.out.println(columnLabel);
                         //e.printStackTrace();
@@ -199,7 +197,7 @@ public class rowJoin {
         tempStream.closestream();
 
 
-        tempStream = new bigt(rightBigTName, 1).openStream(1, rightRowLabel, "*", "*");
+        tempStream = new bigt(rightBigTName, false).openStream(1, rightRowLabel, "*", "*");
         tempMap = tempStream.getNext();
         while (tempMap != null) {
             if (tempMap.getColumnLabel().equals(this.columnName)) {
@@ -216,7 +214,7 @@ public class rowJoin {
                 Map tempMap2 = getJoinMap(rowLabel, columnLabel, ValueLabel, timeStampVal);
                 if(tempMap2!=null) {
                     try {
-                        resultantBigT.insertMap(tempMap2.getMapByteArray());
+                        resultantBigT.insertMap(tempMap2.getMapByteArray(), 1);
                     } catch (Exception e) {
                         System.out.println(columnLabel);
                         //e.printStackTrace();
@@ -237,7 +235,7 @@ public class rowJoin {
             Integer timeStampVal = tempMap3.getTimeStamp();
 
             Map tempMap4 = getJoinMap(rowLabel, columnLabel, ValueLabel, timeStampVal);
-            resultantBigT.insertMap(tempMap4.getMapByteArray());
+            resultantBigT.insertMap(tempMap4.getMapByteArray(), 1);
         }
     }
 

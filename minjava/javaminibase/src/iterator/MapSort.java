@@ -11,7 +11,7 @@ import heap.Heapfile;
 
 import java.io.IOException;
 
-public class MapSort extends Iterator implements GlobalConst {
+public class MapSort extends MapIterator implements GlobalConst {
 
     private int[] n_Maps;
     private int n_runs;
@@ -33,13 +33,12 @@ public class MapSort extends Iterator implements GlobalConst {
     private int sortFldLen;
     private pnodeSplayPQ queue;
     private Map op_map_buf, output_map;
-    private int orderType;
     AttrType[] mapAttributes = new AttrType[4];
     private SpoofIbuf[] i_buf;
     private PageId[] bufs_pids;
 
     /**
-     * Class constructor, take information about the map, and set up
+     * Class constructor, take information about the tuples, and set up
      * the sorting
      *
      * @param attrTypes   array containing attribute types of the relation
@@ -50,7 +49,8 @@ public class MapSort extends Iterator implements GlobalConst {
      * @param n_pages     amount of memory (attrTypes pages) available for sorting
      * @throws SortException something went wrong attrTypes the lower layer.
      */
-    public MapSort(AttrType[] attrTypes, short[] field_sizes, MapIterator am, int sort_fld, MapOrder sort_order, int n_pages, int sortFieldLength, int orderType) throws SortException {
+    public MapSort(AttrType[] attrTypes, short[] field_sizes, MapIterator am, int sort_fld, MapOrder sort_order, int n_pages, int sortFieldLength, boolean mapInsertOrder) throws SortException {
+        BigTable.mapInsertOrder = mapInsertOrder;
         int str_att_count = 0; // number of string field in maps
         for (int i = 0; i < num_cols; i++) {
             mapAttributes[i] = new AttrType(attrTypes[i].attrType);
@@ -62,7 +62,6 @@ public class MapSort extends Iterator implements GlobalConst {
 
 
         str_fld_lens = new short[str_att_count];
-        this.orderType = orderType;
 
         str_att_count = 0;
         for (int i = 0; i < num_cols; i++) {
@@ -124,7 +123,7 @@ public class MapSort extends Iterator implements GlobalConst {
         max_elems_in_heap = 5000;
         sortFldLen = sortFieldLength;
 
-        queue = new pnodeSplayPQ(orderType, attrTypes[sort_fld - 1], sortOrder);
+        queue = new pnodeSplayPQ(sort_fld, attrTypes[sort_fld - 1], sortOrder);
 
         try {
             op_map_buf = new Map(tempMap);
@@ -133,7 +132,6 @@ public class MapSort extends Iterator implements GlobalConst {
             throw new SortException(e, "Sort.java: op_buf.setHdr() failed");
         }
     }
-
 
 
     /**
@@ -191,12 +189,12 @@ public class MapSort extends Iterator implements GlobalConst {
     private int generate_runs(int max_elems, AttrType sortFldType, int sortFldLen) throws Exception {
         Map map;
         pnode cur_node;
-        pnodeSplayPQ Q1 = new pnodeSplayPQ(orderType, sortFldType, sortOrder);
-        pnodeSplayPQ Q2 = new pnodeSplayPQ(orderType, sortFldType, sortOrder);
+        pnodeSplayPQ Q1 = new pnodeSplayPQ(_sort_fld, sortFldType, sortOrder);
+        pnodeSplayPQ Q2 = new pnodeSplayPQ(_sort_fld, sortFldType, sortOrder);
         pnodeSplayPQ pcurr_Q = Q1;
         pnodeSplayPQ pother_Q = Q2;
         //Tuple lastElem = new Tuple(mapSize);  // need tuple.java
-        Map lastElem = new Map();
+        Map lastElem = new Map(mapSize);
         try {
             lastElem.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
             //lastElem.setHdr((short) num_cols, mapAttributes, str_fld_lens);
@@ -262,8 +260,11 @@ public class MapSort extends Iterator implements GlobalConst {
 
             // comp_res = TupleUtils.CompareTupleWithValue(sortFldType, cur_node.tuple, _sort_fld, lastElem);  // need tuple_utils.java
             // comp_res = MapUtils.CompareMapWithValue(cur_node.map, _sort_fld, lastElem);
-            comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem, orderType);
-            //System.out.println("result is " + comp_res + "\n");
+            if (BigTable.mapInsertOrder) {
+                comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem);
+            } else {
+                comp_res = MapUtils.CompareMapsOnOrderType(cur_node.map, lastElem);
+            }
 
 
             if ((comp_res < 0 && sortOrder.mapOrder == MapOrder.Ascending) || (comp_res > 0 && sortOrder.mapOrder == MapOrder.Descending)) {
@@ -278,9 +279,8 @@ public class MapSort extends Iterator implements GlobalConst {
                 // set lastElem to have the value of the current tuple,
                 // need tuple_utils.java
                 //TupleUtils.SetValue(lastElem, cur_node.tuple, _sort_fld, sortFldType);
-                //System.out.println("Setting the field of the new map: " + cur_node.map.getRowLabel());
-                lastElem = new Map(cur_node.map);
-                // write tuple to output file, need io_bufs.java, type cast???
+                 MapUtils.SetValue(lastElem,cur_node.map , comp_res);         
+                  // write tuple to output file, need io_bufs.java, type cast???
                 //	System.out.println("Putting tuple into run " + (run_num + 1));
                 //	cur_node.tuple.print(_in);
 
@@ -470,7 +470,7 @@ public class MapSort extends Iterator implements GlobalConst {
      * from each run into a heap. <code>delete_min() </code> will then get
      * the minimum of all runs.
      *
-     * @param mapSize  size (in bytes) of each map
+     * @param mapSize  size (in bytes) of each tuple
      * @param n_R_runs number of runs
      * @throws IOException     from lower layers
      * @throws LowMemException there is not enough memory to
@@ -508,7 +508,7 @@ public class MapSort extends Iterator implements GlobalConst {
 
             // may need change depending on whether Get() returns the original
             // or make a copy of the tuple, need io_bufs.java ???
-            Map tempMap = new Map();
+            Map tempMap = new Map(mapSize);
 
             try {
                 tempMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
@@ -529,7 +529,7 @@ public class MapSort extends Iterator implements GlobalConst {
                 } catch (UnknowAttrType e) {
                     throw new SortException(e, "Sort.java: UnknowAttrType caught from Q.enq()");
                 } catch (MapUtilsException e) {
-                    throw new SortException(e, "Sort.java: MapUtilsException caught from Q.enq()");
+                    throw new SortException(e, "Sort.java: TupleUtilsException caught from Q.enq()");
                 }
 
             }
@@ -539,7 +539,7 @@ public class MapSort extends Iterator implements GlobalConst {
     /**
      * Remove the minimum value among all the runs.
      *
-     * @return the minimum map removed
+     * @return the minimum tuple removed
      * @throws IOException   from lower layers
      * @throws SortException something went wrong in the lower layer.
      */
@@ -551,7 +551,6 @@ public class MapSort extends Iterator implements GlobalConst {
         cur_node = queue.deq();
         //old_tuple = cur_node.tuple;
         oldMap = cur_node.map;
-        //System.out.println("old map is: " + oldMap.getRowLabel() + " time: " + oldMap.getTimeStamp() + " from run: " + cur_node.run_num);
 
     /*
     System.out.print("Get ");
@@ -563,7 +562,7 @@ public class MapSort extends Iterator implements GlobalConst {
             // run not exhausted
             try {
                 //new_tuple = new Tuple(mapSize);
-                newMap = new Map();
+                newMap = new Map(mapSize);
                 newMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
                 //new_tuple.setHdr((short) num_cols, mapAttributes, str_fld_lens);
             } catch (Exception e) {
@@ -584,7 +583,7 @@ public class MapSort extends Iterator implements GlobalConst {
                 } catch (UnknowAttrType e) {
                     throw new SortException(e, "Sort.java: UnknowAttrType caught from Q.enq()");
                 } catch (MapUtilsException e) {
-                    throw new SortException(e, "Sort.java: TupleUtilsException caught from Q.enq()");
+                    throw new SortException(e, "Sort.java: MapUtilsException caught from Q.enq()");
                 }
             } else {
                 throw new SortException("********** Wait a minute, I thought input is not empty ***************");
@@ -600,7 +599,7 @@ public class MapSort extends Iterator implements GlobalConst {
     /**
      * Set lastElem to be the minimum value of the appropriate type
      *
-     * @param lastElem    the map
+     * @param lastElem    the tuple
      * @param sortFldType the sort field type
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered
@@ -643,7 +642,7 @@ public class MapSort extends Iterator implements GlobalConst {
     /**
      * Set lastElem to be the maximum value of the appropriate type
      *
-     * @param lastElem    the map
+     * @param lastElem    the tuple
      * @param sortFldType the sort field type
      * @throws IOException    from lower layers
      * @throws UnknowAttrType attrSymbol or attrNull encountered
@@ -663,7 +662,7 @@ public class MapSort extends Iterator implements GlobalConst {
 
         switch (sortFldType.attrType) {
             case AttrType.attrInteger:
-                lastElem.setTimeStamp(Integer.MAX_VALUE);
+                lastElem.setTimeStamp(Integer.MIN_VALUE);
                 break;
             case AttrType.attrString:
                 if (_sort_fld == 1)
