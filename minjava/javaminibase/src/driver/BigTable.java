@@ -114,6 +114,10 @@ public class BigTable {
                     checkDBExists(tableName2);
                     Utils.rowJoin(tableName1, tableName2, outputTableName, colFilter, joinType, NUMBUF);
 
+                }else if (inputStr[0].equalsIgnoreCase("getCounts")) {
+                    Integer numBufs = Integer.parseInt(inputStr[1].trim());
+                    Utils.getCounts(numBufs);
+
                 }else if (inputStr[0].equalsIgnoreCase("rowsort")) {
 
                     // rowsort INBTNAME OUTBTNAME COLUMNNAME NUMBUF

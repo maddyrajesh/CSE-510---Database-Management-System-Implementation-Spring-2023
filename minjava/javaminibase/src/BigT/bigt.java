@@ -128,20 +128,20 @@ public class bigt {
      * @throws Exception the exception
      */
     public void insertIndex(MID mid, int type) throws Exception {
-        Map map = heapfiles[0].getMap(mid);
+        Map map = heapfiles[type].getMap(mid);
         switch(type)
         {
             case 2:
-                indexFiles[0].insert(new StringKey(map.getRowLabel()), mid);
+                indexFiles[type].insert(new StringKey(map.getRowLabel()), mid);
                 break;
             case 3:
-                indexFiles[0].insert(new StringKey(map.getColumnLabel()), mid);
+                indexFiles[type].insert(new StringKey(map.getColumnLabel()), mid);
                 break;
             case 4:
-                indexFiles[0].insert(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
+                indexFiles[type].insert(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
                 break;
             case 5:
-                indexFiles[0].insert(new StringKey(map.getRowLabel() + map.getValue()), mid);
+                indexFiles[type].insert(new StringKey(map.getRowLabel() + map.getValue()), mid);
                 break;
         }
     }
@@ -286,7 +286,8 @@ public class bigt {
             throw new Exception("This list size cannot be greater than 3");
         }*/
         if(searchResults.size() < 3) {
-            this.heapfiles[type].insertMap(mapPtr);
+            MID mid = this.heapfiles[type].insertMap(mapPtr);
+            insertIndex(mid, type);
             return;
         }
         for (int i = 0; i < searchResults.size(); i++) {
@@ -299,23 +300,24 @@ public class bigt {
                 oldestTimestamp = map1.getTimeStamp();
                 oldestType = key;
             }
-            /*if (map1.getTimeStamp() == map.getTimeStamp()) {
+            if (map1.getTimeStamp() == map.getTimeStamp()) {
                 updateMID = mid1;
                 updateType = key;
-            }*/
+            }
         }
 
         if (map.getTimeStamp() < oldestTimestamp) {
-                return;
+            return;
         }
-        /*if (updateType != -1) {
-            this.heapfiles[updateType].deleteMap(updateMID);
-        } else {*/
-        if (oldestType != -1) {
-            this.heapfiles[oldestType].deleteMap(oldestMID);
-        }
+        //deleteIndex(updateMID, updateType);
+            //this.heapfiles[updateType].deleteMap(updateMID);
+        deleteIndex(oldestMID, oldestType);
+        this.heapfiles[oldestType].deleteMap(oldestMID);
+        //System.out.println("removing map: " + oldestMID);
 
-        this.heapfiles[type].insertMap(mapPtr);
+
+        MID mid = this.heapfiles[type].insertMap(mapPtr);
+        insertIndex(mid, type);
         return;
 
         /*if (oldestType != -1 && oldestType != 0) {
@@ -327,6 +329,8 @@ public class bigt {
         }*/
 
     }
+
+
 
     /*private void insertMapFile(int type) throws HFDiskMgrException, InvalidTupleSizeException, InvalidMapSizeException, IOException, InvalidSlotNumberException, SpaceNotAvailableException, HFException, HFBufMgrException {
         BigTable.insertType = type;
@@ -426,7 +430,7 @@ public class bigt {
     private void addToArrayList(Map newMap, Map oldMap, java.util.ArrayList<java.util.Map<Integer, MID>> searchResults, MID mid, int key) throws IOException {
         if (MapUtils.checkSameMap(newMap, oldMap)) {
             //MID tempMid = new MID();
-           // tempMid.setSlotNo(mid.getSlotNo());
+            // tempMid.setSlotNo(mid.getSlotNo());
             //tempMid.setPageNo(mid.getPageNo());
             java.util.Map<Integer, MID> tmp = new HashMap<Integer, MID>();
             tmp.put(key, mid);
@@ -455,5 +459,31 @@ public class bigt {
     public Stream openStream(int orderType, java.lang.String rowFilter, java.lang.String columnFilter, java.
             lang.String valueFilter) throws Exception {
         return new Stream(this, orderType, rowFilter, columnFilter, valueFilter);
+    }
+
+
+    /**
+     * Delete index.
+     *
+     * @param mid the mid
+     * @throws Exception the exception
+     */
+    public void deleteIndex(MID mid, int type) throws Exception {
+        Map map = heapfiles[type].getMap(mid);
+        switch(type)
+        {
+            case 2:
+                indexFiles[type].Delete(new StringKey(map.getRowLabel()), mid);
+                break;
+            case 3:
+                indexFiles[type].Delete(new StringKey(map.getColumnLabel()), mid);
+                break;
+            case 4:
+                indexFiles[type].Delete(new StringKey(map.getRowLabel() + map.getColumnLabel()), mid);
+                break;
+            case 5:
+                indexFiles[type].Delete(new StringKey(map.getRowLabel() + map.getValue()), mid);
+                break;
+        }
     }
 }

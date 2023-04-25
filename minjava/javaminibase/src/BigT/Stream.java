@@ -79,6 +79,7 @@ public class Stream implements GlobalConst{
         }
         name = "tempSort " + bigtable.name + " " + counter;
         counter++;
+        System.out.println(name);
         this.tempHeapFile = new Heapfile(name);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(new FileOutputStream("stream.hashmap"));
         Integer tmpCounter = counter;
@@ -190,6 +191,7 @@ public class Stream implements GlobalConst{
                 if (rowFilter.equals(starFilter)) {
                     this.scanAll = true;
                 } else {
+                    this.scanAll = false;
                     // check if range
                     if (rowFilter.matches(rangeRegex)) {
                         String[] range = rowFilter.replaceAll("[\\[ \\]]", "").split(",");
@@ -205,6 +207,7 @@ public class Stream implements GlobalConst{
                 if (columnFilter.equals(starFilter)) {
                     this.scanAll = true;
                 } else {
+                    this.scanAll = false;
                     // check if range
                     if (columnFilter.matches(rangeRegex)) {
                         String[] range = columnFilter.replaceAll("[\\[ \\]]", "").split(",");
@@ -220,7 +223,7 @@ public class Stream implements GlobalConst{
                 if ((rowFilter.equals(starFilter)) && (columnFilter.equals(starFilter))) {
                     scanAll = true;
                 } else {
-
+                    this.scanAll = false;
                     // check if both range
                     if ((rowFilter.matches(rangeRegex)) && (columnFilter.matches(rangeRegex))) {
 
@@ -267,7 +270,7 @@ public class Stream implements GlobalConst{
                 if ((valueFilter.equals(starFilter)) && (rowFilter.equals(starFilter))) {
                     scanAll = true;
                 } else {
-
+                    this.scanAll = false;
                     // check if both range
                     if ((valueFilter.matches(rangeRegex)) && (rowFilter.matches(rangeRegex))) {
 
@@ -363,7 +366,7 @@ public class Stream implements GlobalConst{
             this.tempHeapFile.deleteMap(mid);
             map = scan.getNext(mid);
         }*/
-        System.out.println(tempHeapFile._fileName + " " + tempHeapFile.getRecCnt());
+        //System.out.println(tempHeapFile._fileName + " " + tempHeapFile.getRecCnt());
         /*if(bigtable.counter >= Integer.MAX_VALUE)
             bigtable.counter = 0;
         else

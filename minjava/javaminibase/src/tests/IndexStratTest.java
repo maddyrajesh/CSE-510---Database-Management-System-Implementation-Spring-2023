@@ -67,7 +67,7 @@ public class IndexStratTest {
             }
             br.close();
             fileStream.close();
-            /*System.out.println("Index strategy: " + type);
+            System.out.println("Index strategy: " + type);
             System.out.println("=======================================\n");
             System.out.println("map count: " + database.getMapCnt());
             System.out.println("Distinct Rows = " + database.getRowCnt());
@@ -76,7 +76,7 @@ public class IndexStratTest {
             System.out.println("Reads : " + pcounter.rcounter);
             System.out.println("Writes: " + pcounter.wcounter);
             System.out.println("NumBUFS: " + NUMBUF);
-            System.out.println("\n=======================================\n");*/
+            System.out.println("\n=======================================\n");
             database.close();
             SystemDefs.JavabaseBM.flushAllPages();
             SystemDefs.JavabaseDB.closeDB();
@@ -251,18 +251,19 @@ public class IndexStratTest {
     public static void test4() throws Exception {
         //createDatabase("strat4.db", "strat4", 4);
         pcounter.initialize();
-        new SystemDefs("dhowa.db", 0, NUMBUF, "Clock");
+        new SystemDefs("strat4.db", 0, NUMBUF, "Clock");
         bigt databaseTest = new bigt("strat4", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
+        Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
         MID mid = new MID();
         Map map = new Map();
         do {
             map = stream.getNext();
             if(map != null) {
                 mapCount4++;
-                //System.out.println("found matching map! value is: " + map.getValue());
+                //map.print();
+                //System.out.println();
             }
         }
         while(map != null);
@@ -280,7 +281,7 @@ public class IndexStratTest {
     //  Test index strategy 5.
 
     public static void test5() throws Exception {
-        //createDatabase("strat5.db", "strat5", 5);
+        //createDatabase("dhowa.db", "strat5", 5);
         pcounter.initialize();
         new SystemDefs("dhowa.db", 0, NUMBUF, "Clock");
         bigt databaseTest = new bigt("strat5", false);
@@ -353,15 +354,15 @@ public class IndexStratTest {
     public static void main(String [] args) throws Exception {
         //test1();
         //test1();
-        test2();
-        test2();
-        test2();
-        test2();
+        //test2();
+       // test2();
+       // test2();
+        //test2();
         //test1();*/
         //test2();
         //test3();
         test4();
-        test5();
+        //test5();
         //test2();
         System.out.println("Total time in milliseconds for query using strategy 1: " + test1Time/1_000_000);
         System.out.println("Total time in milliseconds for query using strategy 2: " + test2Time/1_000_000);

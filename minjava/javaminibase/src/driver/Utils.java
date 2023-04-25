@@ -27,18 +27,22 @@ public class Utils {
     public static final int NUM_PAGES = 100000;
 
     public static void batchInsert(String dataFile, String tableName, int type, int numBufs) throws Exception {
-        String UTF8_BOM = "\uFEFF";
+        //String UTF8_BOM = "\uFEFF";
         String dbPath = getDBPath();
+
         System.out.println("DB name =>" + dbPath);
         File f = new File(dbPath);
         Integer numPages = NUM_PAGES;
         File file = new File(dbPath);
-        new SystemDefs(dbPath, numPages, numBufs, "Clock");
+        if(!file.exists())
+            new SystemDefs(dbPath, numPages, numBufs, "Clock");
+        else
+            new SystemDefs(dbPath, 0, numBufs, "Clock");
         pcounter.initialize();
 
         FileInputStream fileStream = null;
         BufferedReader br = null;
-        Heapfile hf = new Heapfile(tableName + "tempfile");
+        //Heapfile hf = new Heapfile(tableName + "tempfile");
         try {
 
             bigt bigTable = new bigt(tableName, true);
@@ -53,7 +57,7 @@ public class Utils {
                 Map map = new Map();
                 map.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
 
-                if (input[0].length() > BigTable.BIGT_STR_SIZES[0]) {
+                /*if (input[0].length() > BigTable.BIGT_STR_SIZES[0]) {
                     input[0] = input[0].substring(0, BigTable.BIGT_STR_SIZES[0]);
                 }
                 if (input[1].length() > BigTable.BIGT_STR_SIZES[1]) {
@@ -64,17 +68,18 @@ public class Utils {
                 }
                 if (input[0].startsWith(UTF8_BOM)) {
                     input[0] = input[0].substring(1).trim();
-                }
+                }*/
+
 
                 map.setRowLabel(input[0]);
                 map.setColumnLabel(input[1]);
-                map.setTimeStamp(Integer.parseInt(input[3]));
-                map.setValue(input[2]);
-                hf.insertMap(map.getMapByteArray());
+                map.setTimeStamp(Integer.parseInt(input[2]));
+                map.setValue(input[3]);
+                bigTable.insertMap(map.getMapByteArray(), type);
                 mapCount++;
             }
 
-            FldSpec[] projlist = new FldSpec[4];
+            /*FldSpec[] projlist = new FldSpec[4];
             RelSpec rel = new RelSpec(RelSpec.outer);
             projlist[0] = new FldSpec(rel, 1);
             projlist[1] = new FldSpec(rel, 2);
@@ -142,7 +147,7 @@ public class Utils {
 
             /*System.out.println("duplicateRemoved.getRecCnt() = " + duplicateRemoved.getRecCnt());*/
             //bigTable.batchInsert(duplicateRemoved, type);
-            duplicateRemoved.deleteFile();
+            /*duplicateRemoved.deleteFile();
 
             System.out.println("Final Records =>");
             for (int i = 0; i < 5; i++) {
@@ -157,7 +162,7 @@ public class Utils {
                     map = mapScan.getNext(mid);
                 }
                 mapScan.closescan();
-            }
+            }*/
 
             System.out.println("=======================================\n");
             System.out.println("map count: " + bigTable.getMapCnt());
@@ -168,10 +173,10 @@ public class Utils {
             System.out.println("Writes: " + pcounter.wcounter);
             System.out.println("NumBUFS: " + NUMBUF);
             System.out.println("\n=======================================\n");
-            assert fscan != null;
-            fscan.close();
-            hf.deleteFile();
-            sort.close();
+            //assert fscan != null;
+            //fscan.close();
+            //hf.deleteFile();
+            //sort.close();
             bigTable.close();
 
 
