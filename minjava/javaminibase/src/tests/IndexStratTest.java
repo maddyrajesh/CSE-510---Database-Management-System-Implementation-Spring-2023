@@ -69,10 +69,10 @@ public class IndexStratTest {
             fileStream.close();
             System.out.println("Index strategy: " + type);
             System.out.println("=======================================\n");
-            System.out.println("map count: " + database.getMapCnt());
-            System.out.println("Distinct Rows = " + database.getRowCnt());
-            System.out.println("Distinct Coloumns = " + database.getColumnCnt());
-            System.out.println("\n=======================================\n");
+            //System.out.println("map count: " + database.getMapCnt());
+            //System.out.println("Distinct Rows = " + database.getRowCnt());
+            //System.out.println("Distinct Coloumns = " + database.getColumnCnt());
+            //System.out.println("\n=======================================\n");
             System.out.println("Reads : " + pcounter.rcounter);
             System.out.println("Writes: " + pcounter.wcounter);
             System.out.println("NumBUFS: " + NUMBUF);
@@ -249,13 +249,13 @@ public class IndexStratTest {
     //  Test index strategy 4.
 
     public static void test4() throws Exception {
-        //createDatabase("strat4.db", "strat4", 4);
+        //createDatabase("dhowa.db", "strat4", 4);
         pcounter.initialize();
-        new SystemDefs("strat4.db", 0, NUMBUF, "Clock");
+        new SystemDefs("dhowa.db", 0, NUMBUF, "Clock");
         bigt databaseTest = new bigt("strat4", false);
         assert(databaseTest.getMapCnt() == mapCount);
         long tmpTime = System.nanoTime();
-        Stream stream = databaseTest.openStream(1, "Sweden", "*", "*");
+        Stream stream = databaseTest.openStream(1, "Sweden", "Moose", "*");
         MID mid = new MID();
         Map map = new Map();
         do {

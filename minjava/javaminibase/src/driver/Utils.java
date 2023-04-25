@@ -31,7 +31,6 @@ public class Utils {
         String dbPath = getDBPath();
 
         System.out.println("DB name =>" + dbPath);
-        File f = new File(dbPath);
         Integer numPages = NUM_PAGES;
         File file = new File(dbPath);
         if(!file.exists())
@@ -165,9 +164,9 @@ public class Utils {
             }*/
 
             System.out.println("=======================================\n");
-            System.out.println("map count: " + bigTable.getMapCnt());
-            System.out.println("Distinct Rows = " + bigTable.getRowCnt());
-            System.out.println("Distinct Coloumns = " + bigTable.getColumnCnt());
+            //System.out.println("map count: " + bigTable.getMapCnt());
+            //System.out.println("Distinct Rows = " + bigTable.getRowCnt());
+            //System.out.println("Distinct Coloumns = " + bigTable.getColumnCnt());
             System.out.println("\n=======================================\n");
             System.out.println("Reads : " + pcounter.rcounter);
             System.out.println("Writes: " + pcounter.wcounter);
@@ -188,8 +187,8 @@ public class Utils {
         }
 
         //SystemDefs.JavabaseBM.setNumBuffers(0);
-//        SystemDefs.JavabaseBM.flushAllPages();
-//        SystemDefs.JavabaseDB.closeDB();
+        SystemDefs.JavabaseBM.flushAllPages();
+        SystemDefs.JavabaseDB.closeDB();
     }
 
 
