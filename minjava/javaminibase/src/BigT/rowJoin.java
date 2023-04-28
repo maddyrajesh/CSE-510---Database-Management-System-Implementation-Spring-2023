@@ -1,16 +1,18 @@
 package BigT;
 
-/*import cmdline.MiniTable;*/
+import diskmgr.pcounter;
 import driver.BigTable;
 import global.AttrOperator;
 import global.AttrType;
-/*import global.TupleOrder;*/
 import global.MapOrder;
+import global.SystemDefs;
 import heap.Heapfile;
 import iterator.*;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static global.GlobalConst.NUMBUF;
 
 public class rowJoin {
     private String columnName;
@@ -30,25 +32,27 @@ public class rowJoin {
     private String leftName;
     private String joinType;
 
-    public rowJoin(int amt_of_mem, Stream leftStream, String RightBigTName, String ColumnName,  String joinType)  throws Exception {
+    public rowJoin(int amt_of_mem, Stream leftStream, String RightBigTName, String outBigTName, String ColumnName, String joinType)  throws Exception {
         this.columnName = ColumnName;
         this.amtOfMem = amt_of_mem;
         this.rightBigTName = RightBigTName;
-        this.rightBigT = new bigt(RightBigTName, 1);
+        this.rightBigT = new bigt(this.rightBigTName, false);
         this.leftStream = leftStream;
-        this.joinType = joinType;
         // Left stream should be filtered on column
-        this.rightStream = this.rightBigT.openStream(1, "*", columnName, "*");
+        //this.rightStream = this.rightBigT.openStream(1, "*", columnName, "*");
         this.leftHeapFile = new Heapfile(LEFT_HEAP);
         this.rightHeapFile = new Heapfile(RIGHT_HEAP);
-        if (this.joinType.equalsIgnoreCase("SortMergeJoin")) {
+        this.outBigTName = outBigTName;
+        //this.leftName = leftName;
+        this.joinType = joinType;
+        if (this.joinType.equalsIgnoreCase("sortmergejoin")){
             storeLeftColMatch();
             storeRightColMatch();
             SortMergeJoin();
             SMStoreJoinResult();
             cleanUp();
         }
-        if (this.joinType.equalsIgnoreCase("NestedLoopJoin")){
+        if (this.joinType.equalsIgnoreCase("nestedloopjoin")){
             storeLeftColMatch();
             storeRightColMatch();
             NestedLoopJoin();
@@ -61,11 +65,11 @@ public class rowJoin {
 
     public void storeLeftColMatch() throws Exception {
         Map tempMap = this.leftStream.getNext();
+        System.out.println(tempMap);
         Map oldMap = new Map();
         oldMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
-        oldMap.copyMap(tempMap);
+        oldMap.copyMap(tempMap); //tempMap is null ?
         String tempRow = tempMap.getRowLabel();
-//        System.out.println("Left Stream results => ");
         while (tempMap!= null) {
             if (!tempMap.getRowLabel().equals(tempRow)) {
 //                oldMap.print();
@@ -75,20 +79,25 @@ public class rowJoin {
             oldMap.copyMap(tempMap);
             tempMap = this.leftStream.getNext();
         }
-//        oldMap.print();
+        oldMap.print();
         this.leftHeapFile.insertMap(oldMap.getMapByteArray());
-
         this.leftStream.closestream();
     }
 
-
+    public static String getDBPath(String tableName) {
+        return tableName  + ".db";
+    }
     public void storeRightColMatch() throws Exception {
-        Map tempMap = this.rightStream.getNext();
+        //String dbPath = getDBPath(this.rightBigTName);
+        //new SystemDefs(dbPath, 0, NUMBUF, "Clock");
+        //pcounter.initialize();
+        Stream rightStream = this.rightBigT.openStream(1, "*", columnName, "*");
+        Map tempMap = rightStream.getNext();
         Map oldMap = new Map();
         oldMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         oldMap.copyMap(tempMap);
         String tempRow = tempMap.getRowLabel();
-//        System.out.println("Right Stream results => ");
+        System.out.println("Right Stream results => ");
         while (tempMap!= null) {
             if (!tempMap.getRowLabel().equals(tempRow)) {
 //                oldMap.print();
@@ -106,18 +115,13 @@ public class rowJoin {
 
     public static Map getJoinMap(String rowKey, String columnKey, String value, Integer timestamp) {
 
-//        short[] attrSizes = new short[3];
-//        attrSizes[0] = (short) (MiniTable.BIGT_STR_SIZES[0]*2 + 1);
-//        attrSizes[1] = (short) (MiniTable.BIGT_STR_SIZES[0] + MiniTable.BIGT_STR_SIZES[1] + 1);
-//        attrSizes[2] = MiniTable.BIGT_STR_SIZES[2];
-
         Map map = new Map();
         try {
             map.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Map map1 = new Map();
+        Map map1 = new Map(map);
         try {
             map1.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
             map1.setRowLabel(rowKey);
@@ -127,16 +131,20 @@ public class rowJoin {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        System.out.println("getJoinMapDone");
         return map1;
+
     }
 
     public void SMStoreJoinResult() throws Exception {
+
         Map tempMap = sm.get_next();
         while (tempMap != null) {
             storeToBigT(tempMap.getRowLabel(), tempMap.getColumnLabel());
             tempMap = sm.get_next();
         }
         sm.close();
+        System.out.println("SMStoreJoinResultDone");
     }
 
     public void NLStoreJoinResult() throws Exception {
@@ -148,8 +156,6 @@ public class rowJoin {
         nl.close();
     }
     public void SortMergeJoin() throws Exception {
-        MapIterator leftIterator, rightIterator;
-
         CondExpr[] outFilter = new CondExpr[2];
         outFilter[0] = new CondExpr();
         outFilter[1] = new CondExpr();
@@ -160,7 +166,7 @@ public class rowJoin {
         outFilter[0].type2 = new AttrType(AttrType.attrSymbol);
         outFilter[0].operand2.symbol = new FldSpec(new RelSpec(RelSpec.innerRel), 3);
         outFilter[1] = null;
-        
+
         FldSpec[] projection = new FldSpec[4];
         RelSpec rel = new RelSpec(RelSpec.outer);
         projection[0] = new FldSpec(rel, 1);
@@ -172,17 +178,16 @@ public class rowJoin {
             this.leftIterator = new FileScan(LEFT_HEAP, BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
             this.rightIterator = new FileScan(RIGHT_HEAP, BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES, (short) 4, 4, projection, null);
             this.sm = new SortMerge(BigTable.BIGT_ATTR_TYPES, 4, BigTable.BIGT_STR_SIZES, BigTable.BIGT_ATTR_TYPES,
-                    4, BigTable.BIGT_STR_SIZES, 3, 4, 3, 4, amtOfMem,
+                    4, BigTable.BIGT_STR_SIZES, 2, 4, 2, 4, amtOfMem,
                     this.leftIterator, this.rightIterator, false, false, sortOrder, outFilter,
                     projection, 1);
         } catch (Exception e) {
             System.err.println(e);
         }
+        System.out.println("SMdone");
     }
 
     public void NestedLoopJoin() throws Exception {
-        MapIterator leftIterator, rightIterator;
-
         CondExpr[] outFilter = new CondExpr[2];
         outFilter[0] = new CondExpr();
         outFilter[1] = new CondExpr();
@@ -222,21 +227,20 @@ public class rowJoin {
             System.err.println(e);
         }
     }
-
     public void storeToBigT(String leftRowLabel, String rightRowLabel) throws Exception {
         // TODO: set self bigTName
         List<Map> joinedMaps = new ArrayList<>();
-        String bigTName = this.leftName;
+        //String leftbigTName = this.leftName;
         String JOIN_BT_NAME = leftRowLabel + rightRowLabel;
-        resultantBigT = new bigt(this.outBigTName, 1);
-        Stream tempStream = new bigt(bigTName, 1).openStream(1, leftRowLabel, "*", "*");
+        resultantBigT = new bigt(this.outBigTName, true);
+        Stream tempStream = this.leftStream; //new bigt(leftbigTName, 1).openStream(1, leftRowLabel, "*", "*");
         Map tempMap = tempStream.getNext();
         while (tempMap != null) {
             if (tempMap.getColumnLabel().equals(this.columnName) == true) {
-                Map m2 = new Map();
-                m2.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
-                m2.copyMap(tempMap);
-                joinedMaps.add(m2);
+                Map m1 = new Map();
+                m1.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
+                m1.copyMap(tempMap);
+                joinedMaps.add(m1);
             } else {
                 String rowLabel = leftRowLabel + ":" + rightRowLabel;
                 String columnLabel = leftRowLabel + ":" + tempMap.getColumnLabel();
@@ -246,7 +250,7 @@ public class rowJoin {
                 Map tempMap2 = getJoinMap(rowLabel, columnLabel, ValueLabel, timeStampVal);
                 if(tempMap2!=null) {
                     try {
-                        resultantBigT.insertMap(tempMap2.getMapByteArray());
+                        resultantBigT.insertMap(tempMap2.getMapByteArray(), 1);
                     } catch (Exception e) {
                         System.out.println(columnLabel);
                         //e.printStackTrace();
@@ -257,8 +261,7 @@ public class rowJoin {
         }
         tempStream.closestream();
 
-
-        tempStream = new bigt(rightBigTName, 1).openStream(1, rightRowLabel, "*", "*");
+        tempStream = new bigt(this.rightBigTName, false).openStream(1, rightRowLabel, "*", "*");
         tempMap = tempStream.getNext();
         while (tempMap != null) {
             if (tempMap.getColumnLabel().equals(this.columnName)) {
@@ -275,7 +278,7 @@ public class rowJoin {
                 Map tempMap2 = getJoinMap(rowLabel, columnLabel, ValueLabel, timeStampVal);
                 if(tempMap2!=null) {
                     try {
-                        resultantBigT.insertMap(tempMap2.getMapByteArray());
+                        resultantBigT.insertMap(tempMap2.getMapByteArray(), 1);
                     } catch (Exception e) {
                         System.out.println(columnLabel);
                         //e.printStackTrace();
@@ -296,8 +299,9 @@ public class rowJoin {
             Integer timeStampVal = tempMap3.getTimeStamp();
 
             Map tempMap4 = getJoinMap(rowLabel, columnLabel, ValueLabel, timeStampVal);
-            resultantBigT.insertMap(tempMap4.getMapByteArray());
+            resultantBigT.insertMap(tempMap4.getMapByteArray(), 1);
         }
+        System.out.println("storetoBigTDone");
     }
 
     public void getFirstThree(List<Map> mapList) throws Exception {
@@ -321,7 +325,7 @@ public class rowJoin {
 
             mapList.remove(minIndex);
         } while (mapList.size() != 3);
-
+        System.out.println("get3Done");
     }
 
     public void cleanUp() throws Exception {
@@ -336,5 +340,7 @@ public class rowJoin {
 
         this.leftHeapFile.deleteFile();
         this.rightHeapFile.deleteFile();
+        System.out.println("cleanUpDone");
     }
+
 }
