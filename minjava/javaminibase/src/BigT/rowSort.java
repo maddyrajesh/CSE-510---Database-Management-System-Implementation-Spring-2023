@@ -35,7 +35,7 @@ public class rowSort {
         this.numBuffers = numBuffers;
         this.inStream = inStream;
         //this.bigTable = new bigt(bigTable, 1); /*type 1 BigTable*/ /*???*/
-        this.heapfile = new Heapfile(bigTable.name + "_row_sort");
+        //this.heapfile = new Heapfile(bigTable.name + "_row_sort");
         insertTempHeapFile();
         createMapStream();
         // Load the mapVersion HashMap from the disk
@@ -55,14 +55,14 @@ public class rowSort {
             }
         }
         this.heapfile = new Heapfile(name + ".heap");
-        BigTable.orderType = 1;
-        Stream tempStream = this.inStream;
+        //BigTable.orderType = 1;
+        //Stream tempStream = this.inStream;
         Map map = inStream.getNext();
         String value = "";
         String row = map.getRowLabel(); //previous row
 
         while (map != null) {
-            if(!map.getRowLabel().equals(row)){
+            /*if(!map.getRowLabel().equals(row)){
                 if (value.equals("")) {
                     value = "0";
                 }
@@ -75,7 +75,7 @@ public class rowSort {
                 this.heapfile.insertMap(tempMap.getMapByteArray());
                 row = map.getRowLabel();
                 value = "";
-            }
+            }*/
             if (map.getColumnLabel().equals(this.column)) {
                 //value = map.getValue();
                 this.heapfile.insertMap(map.getMapByteArray());
@@ -86,9 +86,9 @@ public class rowSort {
 
         }
 
-        tempStream.closestream();
+        //tempStream.closestream();
 
-        Map tempMap = new Map();
+        /*Map tempMap = new Map();
         tempMap.setHeader(BigTable.BIGT_ATTR_TYPES, BigTable.BIGT_STR_SIZES);
         tempMap.setRowLabel(row);
         tempMap.setColumnLabel("temp_column");
@@ -97,7 +97,7 @@ public class rowSort {
         }
         tempMap.setValue(value);
         tempMap.setTimeStamp(1);
-        this.heapfile.insertMap(tempMap.getMapByteArray());
+        this.heapfile.insertMap(tempMap.getMapByteArray());*/
     }
 
     public void createMapStream() throws Exception {
@@ -121,15 +121,15 @@ public class rowSort {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Map map = this.sortObj.get_next();
+        /*Map map = this.sortObj.get_next();
         while(map != null){
-            this.bigTable.insertMap(map.getMapByteArray(), 1);
+            this.bigTable.insertMap(map.getMapByteArray());
             map = sortObj.get_next();
-        }
+        } */
         //this.mapStream = new Stream(5, "*", "*", "*");
 
         //Map map = sortObj.get_next();
-        this.mapStream = new Stream(1, map.getRowLabel(), "*", "*");
+        //this.mapStream = new Stream(1, map.getRowLabel(), "*", "*");
 
 
     }
@@ -137,7 +137,7 @@ public class rowSort {
     public Map getNext() throws Exception {
         Map map = sortObj.get_next();
         if (map == null) {
-            this.mapStream.closestream();
+            /*this.mapStream.closestream();
             BigTable.orderType = 1;
             Map nextVal = this.sortObj.get_next();
             if (nextVal == null) {
@@ -147,7 +147,7 @@ public class rowSort {
             map = this.mapStream.getNext();
             if(map == null)
                 this.mapStream.closestream();
-
+             */
         }
 
         return map;
